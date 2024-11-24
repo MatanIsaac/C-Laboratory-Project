@@ -1,2 +1,2 @@
 # C-Laboratory-Project
-The final project for (mmn 14) for an open university(israel) laboratory cource in c programming language.
+The final project(mmn 14) for the open university's (israel) laboratory course in c programming language.
