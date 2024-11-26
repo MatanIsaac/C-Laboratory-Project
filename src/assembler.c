@@ -4,6 +4,11 @@
 #include "input.h"
 #include "common.h"
 
+/* 
+    #: MAKE SURE THERE ISN'T ANY DIFFERENT FONT CHARACTERS LIKE:
+        '”' instead of '"'
+*/
+
 int main(int argc,char* argv[])
 {
     char line[MAX_LINE];
