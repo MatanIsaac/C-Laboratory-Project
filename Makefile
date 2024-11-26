@@ -3,22 +3,23 @@ CFLAGS = -Wall -ansi -pedantic -g
 SRC_DIR = src
 OBJ_DIR = obj
 BUILD_DIR = build
-OBJ = $(OBJ_DIR)/main.o
-TARGET = $(BUILD_DIR)/main
+SRCS = $(wildcard $(SRC_DIR)/*.c)
+OBJS = $(patsubst $(SRC_DIR)/%.c,$(OBJ_DIR)/%.o,$(SRCS))
+TARGET = $(BUILD_DIR)/assembler
 
 all: $(TARGET)
 
-$(TARGET): $(OBJ_DIR) $(BUILD_DIR) $(OBJ)
-	$(CC) $(CFLAGS) $(OBJ) -o $(TARGET)
+$(TARGET): $(OBJ_DIR) $(BUILD_DIR) $(OBJS)
+	$(CC) $(CFLAGS) $(OBJS) -o $(TARGET)
 
-$(OBJ): $(SRC_DIR)/main.c
-	$(CC) $(CFLAGS) -c $(SRC_DIR)/main.c -o $(OBJ)
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
+	$(CC) $(CFLAGS) -c $< -o $@
 
 $(OBJ_DIR):
-	mkdir $(OBJ_DIR)
+	mkdir -p $(OBJ_DIR)
 
 $(BUILD_DIR):
-	mkdir $(BUILD_DIR)
+	mkdir -p $(BUILD_DIR)
 
 ifeq ($(OS),Windows_NT)
 clean:

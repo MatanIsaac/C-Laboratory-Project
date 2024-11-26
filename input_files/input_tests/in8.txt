@@ -1,0 +1,3 @@
+The DATE today is "12/12/2024".
+"WHAT A day it is."
+There are "18" apples left.
