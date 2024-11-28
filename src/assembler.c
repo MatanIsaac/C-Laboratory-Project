@@ -3,6 +3,7 @@
 
 #include "input.h"
 #include "common.h"
+#include "isaac_hashtable.h"
 
 /* 
     #: MAKE SURE THERE ISN'T ANY DIFFERENT FONT CHARACTERS LIKE:
@@ -36,9 +37,9 @@ int main(int argc,char* argv[])
             printf("line:\n%s\n",line);
         }
 
-        /* update file index to open next file */
         if(file_index < argc)
             file_index++; 
     }
+
     return 0;
 }
