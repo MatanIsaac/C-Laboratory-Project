@@ -24,7 +24,8 @@ HashTable* isaac_hashtable_create(size_t size)
     }
     table->size = size;
     table->buckets = calloc(table->size, sizeof(HashNode*));
-    if (table->buckets == NULL) {
+    if (table->buckets == NULL) 
+    {
         free(table);
         return NULL;
     }
@@ -188,4 +189,3 @@ void isaac_hashnode_print(HashNode* node)
         }
     }
 }
-

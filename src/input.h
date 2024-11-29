@@ -8,7 +8,15 @@
  * @param word contains the words as we read them one by one
  * @return 1 on success or -1 when reaching EOF.
  */
-int read_word(FILE* fp, char *word);
+int read_word(FILE* fp, char* word);
+
+/**
+ * @brief reads words from a line word by word
+ * @param fp the line to read from
+ * @param word contains the words as we read them one by one
+ * @return 1 on success or -1 when reaching '\0'
+ */
+int read_word_from_line(char* line, char* word);
 
 /**
  * @brief reads lines from a file one by one 
@@ -16,7 +24,7 @@ int read_word(FILE* fp, char *word);
  * @param line contains the lines as we read them one by one
  * @return 1 on success or -1 when reaching EOF.
  */
-int read_line(FILE* fp, char *line);
+int read_line(FILE* fp, char* line);
 
 
 /**

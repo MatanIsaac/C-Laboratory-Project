@@ -15,7 +15,8 @@ typedef struct HashNode
 void isaac_hashnode_print(HashNode* node);
 
 /* Hash table structure */
-struct HashTable {
+struct HashTable 
+{
     HashNode **buckets;
     size_t size;
 };
@@ -41,4 +42,4 @@ void isaac_hashtable_remove(HashTable* table, const char *key);
 /* Prints the hashtable in an orderly manner */
 void isaac_hashtable_print(HashTable* table);
 
-#endif /* HASHTABLE_H */
+#endif 

@@ -12,19 +12,21 @@
 
 int main(int argc,char* argv[])
 {
-    char line[MAX_LINE];
+
 
     FILE* fp;
     int file_index = 1;
+    int arg_count = argc;
 
     if(argc < 2)
     {
-        perror("Usage: build/assembler.exe <filename1> <filename2> ...");
+        fprintf(stderr,"Usage: build/assembler.exe <filename1> <filename2> ...");
         return -1;
     }
-    printf("opening filename: %s\n",argv[file_index]);
-    if(argc > 1)
+
+    while(--arg_count > 0)
     {
+        printf("opening filename: %s\n",argv[file_index]);
         fp = fopen(argv[file_index],"r+");
         if(fp == NULL)
         {
@@ -32,13 +34,17 @@ int main(int argc,char* argv[])
             return -1;
         }
 
-        while(read_line(fp,line) > 0)
+        if(parse_macros(fp) < 0)
         {
-            printf("line:\n%s\n",line);
+            printf("\nDone Parsing Macros.\n");
+            return -1;
         }
 
-        if(file_index < argc)
-            file_index++; 
+        /*
+        printf("argc: %d\n", arg_count);
+        printf("file index: %d\n", file_index);
+        */
+        file_index++;
     }
 
     return 0;

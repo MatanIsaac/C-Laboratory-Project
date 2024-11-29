@@ -23,12 +23,13 @@ $(BUILD_DIR):
 
 ifeq ($(OS),Windows_NT)
 clean:
-	del /Q $(OBJ_DIR)\*.o
-	del /Q $(BUILD_DIR)\*.exe
+	rm -r $(OBJ_DIR)/*.o
+	rm -r $(BUILD_DIR)/*.exe
+	
 else
 clean: 
-	find $(OBJ_DIR) -type f -name '*.o' -delete
-	find $(BUILD_DIR) -type f -delete
+	rm -rf $(OBJ_DIR)/*.o
+	rm -rf $(BUILD_DIR)/*.exe
 endif
 
 # Declare phony targets
