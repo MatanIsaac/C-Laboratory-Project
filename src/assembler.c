@@ -12,8 +12,6 @@
 
 int main(int argc,char* argv[])
 {
-
-
     FILE* fp;
     int file_index = 1;
     int arg_count = argc;
@@ -26,15 +24,16 @@ int main(int argc,char* argv[])
 
     while(--arg_count > 0)
     {
+        const char* current_file = argv[file_index];
         printf("opening filename: %s\n",argv[file_index]);
-        fp = fopen(argv[file_index],"r+");
+        fp = fopen(argv[file_index],"r");
         if(fp == NULL)
         {
             printf("Failed to open %s\n", argv[file_index]);
             return -1;
         }
 
-        if(parse_macros(fp) < 0)
+        if(parse_macros(fp,current_file) < 0)
         {
             printf("\nDone Parsing Macros.\n");
             return -1;

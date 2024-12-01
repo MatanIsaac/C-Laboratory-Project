@@ -1,0 +1,1 @@
+MAIN:addr3,LISTLOOP:prn#48leaSTR,r6incr6movr3,Ksubr1,r4bneENDcmp K, #-6 bne &END decKjmp&LOOPEND:stopSTR:.string"abcd"LIST:.data6,-9.data-100K:.data31

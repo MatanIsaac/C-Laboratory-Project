@@ -1,6 +1,10 @@
 #ifndef COMMNET_H
 #define COMMNET_H
 
+#define bool int
+#define true 1
+#define false 0
+
 #define NEW_LINE '\n'
 #define TAB '\t'
 #define INVALID_CHAR -1
