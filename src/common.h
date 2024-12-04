@@ -11,5 +11,6 @@
 #define NULL_TERMINATOR '\0'
 #define MAX_LINE 80
 #define MAX_WORD 25
+#define LABEL_MAX_LEN 31 /* the length of a symbolic label of a memory address */
 
 #endif 

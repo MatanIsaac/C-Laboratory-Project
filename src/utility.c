@@ -32,3 +32,25 @@ char* get_filename(const char* file)
 
     return result;
 }
+
+char* string_calloc(size_t element_count,size_t size_of_element)
+{
+    char* str = calloc(element_count,size_of_element);
+    if(str == NULL)
+    {
+        perror("String memory allocation failed\n");
+        return NULL;
+    }
+    return str;
+}
+
+char* string_malloc(size_t size)
+{
+    char* str = (char*)malloc(size);
+    if(str == NULL)
+    {
+        perror("String memory allocation failed\n");
+        return NULL;
+    }
+    return str;
+}
