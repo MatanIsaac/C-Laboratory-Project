@@ -4,12 +4,9 @@ MAIN:       sub r3, LIST
             mov r3, K
             sub r1, r4
             bne END
-
             cmp K, #-7
-
             bne &END
             add K
-
             add K, 3
             jmp &LOOP
 END:        stop

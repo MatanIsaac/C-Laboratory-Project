@@ -86,19 +86,7 @@ int read_line(FILE* fp, char *line)
 }
 
 /*
-    TODO: 
-    There are 2 situations:
-
-    1. found a new macro definition
-        a. check if already exists in the map.
-        b. if new, add to a macro hash table
-        c. if exists already, give error -> macro was defined twice 
-
-    2. found a macro tag (already define)
-        a. look for it in the table
-        b. if exists, parse and use the value of the macro.
-        c. if unknown, give error -> macro undefined.
-
+    TODO: Make sure NOTHING is missing here, necessary checks, etc..
     NOTE: MUST ENSURE:
     1. macro names are correct and cannot be - an instruction / directive.
     2. if there are no additional charaters in LABEL definitions : I.E: MAIN:, LOOP:, END:, STR:, LIST:,
@@ -111,7 +99,7 @@ int parse_macros(FILE* fp, const char* filepath)
 {
     int position = 0;
     FILE* new_fp;
-    bool  can_insert_line       = false;
+    /*bool  can_insert_line       = false;*/
     char* line                  = string_calloc(MAX_LINE,sizeof(char));
     char* word                  = string_calloc(MAX_WORD,sizeof(char));
     char* current_macro_key     = string_calloc(MAX_WORD,sizeof(char));
@@ -128,6 +116,7 @@ int parse_macros(FILE* fp, const char* filepath)
     snprintf(file_path, total_length, "%s%s_output.asm", output_path, base_filename);
     /*-----------------------------------------------------------------------*/
 
+    /* Open new output file to write to */
     new_fp = fopen(file_path,"w");
 
     while(read_line(fp,line) != -1)
@@ -175,7 +164,6 @@ int parse_macros(FILE* fp, const char* filepath)
                         {
                             if(strstr(line,"mcroend") == NULL)
                             {
-                                strcat(current_macro_value,"\n");
                                 strcat(current_macro_value,line);
                                 strcat(current_macro_value,"\n");
                             }
@@ -193,80 +181,8 @@ int parse_macros(FILE* fp, const char* filepath)
                 }
             }
         }
-        
-        /*  CheckList
-                1. not a directive or instruction
-                2. is the word a macro label ? 
-                    a. if so replace the word with the macro value
-                3. are we defining a macro ? 
-                    a. if so 
-        */
-        
     }
 
     fclose(new_fp);
     return 0;
 }
-
-/*
-int parse_macros(FILE* fp, const char* filepath)
-{
-    FILE* new_fp;
-    char* word                  = calloc(MAX_WORD,sizeof(char));
-    char* current_macro_key     = calloc(MAX_WORD,sizeof(char));
-    char* current_macro_value   = calloc(MAX_LINE,sizeof(char));
-    HashTable* macro_table      = isaac_hashtable_create(10);
-    
-    char *base_filename         = get_filename(filepath);
-    char* final_name            = strcat(base_filename,"_output.asm");
-
-    new_fp = fopen(final_name,"w");
-
-    while(read_word(fp,word) != EOF)
-    {
-        if(strcmp("mcro",word) != 0)
-        {
-            const char* temp = isaac_hashtable_get(macro_table,word);
-            if(temp != NULL)
-            {
-                printf("Macro Label Is: %s\n",word);
-                printf("Macro Def Is: %s\n",temp);
-                fprintf(new_fp,"%s",temp);
-                continue;
-            }
-            fprintf(new_fp,"%s",word);
-            continue;
-        }
-        
-        read_word(fp,word); 
-
-        
-        if(isaac_hashtable_get(macro_table,word) != NULL) 
-        {
-            printf("Macro exists already, macro redefinition");
-            return -1;
-        }        
-
-        strcpy(current_macro_key,word);
-
-        read_word(fp,word);
-
-        while(strcmp("mcroend",word) != 0)  
-        {
-            strcat(current_macro_value,word);
-            strcat(current_macro_value," ");
-            read_word(fp,word);
-        }
-        if(strcmp("mcroend",word) == 0)
-        {
-            isaac_hashtable_insert(macro_table, current_macro_key, current_macro_value);
-            isaac_hashtable_print(macro_table);
-        }
-
-        memset(current_macro_key, 0, MAX_WORD);
-        memset(current_macro_value, 0, MAX_LINE);
-    }
-    
-    return 0;
-}
-*/
