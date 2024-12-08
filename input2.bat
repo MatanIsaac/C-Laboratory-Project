@@ -1,1 +1,1 @@
-build\assembler.exe input_files\preproccessor\preprocessor2.am
+build\assembler.exe input_files\preproccessor\preprocessor2

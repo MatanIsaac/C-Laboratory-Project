@@ -109,7 +109,7 @@ int parse_macros(FILE* fp, const char* filepath)
     /* This part is to make sure output files are created in the right place */
     char *base_filename         = get_filename(filepath);
     char* final_name            = strcat(base_filename,"_output.am");
-    const char* output_path     = "output_files/preprocessor/";
+    const char* output_path     = "build/output_files/";
     size_t total_length         = strlen(output_path) + strlen(final_name) + 1;
     char* file_path             = string_malloc(total_length);
     snprintf(file_path, total_length, "%s%s_output.am", output_path, base_filename);

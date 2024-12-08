@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "input.h"
 #include "common.h"
@@ -15,17 +16,18 @@ int main(int argc,char* argv[])
     FILE* fp;
     int file_index = 1;
     int arg_count = argc;
-
+    
     if(argc < 2)
     {
-        fprintf(stderr,"Usage: build/assembler.exe <filename1> <filename2> ...");
+        fprintf(stderr,"Usage: build/assembler <filename1> <filename2> ...");
         return -1;
     }
 
     while(--arg_count > 0)
     {
-        const char* current_file = argv[file_index];
-        printf("opening filename: %s\n",argv[file_index]);
+        char* current_file = argv[file_index];
+        strcat(current_file,".as");
+        printf("opening filename: %s\n",current_file);
         fp = fopen(argv[file_index],"r");
         if(fp == NULL)
         {
