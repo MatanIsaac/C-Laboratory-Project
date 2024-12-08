@@ -99,7 +99,6 @@ int parse_macros(FILE* fp, const char* filepath)
 {
     int position = 0;
     FILE* new_fp;
-    /*bool  can_insert_line       = false;*/
     char* line                  = string_calloc(MAX_LINE,sizeof(char));
     char* word                  = string_calloc(MAX_WORD,sizeof(char));
     char* current_macro_key     = string_calloc(MAX_WORD,sizeof(char));
@@ -109,11 +108,11 @@ int parse_macros(FILE* fp, const char* filepath)
     /* Create sufficient memory for the final file path */
     /* This part is to make sure output files are created in the right place */
     char *base_filename         = get_filename(filepath);
-    char* final_name            = strcat(base_filename,"_output.asm");
+    char* final_name            = strcat(base_filename,"_output.am");
     const char* output_path     = "output_files/preprocessor/";
     size_t total_length         = strlen(output_path) + strlen(final_name) + 1;
     char* file_path             = string_malloc(total_length);
-    snprintf(file_path, total_length, "%s%s_output.asm", output_path, base_filename);
+    snprintf(file_path, total_length, "%s%s_output.am", output_path, base_filename);
     /*-----------------------------------------------------------------------*/
 
     /* Open new output file to write to */
@@ -136,8 +135,8 @@ int parse_macros(FILE* fp, const char* filepath)
                 }
                 else
                 {
-                    printf("Macro Label Is: %s\n",word);
-                    printf("Macro Def Is: %s\n",temp);
+                    /*printf("Macro Label Is: %s\n",word);*/
+                    /*printf("Macro Def Is: %s\n",temp);*/
                     fprintf(new_fp,"%s",temp);    
                     break;
                 }
@@ -172,7 +171,7 @@ int parse_macros(FILE* fp, const char* filepath)
                         }
                                     
                         isaac_hashtable_insert(macro_table, current_macro_key, current_macro_value);
-                        isaac_hashtable_print(macro_table);
+                        /*isaac_hashtable_print(macro_table);*/
 
                         memset(current_macro_key, 0, MAX_WORD);
                         memset(current_macro_value, 0, MAX_LINE);
