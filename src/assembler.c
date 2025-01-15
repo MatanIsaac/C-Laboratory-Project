@@ -5,6 +5,8 @@
 #include "input.h"
 #include "common.h"
 #include "isaac_hashtable.h"
+#include "pre_asm.h"
+#include "utility.h"
 
 /* 
     #: MAKE SURE THERE ISN'T ANY DIFFERENT FONT CHARACTERS LIKE:
@@ -26,7 +28,6 @@ int main(int argc,char* argv[])
     while(--arg_count > 0)
     {
         char* current_file = argv[file_index];
-        strcat(current_file,".as");
         printf("opening filename: %s\n",current_file);
         fp = fopen(argv[file_index],"r");
         if(fp == NULL)
@@ -35,12 +36,13 @@ int main(int argc,char* argv[])
             return -1;
         }
 
-        if(parse_macros(fp,current_file) < 0)
+        if(parse_macros(fp,current_file) > 0)
         {
             printf("\nDone Parsing Macros.\n");
-            return -1;
+            return 1;
         }
 
+ 
         /*
         printf("argc: %d\n", arg_count);
         printf("file index: %d\n", file_index);

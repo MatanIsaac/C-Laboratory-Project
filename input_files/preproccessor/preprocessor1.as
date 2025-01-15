@@ -1,4 +1,5 @@
-MAIN:       add r3, LIST
+; adding LIST to r3 register 
+MAIN:       add r3, LIST 
 LOOP:       prn #48
             mcro a_mc
             cmp K, #-6

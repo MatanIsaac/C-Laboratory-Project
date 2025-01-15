@@ -7,6 +7,11 @@
 
 #define NEW_LINE '\n'
 #define TAB '\t'
+#define DOT '.'
+#define COMMA ','
+#define DASH '-'
+#define PLUS '+'
+#define SEMICOLON ';'
 #define INVALID_CHAR -1
 #define NULL_TERMINATOR '\0'
 #define MAX_LINE 80

@@ -1,4 +1,6 @@
 #include "utility.h"
+#include <stdlib.h>
+#include <string.h>
 
 char* get_filename(const char* file)
 {
@@ -53,4 +55,55 @@ char* string_malloc(size_t size)
         return NULL;
     }
     return str;
+}
+
+#include <stdlib.h>
+#include <string.h>
+
+char* my_strdup(const char* s) 
+{
+    size_t len;
+    char *copy = NULL;
+
+    if (s == NULL) 
+        return NULL;
+
+    len = strlen(s) + 1;
+    copy = malloc(len);
+
+    if (copy) 
+    {
+        memcpy(copy, s, len);
+    }
+    return copy;
+}
+
+bool is_instruction(char* word)
+{
+    int i;
+    static const char* instructions[16] = 
+    { "mov", "cmp","add", "sub", "lea", "clr", "not", "inc", "dec", "jmp", "bne", "jsr", "red", "prn", "rts", "stop"};
+    for(i = 0; i < 16; i++)
+    {   
+        if(strcmp(word,instructions[i]) == 0)
+        {
+            return true;
+        }   
+    }
+    return false;
+}
+
+bool is_directive(char* word)
+{
+    int i;
+    static const char* directives[4] = 
+    { ".data", ".string",".extern", ".entry"};
+    for(i = 0; i < 4; i++)
+    {   
+        if(strcmp(word,directives[i]) == 0)
+        {
+            return true;
+        }   
+    }
+    return false;
 }

@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "utility.h"
+
 /* Hash function for strings using djb2 algorithm */
 static unsigned long hash(const char *str) 
 {
@@ -77,7 +79,7 @@ void isaac_hashtable_insert(HashTable *table, const char *key, const char *value
         {
             /* Update the value */
             free(node->value);
-            node->value = strdup(value);
+            node->value = my_strdup(value);
             return;
         }
         node = node->next;
@@ -86,8 +88,8 @@ void isaac_hashtable_insert(HashTable *table, const char *key, const char *value
     new_node = malloc(sizeof(HashNode));
     if (new_node == NULL)
         return;
-    new_node->key = strdup(key);
-    new_node->value = strdup(value);
+    new_node->key = my_strdup(key);
+    new_node->value = my_strdup(value);
     new_node->next = table->buckets[index];
     table->buckets[index] = new_node;
 }
