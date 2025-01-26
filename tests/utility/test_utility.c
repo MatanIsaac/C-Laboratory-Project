@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "../../src/utility.h"
 #include "../test_framework.h"
+#include "../../src/utility.h"
 
 /* Function prototypes */
 void test_filename();
@@ -27,11 +27,15 @@ int main()
    ======================= */
 void test_filename()
 {
+    char* name1 = NULL;
+    char*  name2 = NULL;
+    char* name3 = NULL;
+    char* name4 = NULL;
     fprintf(stdout, "#---------------------------------------------------------#\n");
-    fprintf(stdout, "Testing get_filename function in utility.h\n");
+    fprintf(stdout, "Starting Test - get_filename function in utility.h\n");
 
     /* Test case 1: Valid file path */
-    char* name1 = get_filename("input_files/preproccessor/preproc_invalid1.as");
+    name1 = get_filename("input_files/preproccessor/preproc_invalid1.as");
     if (strcmp(name1, "preproc_invalid1") == 0)
     {
         log_test("Test_get_filename_ValidPath", TEST_PASS, "Extracted filename correctly.", "test_log.txt");
@@ -43,7 +47,7 @@ void test_filename()
     free(name1);
 
     /* Test case 2: File without extension */
-    char* name2 = get_filename("input_files/preproccessor/preproc_valid1");
+    name2 = get_filename("input_files/preproccessor/preproc_valid1");
     if (strcmp(name2, "preproc_valid1") == 0)
     {
         log_test("Test_get_filename_NoExtension", TEST_PASS, "Handled filename without extension.", "test_log.txt");
@@ -55,7 +59,7 @@ void test_filename()
     free(name2);
 
     /* Test case 3: File with multiple dots */
-    char* name3 = get_filename("input_files/preproccessor/pre.proc_valid.2..as");
+    name3 = get_filename("input_files/preproccessor/pre.proc_valid.2..as");
     if (strcmp(name3, "preproc_valid2") == 0)
     {
         log_test("Test_get_filename_MultipleDots", TEST_PASS, "Handled multiple dots correctly.", "test_log.txt");
@@ -67,7 +71,7 @@ void test_filename()
     free(name3);
 
     /* Test case 4: NULL input */
-    char* name4 = get_filename(NULL);
+    name4 = get_filename(NULL);
     if (name4 == NULL)
     {
         log_test("Test_get_filename_NullInput", TEST_PASS, "Handled NULL input safely.", "test_log.txt");
@@ -78,7 +82,7 @@ void test_filename()
         free(name4);
     }
 
-    fprintf(stdout, "Done - Testing get_filename function in utility.h\n");
+    fprintf(stdout, "Done Testing - get_filename function in utility.h\n");
     fprintf(stdout, "#---------------------------------------------------------#\n\n");
 }
 
@@ -87,10 +91,13 @@ void test_filename()
    ======================= */
 void test_string_functions()
 {
+    char* str1 = NULL;
+    char* str2 = NULL;
+    char*  dup = NULL;
     fprintf(stdout, "#---------------------------------------------------------#\n");
-    fprintf(stdout, "Testing string memory allocation functions in utility.h\n");
+    fprintf(stdout, "Starting Test - string memory allocation functions in utility.h\n");
 
-    char* str1 = string_malloc(10);
+    str1 = string_malloc(10);
     if (str1)
     {
         log_test("Test_string_malloc", TEST_PASS, "Allocated memory successfully.", "test_log.txt");
@@ -101,7 +108,7 @@ void test_string_functions()
         log_test("Test_string_malloc", TEST_FAIL, "Memory allocation failed.", "test_log.txt");
     }
 
-    char* str2 = string_calloc(5, sizeof(char));
+    str2 = string_calloc(5, sizeof(char));
     if (str2)
     {
         log_test("Test_string_calloc", TEST_PASS, "Allocated and zero-initialized memory successfully.", "test_log.txt");
@@ -112,7 +119,7 @@ void test_string_functions()
         log_test("Test_string_calloc", TEST_FAIL, "Memory allocation failed.", "test_log.txt");
     }
 
-    char* dup = my_strdup("Hello");
+    dup = my_strdup("Hello");
     if (dup && strcmp(dup, "Hello") == 0)
     {
         log_test("Test_my_strdup", TEST_PASS, "Duplicated string correctly.", "test_log.txt");
@@ -123,7 +130,7 @@ void test_string_functions()
         log_test("Test_my_strdup", TEST_FAIL, "String duplication failed.", "test_log.txt");
     }
 
-    fprintf(stdout, "Done - Testing string memory allocation functions in utility.h\n");
+    fprintf(stdout, "Done Testing - string memory allocation functions in utility.h\n");
     fprintf(stdout, "#---------------------------------------------------------#\n\n");
 }
 
@@ -133,7 +140,7 @@ void test_string_functions()
 void test_instruction_functions()
 {
     fprintf(stdout, "#---------------------------------------------------------#\n");
-    fprintf(stdout, "Testing is_instruction function in utility.h\n");
+    fprintf(stdout, "Starting Test - is_instruction function in utility.h\n");
 
     if (is_instruction("mov"))
         log_test("Test_is_instruction_valid", TEST_PASS, "Recognized valid instruction.", "test_log.txt");
@@ -145,7 +152,7 @@ void test_instruction_functions()
     else
         log_test("Test_is_instruction_invalid", TEST_FAIL, "Incorrectly recognized invalid instruction.", "test_log.txt");
 
-    fprintf(stdout, "Done - Testing is_instruction function in utility.h\n");
+    fprintf(stdout, "Done Testing - is_instruction function in utility.h\n");
     fprintf(stdout, "#---------------------------------------------------------#\n\n");
 }
 
@@ -155,7 +162,7 @@ void test_instruction_functions()
 void test_directive_functions()
 {
     fprintf(stdout, "#---------------------------------------------------------#\n");
-    fprintf(stdout, "Testing is_directive function in utility.h\n");
+    fprintf(stdout, "Starting Test - is_directive function in utility.h\n");
 
     if (is_directive(".data"))
         log_test("Test_is_directive_valid", TEST_PASS, "Recognized valid directive.", "test_log.txt");
@@ -167,7 +174,7 @@ void test_directive_functions()
     else
         log_test("Test_is_directive_invalid", TEST_FAIL, "Incorrectly recognized invalid directive.", "test_log.txt");
 
-    fprintf(stdout, "Done - Testing is_directive function in utility.h\n");
+    fprintf(stdout, "Done Testing - is_directive function in utility.h\n");
     fprintf(stdout, "#---------------------------------------------------------#\n\n");
 }
 
@@ -176,23 +183,25 @@ void test_directive_functions()
    ======================= */
 void test_hash_function()
 {
-    fprintf(stdout, "#---------------------------------------------------------#\n");
-    fprintf(stdout, "Testing hash function in utility.h\n");
+    unsigned long hash1,hash2,hash3;
 
-    unsigned long hash1 = hash("test_string");
-    unsigned long hash2 = hash("test_string");
+    fprintf(stdout, "#---------------------------------------------------------#\n");
+    fprintf(stdout, "Starting Test - hash function in utility.h\n");
+
+    hash1 = hash("test_string");
+    hash2 = hash("test_string");
 
     if (hash1 == hash2)
         log_test("Test_hash_deterministic", TEST_PASS, "Hash function produced consistent results.", "test_log.txt");
     else
         log_test("Test_hash_deterministic", TEST_FAIL, "Hash function produced inconsistent results.", "test_log.txt");
 
-    unsigned long hash3 = hash("different_string");
+    hash3 = hash("different_string");
     if (hash1 != hash3)
         log_test("Test_hash_unique", TEST_PASS, "Hash function produced unique values.", "test_log.txt");
     else
         log_test("Test_hash_unique", TEST_FAIL, "Hash function produced duplicate values.", "test_log.txt");
 
-    fprintf(stdout, "Done - Testing hash function in utility.h\n");
+    fprintf(stdout, "Done Testing - hash function in utility.h\n");
     fprintf(stdout, "#---------------------------------------------------------#\n\n");
 }
