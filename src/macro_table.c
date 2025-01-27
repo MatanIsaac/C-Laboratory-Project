@@ -1,31 +1,21 @@
-#include "isaac_hashtable.h"
+#include "macro_table.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "utility.h"
 
-/* Hash function for strings using djb2 algorithm */
-static unsigned long hash(const char *str) 
-{
-    unsigned long hash = 5381;
-    int c;
-    while ((c = (unsigned char)*str++))
-        hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
-    return hash;
-}
-
 /* Create a new hash table */
-HashTable* isaac_hashtable_create(size_t size) 
+MacroTable* macro_table_create(size_t size) 
 {
-    HashTable *table = malloc(sizeof(HashTable));
+    MacroTable *table = malloc(sizeof(MacroTable));
     if (table == NULL)
     {
-        perror("[isaac_hashtable_create]: Failed to allocate memory for HashTable\n");
+        perror("[macro_ table__create]: Failed to allocate memory for HashTable\n");
         return NULL;
     }
     table->size = size;
-    table->buckets = calloc(table->size, sizeof(HashNode*));
+    table->buckets = calloc(table->size, sizeof(MacroNode*));
     if (table->buckets == NULL) 
     {
         free(table);
@@ -35,7 +25,7 @@ HashTable* isaac_hashtable_create(size_t size)
 }
 
 /* Destroy the hash table */
-void isaac_hashtable_destroy(HashTable *table) 
+void macro_table_destroy(MacroTable *table) 
 {
     size_t i = 0;
 
@@ -44,10 +34,10 @@ void isaac_hashtable_destroy(HashTable *table)
 
     for (; i < table->size; i++) 
     {
-        HashNode *node = table->buckets[i];
+        MacroNode *node = table->buckets[i];
         while (node != NULL) 
         {
-            HashNode *next = node->next;
+            MacroNode *next = node->next;
             free(node->key);
             free(node->value);
             free(node);
@@ -59,12 +49,12 @@ void isaac_hashtable_destroy(HashTable *table)
 }
 
 /* Insert a key-value pair into the hash table */
-void isaac_hashtable_insert(HashTable *table, const char *key, const char *value) 
+void macro_table_insert(MacroTable *table, const char *key, const char *value) 
 {
     unsigned long hashValue;
     size_t index;
-    HashNode *node;
-    HashNode *new_node;
+    MacroNode *node;
+    MacroNode *new_node;
 
     if (table == NULL || key == NULL)
         return;
@@ -85,7 +75,7 @@ void isaac_hashtable_insert(HashTable *table, const char *key, const char *value
         node = node->next;
     }
     /* Key not found, insert new node */
-    new_node = malloc(sizeof(HashNode));
+    new_node = malloc(sizeof(MacroNode));
     if (new_node == NULL)
         return;
     new_node->key = my_strdup(key);
@@ -95,11 +85,11 @@ void isaac_hashtable_insert(HashTable *table, const char *key, const char *value
 }
 
 /* Retrieve a value associated with a key */
-const char* isaac_hashtable_get(HashTable *table, const char *key) 
+const char* macro_table_get(MacroTable *table, const char *key) 
 {
     unsigned long hashValue;
     size_t index;
-    HashNode *node;
+    MacroNode *node;
 
     if (table == NULL || key == NULL)
         return NULL;
@@ -118,12 +108,12 @@ const char* isaac_hashtable_get(HashTable *table, const char *key)
 }
 
 /* Remove a key-value pair from the hash table */
-void isaac_hashtable_remove(HashTable *table, const char *key) 
+void macro_table_remove(MacroTable *table, const char *key) 
 {
     unsigned long hashValue;
     size_t index;
-    HashNode *node;
-    HashNode *prev;
+    MacroNode *node;
+    MacroNode *prev;
     
     if (table == NULL || key == NULL)
         return;
@@ -154,18 +144,18 @@ void isaac_hashtable_remove(HashTable *table, const char *key)
 }
 
 /* Prints the hashtable in an orderly manner */
-void isaac_hashtable_print(HashTable* table)
+void macro_table_print(MacroTable* table)
 {
     size_t i;
     printf("Index  Bucket\n");
     printf("-----  -------------------------------------------------\n");
     for(i = 0; i < table->size; i++)
     {
-        HashNode* node = table->buckets[i];
+        MacroNode* node = table->buckets[i];
         printf("%-5lu  ", (unsigned long)i);
         if(node != NULL)
         {
-            isaac_hashnode_print(node);
+            macro_node_print(node);
         }
         else
         {
@@ -175,7 +165,7 @@ void isaac_hashtable_print(HashTable* table)
 }
 
 /* Prints the contents of a hashtable node */
-void isaac_hashnode_print(HashNode* node)
+void macro_node_print(MacroNode* node)
 {
     while(node != NULL)
     {

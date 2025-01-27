@@ -7,6 +7,6 @@
  * @param fp fp the file to read from.
  * @return 1 on success or -1 when reaching EOF.
  */
-int parse_macros(FILE* fp, const char* filepath);
+int parse_macros(FILE* fp, const char* filepath, char* output_file);
 
 #endif

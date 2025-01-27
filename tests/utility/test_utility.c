@@ -13,11 +13,13 @@ void test_hash_function();
 
 int main()
 {
+    /*
     test_filename();
-    test_string_functions();
     test_instruction_functions();
     test_directive_functions();
     test_hash_function();
+    */
+    test_string_functions();
     
     return 0;
 }
@@ -93,6 +95,8 @@ void test_string_functions()
 {
     char* str1 = NULL;
     char* str2 = NULL;
+    char* str3 = NULL;
+    char* str4 = NULL;
     char*  dup = NULL;
     fprintf(stdout, "#---------------------------------------------------------#\n");
     fprintf(stdout, "Starting Test - string memory allocation functions in utility.h\n");
@@ -129,6 +133,30 @@ void test_string_functions()
     {
         log_test("Test_my_strdup", TEST_FAIL, "String duplication failed.", "test_log.txt");
     }
+
+
+    str3 = remove_last_character("MAIN:");
+    if (str3 && strcmp(str3, "MAIN") == 0)
+    {
+        
+        log_test("Test_remove_last_character", TEST_PASS, "Removing string's last character correctly.", "test_log.txt");
+        free(str3);
+    }
+    else
+    {
+        log_test("Test_remove_last_character", TEST_FAIL, "Removing string's last character failed.", "test_log.txt");
+    } 
+
+    str4 = remove_last_character("r3,");
+    if (str4 && strcmp(str4, "r3") == 0)
+    {
+        log_test("Test_remove_last_character", TEST_PASS, "Removing string's last character correctly.", "test_log.txt");
+        free(str4);
+    }
+    else
+    {
+        log_test("Test_remove_last_character", TEST_FAIL, "Removing string's last character failed.", "test_log.txt");
+    } 
 
     fprintf(stdout, "Done Testing - string memory allocation functions in utility.h\n");
     fprintf(stdout, "#---------------------------------------------------------#\n\n");

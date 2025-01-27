@@ -36,12 +36,12 @@ int read_word_from_line(const char* line, char* word, int start_pos)
     int i = start_pos;
     int j = 0;
 
-    while (line[i] != '\0' && isspace(line[i])) 
+    while (line[i] != NULL_TERMINATOR && isspace(line[i])) 
     {
         i++;
     }
 
-    while (line[i] != '\0' && !isspace(line[i])) 
+    while (line[i] != NULL_TERMINATOR && !isspace(line[i])) 
     {
         if (j < MAX_WORD - 1) 
         {
@@ -50,7 +50,7 @@ int read_word_from_line(const char* line, char* word, int start_pos)
         i++;
     }
 
-    word[j] = '\0';
+    word[j] = NULL_TERMINATOR;
     if (j == 0) 
     {
         return -1;

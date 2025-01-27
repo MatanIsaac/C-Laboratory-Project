@@ -5,6 +5,10 @@ LOOP:       prn #48
             cmp K, #-6
             bne &END
             mcroend
+            mcro lea
+            inc r1
+            add r2, r1
+            mcroend
             lea STR, r6
             inc r6
             mov r3, K
@@ -14,7 +18,9 @@ LOOP:       prn #48
             dec K
             jmp &LOOP 
 END:        stop 
+
 STR:        .string "abcd" 
+
 LIST:       .data 6, -9 
             .data -100
 K:          .data 31

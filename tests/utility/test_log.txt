@@ -1,0 +1,120 @@
+[2025-01-27 10:58:19] Test:     [Test_string_malloc]
+              Result:   [PASS]
+              Details:  [Allocated memory successfully.]
+
+[2025-01-27 10:58:19] Test:     [Test_string_calloc]
+              Result:   [PASS]
+              Details:  [Allocated and zero-initialized memory successfully.]
+
+[2025-01-27 10:58:19] Test:     [Test_my_strdup]
+              Result:   [PASS]
+              Details:  [Duplicated string correctly.]
+
+[2025-01-27 10:58:19] Test:     [Test_remove_last_character]
+              Result:   [FAIL]
+              Details:  [Removing string's last character failed.]
+
+[2025-01-27 10:58:19] Test:     [Test_remove_last_character]
+              Result:   [FAIL]
+              Details:  [Removing string's last character failed.]
+
+[2025-01-27 11:00:19] Test:     [Test_string_malloc]
+              Result:   [PASS]
+              Details:  [Allocated memory successfully.]
+
+[2025-01-27 11:00:19] Test:     [Test_string_calloc]
+              Result:   [PASS]
+              Details:  [Allocated and zero-initialized memory successfully.]
+
+[2025-01-27 11:00:19] Test:     [Test_my_strdup]
+              Result:   [PASS]
+              Details:  [Duplicated string correctly.]
+
+[2025-01-27 11:00:19] Test:     [Test_remove_last_character]
+              Result:   [FAIL]
+              Details:  [Removing string's last character failed.]
+
+[2025-01-27 11:00:19] Test:     [Test_remove_last_character]
+              Result:   [FAIL]
+              Details:  [Removing string's last character failed.]
+
+[2025-01-27 11:00:47] Test:     [Test_string_malloc]
+              Result:   [PASS]
+              Details:  [Allocated memory successfully.]
+
+[2025-01-27 11:00:47] Test:     [Test_string_calloc]
+              Result:   [PASS]
+              Details:  [Allocated and zero-initialized memory successfully.]
+
+[2025-01-27 11:00:47] Test:     [Test_my_strdup]
+              Result:   [PASS]
+              Details:  [Duplicated string correctly.]
+
+[2025-01-27 11:00:47] Test:     [Test_remove_last_character]
+              Result:   [FAIL]
+              Details:  [Removing string's last character failed.]
+
+[2025-01-27 11:00:47] Test:     [Test_remove_last_character]
+              Result:   [FAIL]
+              Details:  [Removing string's last character failed.]
+
+[2025-01-27 11:01:17] Test:     [Test_string_malloc]
+              Result:   [PASS]
+              Details:  [Allocated memory successfully.]
+
+[2025-01-27 11:01:17] Test:     [Test_string_calloc]
+              Result:   [PASS]
+              Details:  [Allocated and zero-initialized memory successfully.]
+
+[2025-01-27 11:01:17] Test:     [Test_my_strdup]
+              Result:   [PASS]
+              Details:  [Duplicated string correctly.]
+
+[2025-01-27 11:01:17] Test:     [Test_remove_last_character]
+              Result:   [FAIL]
+              Details:  [Removing string's last character failed.]
+
+[2025-01-27 11:01:17] Test:     [Test_remove_last_character]
+              Result:   [FAIL]
+              Details:  [Removing string's last character failed.]
+
+[2025-01-27 11:01:38] Test:     [Test_string_malloc]
+              Result:   [PASS]
+              Details:  [Allocated memory successfully.]
+
+[2025-01-27 11:01:38] Test:     [Test_string_calloc]
+              Result:   [PASS]
+              Details:  [Allocated and zero-initialized memory successfully.]
+
+[2025-01-27 11:01:38] Test:     [Test_my_strdup]
+              Result:   [PASS]
+              Details:  [Duplicated string correctly.]
+
+[2025-01-27 11:01:38] Test:     [Test_remove_last_character]
+              Result:   [FAIL]
+              Details:  [Removing string's last character failed.]
+
+[2025-01-27 11:01:38] Test:     [Test_remove_last_character]
+              Result:   [FAIL]
+              Details:  [Removing string's last character failed.]
+
+[2025-01-27 11:02:45] Test:     [Test_string_malloc]
+              Result:   [PASS]
+              Details:  [Allocated memory successfully.]
+
+[2025-01-27 11:02:45] Test:     [Test_string_calloc]
+              Result:   [PASS]
+              Details:  [Allocated and zero-initialized memory successfully.]
+
+[2025-01-27 11:02:45] Test:     [Test_my_strdup]
+              Result:   [PASS]
+              Details:  [Duplicated string correctly.]
+
+[2025-01-27 11:02:45] Test:     [Test_remove_last_character]
+              Result:   [PASS]
+              Details:  [Removing string's last character correctly.]
+
+[2025-01-27 11:02:45] Test:     [Test_remove_last_character]
+              Result:   [PASS]
+              Details:  [Removing string's last character correctly.]
+

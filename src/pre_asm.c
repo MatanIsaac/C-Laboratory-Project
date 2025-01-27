@@ -2,53 +2,84 @@
 #include "input.h"
 #include "common.h"
 #include "utility.h"
-#include "isaac_hashtable.h"
+#include "macro_table.h"
 
 #include <string.h>
+#include <stdlib.h>
+#include <ctype.h>
 
 /*
     TODO: Make sure NOTHING is missing here, necessary checks, etc..
     NOTE: MUST ENSURE:
+    FIXME: make sure to identify lines longer than 81 including '\n' 
     1. macro names are correct and cannot be - an instruction / directive.
     2. if there are no additional charaters in LABEL definitions : I.E: MAIN:, LOOP:, END:, STR:, LIST:,
-    IMPORTANT: if there is an error in the preprocessor phase, we can't continue,
-    must stop, report to the user the errors, and continue to the next file (if available)
     3. remember: spaces can appear almost everywhere, especially before and after ','
+    IMPORTANT: if there is an error in the preprocessor phase
+    report to the user the errors, and continue to the next line (if available)
+
 */
 
-int parse_macros(FILE* fp, const char* filepath)
+int parse_macros(FILE* fp, const char* filepath, char* output_file)
 {
-    int position = 0;
+    int position = 0, flag = 0;
     FILE* new_fp;
-    char* line                  = string_calloc(MAX_LINE,sizeof(char));
-    char* word                  = string_calloc(MAX_WORD,sizeof(char));
-    char* current_macro_key     = string_calloc(MAX_WORD,sizeof(char));
-    char* current_macro_value   = string_calloc(MAX_LINE,sizeof(char));
-    HashTable* macro_table      = isaac_hashtable_create(10);
+    char* base_filename;
+    size_t total_length;
+    char* file_path;
+    char* output_path           = "build/output_files/";
+    char* line                  = string_calloc(MAX_LINE, sizeof(char));
+    char* word                  = string_calloc(MAX_WORD, sizeof(char));
+    char* current_macro_key     = string_calloc(MAX_WORD, sizeof(char));
+    char* current_macro_value   = string_calloc(MAX_LINE, sizeof(char));
+    MacroTable* macro_table      = macro_table_create(10);
     
-    /* Create sufficient memory for the final file path */
-    /* This part is to make sure output files are created in the right place */
-    char *base_filename         = get_filename(filepath);
-    char* final_name            = strcat(base_filename,".am");
-    const char* output_path     = "build/output_files/";
-    size_t total_length         = strlen(output_path) + strlen(final_name) + 1;
-    char* file_path             = string_malloc(total_length);
-    /* 
-        IMPORTANT: snprintf was replaced with sprintf - make sure there isn't errors/bugs here.
-        * snprintf is not available on ansi c 89 standard 
-    */
-    sprintf(file_path,"%s%s", output_path, base_filename);
-    /*-----------------------------------------------------------------------*/
+    char* filename        = get_filename(filepath);
+    size_t base_len             = strlen(filename);
+    base_filename               = string_malloc(base_len + 4); /* +4 for ".am" and null terminator */
+    strcpy(base_filename, filename);
+    strcat(base_filename, ".am");
 
-    /* Open new output file to write to */
-    new_fp = fopen(file_path,"w");
+    total_length = strlen(output_path) + strlen(base_filename) + 2;
+    file_path = string_malloc(total_length);
+    if (!file_path) 
+    {
+        fprintf(stderr, "Memory allocation failed for file_path\n");
+        free(filename);
+        free(base_filename);
+        free(line);
+        free(word);
+        free(current_macro_key);
+        free(current_macro_value);
+        macro_table_destroy(macro_table);
+        return -1;
+    }
+    
+    sprintf(file_path, "%s%s", output_path, base_filename);
+
+    /* Open new output file */
+    new_fp = fopen(file_path, "w+");
+    if (!new_fp) 
+    {
+        fprintf(stderr, "Failed to open [%s] for pre_asm output\n.", file_path);
+        free(filename);
+        free(base_filename);
+        free(file_path);
+        free(line);
+        free(word);
+        free(current_macro_key);
+        free(current_macro_value);
+        macro_table_destroy(macro_table);
+        return -1;
+    }
+    
+    strcpy(output_file, file_path);
 
     while(read_line(fp,line) != -1)
     {
         position = 0;
         
-        /* ignore comments when line starts with ';' */
-        if(line[0] == SEMICOLON)
+        if(line[0] == SEMICOLON || is_line_empty(line))
         {
             fprintf(new_fp,"%s",line);
             fputc(NEW_LINE,new_fp);
@@ -57,56 +88,53 @@ int parse_macros(FILE* fp, const char* filepath)
 
         if(strstr(line,"mcro") == NULL)
         {
-            /* read line word by word */
             while ((position = read_word_from_line(line, word, position)) != -1) 
             {
-                /* check if current word is a macro call */
-                const char* temp = isaac_hashtable_get(macro_table,word);
-                if(temp == NULL) /* if line is not, than add line entirely */
+                const char* temp = macro_table_get(macro_table,word);
+                if(temp == NULL)
                 {
                     fprintf(new_fp,"%s",line);
                     fputc(NEW_LINE,new_fp);
                     break;   
                 }
-                else /* otherwise add macro's value */
+                else
                 {
-                    /*printf("Macro Label Is: %s\n",word);*/
-                    /*printf("Macro Def Is: %s\n",temp);*/
                     fprintf(new_fp,"%s",temp);    
                     break;
                 }
             }
             continue;
         }
-        else /* we have a mcro definition in the line */
+        else
         {
-            /* read line word by word */
             while ((position = read_word_from_line(line, word, position)) != -1) 
             {
-                if (strcmp("mcro", word) == 0) /* if it is a macro definition */
-                {
-                    /* check if it exists in the macro table */
-                    const char* temp = isaac_hashtable_get(macro_table,word);
-                    if (temp == NULL) /* if macro label is not in the macro table */
+                if (strcmp("mcro", word) == 0)
+                { 
+                    const char* temp = macro_table_get(macro_table,word);
+                    if (temp == NULL)
                     {
-                        /* Read next word, which should be the macro's label */
                         position = read_word_from_line(line, word, position);
 
                         /* 
-                            Make sure the macro label is not an instruction or a directive 
-                            if it is - print error and stop and exit program.
+                            TODO: Make sure to check here if macro name is valid
+                            'mcro label'
+                                 ^ - must be space, make sure its valid ?  
                         */
                         if(is_instruction(word) || is_directive(word))
                         {
                             fprintf(stderr, "Macro's name cannot be an instruction or a direective! \n");
-                            fclose(new_fp);
-                            remove(file_path);
-                            return -1;
+                            flag = -1;
                         }
                         
-                        strcpy(current_macro_key, word); /* Copy macro label */
+                        strcpy(current_macro_key, word);
 
-                        /* read next line - should be a macro definition line */
+                        if(read_word_from_line(line, word, position) != -1)
+                        {
+                            fprintf(stderr,"Found extraneous text after macro definition\n");
+                            flag = -1;
+                        }
+
                         while(read_line(fp, line) != -1)
                         {
                             if(strstr(line,"mcroend") == NULL)
@@ -115,15 +143,32 @@ int parse_macros(FILE* fp, const char* filepath)
                                 strcat(current_macro_value,"\n");
                             }
                             else
+                            {
+                                int i = 0;
+                                while(line[i] != NULL_TERMINATOR && isspace(line[i]))
+                                    i++;
+
+                                while(line[i] != NULL_TERMINATOR && !isspace(line[i]))
+                                {
+                                    i++;
+                                }
+
+                                while(line[i] != NULL_TERMINATOR && isspace(line[i]))
+                                    i++;
+
+                                if(line[i] != NULL_TERMINATOR && !isspace(line[i]))
+                                {
+                                    fprintf(stderr,"Found extraneous text after macro definition\n");
+                                    flag = -1;
+                                }
+                                
                                 break;
+                            }
                         }
                                     
-                        isaac_hashtable_insert(macro_table, current_macro_key, current_macro_value);
-                        /*isaac_hashtable_print(macro_table);*/
-
+                        macro_table_insert(macro_table, current_macro_key, current_macro_value);
                         memset(current_macro_key, 0, MAX_WORD);
-                        memset(current_macro_value, 0, MAX_LINE);
-                        
+                        memset(current_macro_value, 0, MAX_LINE);                        
                     }
                 }
             }
@@ -131,5 +176,13 @@ int parse_macros(FILE* fp, const char* filepath)
     }
 
     fclose(new_fp);
-    return 0;
+    free(filename);
+    free(base_filename);
+    free(file_path);
+    free(line);
+    free(word);
+    free(current_macro_key);
+    free(current_macro_value);
+    macro_table_destroy(macro_table);
+    return flag;
 }

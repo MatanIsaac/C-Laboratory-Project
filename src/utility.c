@@ -1,4 +1,5 @@
 #include "utility.h"
+#include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -57,8 +58,6 @@ char* string_malloc(size_t size)
     return str;
 }
 
-#include <stdlib.h>
-#include <string.h>
 
 char* my_strdup(const char* s) 
 {
@@ -76,6 +75,21 @@ char* my_strdup(const char* s)
         memcpy(copy, s, len);
     }
     return copy;
+}
+
+char* remove_last_character(const char *s)
+{
+    char* str;
+    int len = strlen(s);
+
+    str = string_calloc(len-1,sizeof(char));
+    strncpy(str,s,len-1);
+    if (str == NULL) 
+        return NULL;
+    
+    str[len-1] = '\0';
+
+    return str;
 }
 
 bool is_instruction(char* word)
@@ -106,4 +120,103 @@ bool is_directive(char* word)
         }   
     }
     return false;
+}
+
+bool is_line_empty(char* line) 
+{
+    int i = 0;
+    while (line[i] != NULL_TERMINATOR) 
+    { 
+        if (!isspace((unsigned char)line[i])) 
+        {
+            return false;
+        }
+        i++;
+    }
+    return true;
+}
+
+unsigned long hash(const char *str)
+{
+    unsigned long hash = 5381;
+    int c;
+    while ((c = (unsigned char)*str++))
+        hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
+    return hash;
+}
+
+int get_instruction_index(const char *s)
+{
+    switch (s[0])
+    {
+        case 'a':  /* add */
+            if (s[1]=='d' && s[2]=='d' && s[3]=='\0')
+                return 2;  /* "add" */
+            break;
+
+        case 'b':  /* bne */
+            if (s[1]=='n' && s[2]=='e' && s[3]=='\0')
+                return 10; /* "bne" */
+            break;
+
+        case 'c':  /* cmp, clr */
+            if (s[1]=='m' && s[2]=='p' && s[3]=='\0')
+                return 1;  /* "cmp" */
+            if (s[1]=='l' && s[2]=='r' && s[3]=='\0')
+                return 5;  /* "clr" */
+            break;
+
+        case 'd':  /* dec */
+            if (s[1]=='e' && s[2]=='c' && s[3]=='\0')
+                return 8;  /* "dec" */
+            break;
+
+        case 'i':  /* inc */
+            if (s[1]=='n' && s[2]=='c' && s[3]=='\0')
+                return 7;  /* "inc" */
+            break;
+
+        case 'j':  /* jmp, jsr */
+            if (s[1]=='m' && s[2]=='p' && s[3]=='\0')
+                return 9;  /* "jmp" */
+            if (s[1]=='s' && s[2]=='r' && s[3]=='\0')
+                return 11; /* "jsr" */
+            break;
+
+        case 'l':  /* lea */
+            if (s[1]=='e' && s[2]=='a' && s[3]=='\0')
+                return 4;  /* "lea" */
+            break;
+
+        case 'm':  /* mov */
+            if (s[1]=='o' && s[2]=='v' && s[3]=='\0')
+                return 0;  /* "mov" */
+            break;
+
+        case 'n':  /* not */
+            if (s[1]=='o' && s[2]=='t' && s[3]=='\0')
+                return 6;  /* "not" */
+            break;
+
+        case 'p':  /* prn */
+            if (s[1]=='r' && s[2]=='n' && s[3]=='\0')
+                return 13; /* "prn" */
+            break;
+
+        case 'r':  /* red, rts */
+            if (s[1]=='e' && s[2]=='d' && s[3]=='\0')
+                return 12; /* "red" */
+            if (s[1]=='t' && s[2]=='s' && s[3]=='\0')
+                return 14; /* "rts" */
+            break;
+
+        case 's':  /* sub, stop */
+            if (s[1]=='u' && s[2]=='b' && s[3]=='\0')
+                return 3;  /* "sub" */
+            if (s[1]=='t' && s[2]=='o' && s[3]=='p' && s[4]=='\0')
+                return 15; /* "stop" */
+            break;
+    }
+
+    return -1;
 }
