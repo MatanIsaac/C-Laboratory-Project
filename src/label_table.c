@@ -1,4 +1,5 @@
 #include "label_table.h"
+#include "isaac_logger.h"
 
 const char* labeltype_to_string(enum LabelType type) 
 {
@@ -14,7 +15,7 @@ void label_table_create(LabelTable* table)
     table->labels = (LabelNode*)malloc(LABEL_TABLE_DEFAULT_SIZE * sizeof(LabelNode));
     if (!table->labels) 
     {
-        fprintf(stderr, "Failed to allocate memory for the label table!\n");
+        log_error(__FILE__,__LINE__,  "Failed to allocate memory for the label table!\n");
         exit(EXIT_FAILURE);
     }
     table->size = 0;
@@ -35,6 +36,7 @@ void label_table_destroy(LabelTable* table)
 /* Dynamically adds a label to the table */
 void label_table_add(LabelTable* table, const char* name, unsigned int address, enum LabelType type) 
 {
+    /* TODO: check if already exists, and if so log error here . */
     if (table->size >= table->capacity) 
     {
         /* Grow the array dynamically (double the capacity) */
@@ -42,7 +44,7 @@ void label_table_add(LabelTable* table, const char* name, unsigned int address, 
         table->labels = (LabelNode*)realloc(table->labels, table->capacity * sizeof(LabelNode));
         if (!table->labels) 
         {
-            fprintf(stderr, "Failed to reallocate memory for the label table!\n");
+            log_error(__FILE__,__LINE__, "Failed to reallocate memory for the label table!\n");
             exit(EXIT_FAILURE);
         }
     }
@@ -58,11 +60,11 @@ void label_node_print(LabelNode* node)
 {
     if (!node) 
     {
-        fprintf(stderr, "Error: NULL label node\n");
+        log_error(__FILE__,__LINE__, "Error: NULL label node\n");
         return;
     }
 
-    fprintf(stdout, "[name: %s] - [address: %u, type: %s]\n",
+    log_error(__FILE__,__LINE__, "[name: %s] - [address: %u, type: %s]\n",
             node->name, node->address, labeltype_to_string(node->type));
 }
 
@@ -71,12 +73,12 @@ void label_table_print(LabelTable* table)
 {
     unsigned int i = 0;
 
-    printf("| %-6s | %-10s | %-6s |\n", "Label", "Address", "Type");
-    printf("---------------------------------\n");
+    log_error(__FILE__,__LINE__, "| %-6s | %-10s | %-6s |\n", "Label", "Address", "Type");
+    log_error(__FILE__,__LINE__, "---------------------------------\n");
 
     for (; i < table->size; i++) 
     {
-        printf("| %-6s | %-10u | %-6s |\n",
+        log_error(__FILE__,__LINE__, "| %-6s | %-10u | %-6s |\n",
                table->labels[i].name,
                table->labels[i].address,
                labeltype_to_string(table->labels[i].type));

@@ -4,6 +4,7 @@
 #include "utility.h"
 #include "instruction_table.h"
 #include "wordfield.h"
+#include "isaac_logger.h"
 
 void prepare_first_pass(const char* filepath)
 {
@@ -35,20 +36,20 @@ void prepare_first_pass(const char* filepath)
     label_table_create(&label_table);
     label_table_print(&label_table);
 
-    printf("firstpass: opening filename: %s\n", filepath);
+    log_out(__FILE__,__LINE__, "firstpass: opening filename: %s\n", filepath);
     fp = fopen(filepath, "r");
     if(fp == NULL)
     {
-        fprintf(stderr, "Failed to open [%s] for first pass\n.", filepath);
+        log_error(__FILE__,__LINE__, "Failed to open [%s] for first pass\n.", filepath);
     }
 
     if(execute_first_pass(fp,&label_table) >= 0) /* success */
     {
-        fprintf(stderr, "Done First-Pass for [%s]\n.", filepath);
+        log_error(__FILE__,__LINE__, "Done First-Pass for [%s]\n.", filepath);
     }
     else /* first pass failed */
     {
-        fprintf(stderr, "Failed First-Pass for [%s]\n.", filepath);
+        log_error(__FILE__,__LINE__, "Failed First-Pass for [%s]\n.", filepath);
     }
 }   
 
@@ -79,14 +80,14 @@ int execute_first_pass(FILE* fp, LabelTable* label_table)
                 /*wordfield* wf;*/
                 int temp = 0;
                 
-                printf("instruction line: [%s]\n",line);
-                printf("instruction word: [%s]\n",word);
+                log_out(__FILE__,__LINE__, "instruction line: [%s]\n",line);
+                log_out(__FILE__,__LINE__, "instruction word: [%s]\n",word);
                 
                 temp = position - strlen(word);
-                printf("instruction word position: [%d]\n",temp);
+                log_out(__FILE__,__LINE__, "instruction word position: [%d]\n",temp);
 
                 str = strncpy_from_pos(line,temp);
-                printf("copied word: [%s]\n",str);
+                log_out(__FILE__,__LINE__, "copied word: [%s]\n",str);
                 /*
                 wf = create_wordfield(str);
                 print_wordfield(wf)
@@ -105,9 +106,10 @@ int execute_first_pass(FILE* fp, LabelTable* label_table)
                 */
                 if(strrchr(word,':'))
                 {
+                    
                     char* name;
                     name = remove_last_character(word);
-                    fprintf(stdout,"name: %s\n", name);
+                    log_out(__FILE__,__LINE__, "name: %s\n", name);
                     label_table_add(label_table,name,IC,CODE);
                 }
             }

@@ -3,7 +3,7 @@
 #include "common.h"
 #include "utility.h"
 #include "macro_table.h"
-
+#include "isaac_logger.h"
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
@@ -44,7 +44,7 @@ int parse_macros(FILE* fp, const char* filepath, char* output_file)
     file_path = string_malloc(total_length);
     if (!file_path) 
     {
-        fprintf(stderr, "Memory allocation failed for file_path\n");
+        log_error(__FILE__,__LINE__, "Memory allocation failed for file_path\n");
         free(filename);
         free(base_filename);
         free(line);
@@ -61,7 +61,7 @@ int parse_macros(FILE* fp, const char* filepath, char* output_file)
     new_fp = fopen(file_path, "w+");
     if (!new_fp) 
     {
-        fprintf(stderr, "Failed to open [%s] for pre_asm output\n.", file_path);
+        log_error(__FILE__,__LINE__, "Failed to open [%s] for pre_asm output\n.", file_path);
         free(filename);
         free(base_filename);
         free(file_path);
@@ -123,7 +123,7 @@ int parse_macros(FILE* fp, const char* filepath, char* output_file)
                         */
                         if(is_instruction(word) || is_directive(word))
                         {
-                            fprintf(stderr, "Macro's name cannot be an instruction or a direective! \n");
+                            log_error(__FILE__,__LINE__, "Macro's name cannot be an instruction or a direective! \n");
                             flag = -1;
                         }
                         
@@ -131,7 +131,7 @@ int parse_macros(FILE* fp, const char* filepath, char* output_file)
 
                         if(read_word_from_line(line, word, position) != -1)
                         {
-                            fprintf(stderr,"Found extraneous text after macro definition\n");
+                            log_error(__FILE__,__LINE__, "Found extraneous text after macro definition\n");
                             flag = -1;
                         }
 
@@ -158,7 +158,7 @@ int parse_macros(FILE* fp, const char* filepath, char* output_file)
 
                                 if(line[i] != NULL_TERMINATOR && !isspace(line[i]))
                                 {
-                                    fprintf(stderr,"Found extraneous text after macro definition\n");
+                                    log_error(__FILE__,__LINE__, "Found extraneous text after macro definition\n");
                                     flag = -1;
                                 }
                                 

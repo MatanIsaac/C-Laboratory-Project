@@ -4,6 +4,7 @@
 #include <string.h>
 #include "common.h"
 #include "utility.h"
+#include "isaac_logger.h"
 
 /* Print a single instruction node */
 void instruction_node_print(InstructionNode* node)
@@ -11,13 +12,13 @@ void instruction_node_print(InstructionNode* node)
     if (node && node->op_name[0] != NULL_TERMINATOR)
     {
         /* Found a valid entry */
-        fprintf(stdout, "[op-name: %s] - [op_code: %u, funct: %u]\n",
+        log_out(__FILE__,__LINE__,  "[op-name: %s] - [op_code: %u, funct: %u]\n",
                 node->op_name, node->op_code, node->funct);
     }
     else
     {
         /* This slot is empty or invalid */
-        fprintf(stdout, "(empty)\n");
+        log_out(__FILE__,__LINE__,  "(empty)\n");
     }
 }
 
@@ -107,11 +108,11 @@ void instruction_table_print(InstructionTable* table)
     if (!table)
         return;
 
-    printf("Instruction Table: (size = %d)\n", INSTRUCTION_TABLE_SIZE);
+    log_out(__FILE__,__LINE__, "Instruction Table: (size = %d)\n", INSTRUCTION_TABLE_SIZE);
     for (; i < INSTRUCTION_TABLE_SIZE; i++)
     {
-        printf("[%2lu] ", (unsigned long)i);
+        log_out(__FILE__,__LINE__, "[%2lu] ", (unsigned long)i);
         instruction_node_print(&table->instructions[i]);
     }
-    printf("\n");
+    log_out(__FILE__,__LINE__, "\n");
 }

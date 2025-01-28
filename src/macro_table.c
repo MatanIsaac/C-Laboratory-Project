@@ -4,6 +4,7 @@
 #include <string.h>
 
 #include "utility.h"
+#include "isaac_logger.h"
 
 /* Create a new hash table */
 MacroTable* macro_table_create(size_t size) 
@@ -147,19 +148,19 @@ void macro_table_remove(MacroTable *table, const char *key)
 void macro_table_print(MacroTable* table)
 {
     size_t i;
-    printf("Index  Bucket\n");
-    printf("-----  -------------------------------------------------\n");
+    log_error(__FILE__,__LINE__,"Index  Bucket\n");
+    log_error(__FILE__,__LINE__,"-----  -------------------------------------------------\n");
     for(i = 0; i < table->size; i++)
     {
         MacroNode* node = table->buckets[i];
-        printf("%-5lu  ", (unsigned long)i);
+        log_error(__FILE__,__LINE__,"%-5lu  ", (unsigned long)i);
         if(node != NULL)
         {
             macro_node_print(node);
         }
         else
         {
-            printf("[Empty]\n");
+            log_error(__FILE__,__LINE__,"[Empty]\n");
         }
     }
 }
@@ -169,15 +170,15 @@ void macro_node_print(MacroNode* node)
 {
     while(node != NULL)
     {
-        printf("[%s | %s]", node->key, node->value);
+        log_error(__FILE__,__LINE__,"[%s | %s]", node->key, node->value);
         node = node->next;
         if(node != NULL)
         {
-            printf(" -> ");
+            log_error(__FILE__,__LINE__," -> ");
         }
         else
         {
-            printf(" -> NULL\n");
+            log_error(__FILE__,__LINE__," -> NULL\n");
         }
     }
 }

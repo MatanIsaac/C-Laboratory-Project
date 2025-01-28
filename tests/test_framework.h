@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <time.h>
+#include "isaac_logger.h"
 
 typedef enum 
 {
@@ -33,7 +34,7 @@ void log_test(const char* test_name, TestResultType result, const char* details,
     strftime(timestamp, sizeof(timestamp), "%Y-%m-%d %H:%M:%S", t);
 
     /* Print to console with improved alignment */
-    printf("[%s] Test:     [%s]\n"
+    log_error(__FILE__,__LINE__,"[%s] Test:     [%s]\n"
            "                      Result:   [%s]\n"
            "                      Details:  [%s]\n\n",
            timestamp, test_name, test_result_to_string(result), details ? details : "N/A");
@@ -44,7 +45,7 @@ void log_test(const char* test_name, TestResultType result, const char* details,
         FILE *file = fopen(log_file, "a");
         if (file) 
         {
-            fprintf(file, "[%s] Test:     [%s]\n"
+            log_error(__FILE__,__LINE__, "[%s] Test:     [%s]\n"
                           "              Result:   [%s]\n"
                           "              Details:  [%s]\n\n",
                     timestamp, test_name, test_result_to_string(result), details ? details : "N/A");
@@ -52,7 +53,7 @@ void log_test(const char* test_name, TestResultType result, const char* details,
         }
         else 
         {
-            printf("Warning: Could not open log file %s for writing.\n", log_file);
+            log_error(__FILE__,__LINE__,"Warning: Could not open log file %s for writing.\n", log_file);
         }
     }
 }

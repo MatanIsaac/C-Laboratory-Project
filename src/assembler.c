@@ -13,7 +13,6 @@
 
 int main(int argc,char* argv[])
 {
-    
     FILE* fp;
     int file_index = 1;
     int arg_count = argc;
@@ -22,9 +21,6 @@ int main(int argc,char* argv[])
 
     if(argc < 2)
     {
-        /*
-        fprintf(stderr,"Usage: build/assembler <filename1> <filename2> ...");
-        */
         log_error(__FILE__,__LINE__,"Usage: build/assembler <filename1> <filename2> ...");
         return -1;
     }

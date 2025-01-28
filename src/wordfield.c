@@ -1,6 +1,7 @@
 #include "wordfield.h"
 #include "input.h"
 #include "utility.h"
+#include "isaac_logger.h"
 
 /* Function to print each bit manually in the correct order */
 void print_wordfield(wordfield* w)
@@ -10,22 +11,22 @@ void print_wordfield(wordfield* w)
     if(w == NULL)
         return;
         
-    printf("|");
-    for (i = 5; i >= 0; i--) { printf("%d", (w->opcode >> i) & 1); }
-    printf("|");
-    for (i = 1; i >= 0; i--) { printf("%d", (w->src_mode >> i) & 1); }
-    printf("|");
-    for (i = 2; i >= 0; i--) { printf("%d", (w->src_reg >> i) & 1); }
-    printf("|");
-    for (i = 1; i >= 0; i--) { printf("%d", (w->dest_mode >> i) & 1); }
-    printf("|");
-    for (i = 2; i >= 0; i--) { printf("%d", (w->dest_reg >> i) & 1); }
-    printf("|");
-    for (i = 4; i >= 0; i--) { printf("%d", (w->funct >> i) & 1); }
-    printf("|");
-    for (i = 2; i >= 0; i--) { printf("%d", (w->are >> i) & 1); }
-    printf("|");
-    printf("\n");
+    log_error(__FILE__,__LINE__,"|");
+    for (i = 5; i >= 0; i--) { log_error(__FILE__,__LINE__,"%d", (w->opcode >> i) & 1); }
+    log_error(__FILE__,__LINE__,"|");
+    for (i = 1; i >= 0; i--) { log_error(__FILE__,__LINE__,"%d", (w->src_mode >> i) & 1); }
+    log_error(__FILE__,__LINE__,"|");
+    for (i = 2; i >= 0; i--) { log_error(__FILE__,__LINE__,"%d", (w->src_reg >> i) & 1); }
+    log_error(__FILE__,__LINE__,"|");
+    for (i = 1; i >= 0; i--) { log_error(__FILE__,__LINE__,"%d", (w->dest_mode >> i) & 1); }
+    log_error(__FILE__,__LINE__,"|");
+    for (i = 2; i >= 0; i--) { log_error(__FILE__,__LINE__,"%d", (w->dest_reg >> i) & 1); }
+    log_error(__FILE__,__LINE__,"|");
+    for (i = 4; i >= 0; i--) { log_error(__FILE__,__LINE__,"%d", (w->funct >> i) & 1); }
+    log_error(__FILE__,__LINE__,"|");
+    for (i = 2; i >= 0; i--) { log_error(__FILE__,__LINE__,"%d", (w->are >> i) & 1); }
+    log_error(__FILE__,__LINE__,"|");
+    log_error(__FILE__,__LINE__,"\n");
 }
 
 /*

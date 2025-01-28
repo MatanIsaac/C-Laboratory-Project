@@ -33,8 +33,8 @@ void test_filename()
     char*  name2 = NULL;
     char* name3 = NULL;
     char* name4 = NULL;
-    fprintf(stdout, "#---------------------------------------------------------#\n");
-    fprintf(stdout, "Starting Test - get_filename function in utility.h\n");
+    log_out(__FILE__,__LINE__, "#---------------------------------------------------------#\n");
+    log_out(__FILE__,__LINE__, "Starting Test - get_filename function in utility.h\n");
 
     /* Test case 1: Valid file path */
     name1 = get_filename("input_files/preproccessor/preproc_invalid1.as");
@@ -84,8 +84,8 @@ void test_filename()
         free(name4);
     }
 
-    fprintf(stdout, "Done Testing - get_filename function in utility.h\n");
-    fprintf(stdout, "#---------------------------------------------------------#\n\n");
+    log_out(__FILE__,__LINE__, "Done Testing - get_filename function in utility.h\n");
+    log_out(__FILE__,__LINE__, "#---------------------------------------------------------#\n\n");
 }
 
 /* =======================
@@ -95,8 +95,8 @@ void test_string_functions()
 {
     char* str = NULL;
     char*  dup = NULL;
-    fprintf(stdout, "#---------------------------------------------------------#\n");
-    fprintf(stdout, "Starting Test - string memory allocation functions in utility.h\n");
+    log_out(__FILE__,__LINE__, "#---------------------------------------------------------#\n");
+    log_out(__FILE__,__LINE__, "Starting Test - string memory allocation functions in utility.h\n");
 
     str = string_malloc(10);
     if (str)
@@ -168,8 +168,8 @@ void test_string_functions()
     } 
 
 
-    fprintf(stdout, "Done Testing - string memory allocation functions in utility.h\n");
-    fprintf(stdout, "#---------------------------------------------------------#\n\n");
+    log_out(__FILE__,__LINE__, "Done Testing - string memory allocation functions in utility.h\n");
+    log_out(__FILE__,__LINE__, "#---------------------------------------------------------#\n\n");
 }
 
 /* =======================
@@ -177,8 +177,8 @@ void test_string_functions()
    ======================= */
 void test_instruction_functions()
 {
-    fprintf(stdout, "#---------------------------------------------------------#\n");
-    fprintf(stdout, "Starting Test - is_instruction function in utility.h\n");
+    log_out(__FILE__,__LINE__, "#---------------------------------------------------------#\n");
+    log_out(__FILE__,__LINE__, "Starting Test - is_instruction function in utility.h\n");
 
     if (is_instruction("mov"))
         log_test("Test_is_instruction_valid", TEST_PASS, "Recognized valid instruction.", "test_log.txt");
@@ -190,8 +190,8 @@ void test_instruction_functions()
     else
         log_test("Test_is_instruction_invalid", TEST_FAIL, "Incorrectly recognized invalid instruction.", "test_log.txt");
 
-    fprintf(stdout, "Done Testing - is_instruction function in utility.h\n");
-    fprintf(stdout, "#---------------------------------------------------------#\n\n");
+    log_out(__FILE__,__LINE__, "Done Testing - is_instruction function in utility.h\n");
+    log_out(__FILE__,__LINE__, "#---------------------------------------------------------#\n\n");
 }
 
 /* =======================
@@ -199,8 +199,8 @@ void test_instruction_functions()
    ======================= */
 void test_directive_functions()
 {
-    fprintf(stdout, "#---------------------------------------------------------#\n");
-    fprintf(stdout, "Starting Test - is_directive function in utility.h\n");
+    log_out(__FILE__,__LINE__, "#---------------------------------------------------------#\n");
+    log_out(__FILE__,__LINE__, "Starting Test - is_directive function in utility.h\n");
 
     if (is_directive(".data"))
         log_test("Test_is_directive_valid", TEST_PASS, "Recognized valid directive.", "test_log.txt");
@@ -212,8 +212,8 @@ void test_directive_functions()
     else
         log_test("Test_is_directive_invalid", TEST_FAIL, "Incorrectly recognized invalid directive.", "test_log.txt");
 
-    fprintf(stdout, "Done Testing - is_directive function in utility.h\n");
-    fprintf(stdout, "#---------------------------------------------------------#\n\n");
+    log_out(__FILE__,__LINE__, "Done Testing - is_directive function in utility.h\n");
+    log_out(__FILE__,__LINE__, "#---------------------------------------------------------#\n\n");
 }
 
 /* =======================
@@ -223,8 +223,8 @@ void test_hash_function()
 {
     unsigned long hash1,hash2,hash3;
 
-    fprintf(stdout, "#---------------------------------------------------------#\n");
-    fprintf(stdout, "Starting Test - hash function in utility.h\n");
+    log_out(__FILE__,__LINE__, "#---------------------------------------------------------#\n");
+    log_out(__FILE__,__LINE__, "Starting Test - hash function in utility.h\n");
 
     hash1 = hash("test_string");
     hash2 = hash("test_string");
@@ -240,6 +240,6 @@ void test_hash_function()
     else
         log_test("Test_hash_unique", TEST_FAIL, "Hash function produced duplicate values.", "test_log.txt");
 
-    fprintf(stdout, "Done Testing - hash function in utility.h\n");
-    fprintf(stdout, "#---------------------------------------------------------#\n\n");
+    log_out(__FILE__,__LINE__, "Done Testing - hash function in utility.h\n");
+    log_out(__FILE__,__LINE__, "#---------------------------------------------------------#\n\n");
 }

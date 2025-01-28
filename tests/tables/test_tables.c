@@ -26,8 +26,8 @@ void test_macro_table()
     const char* value;
     MacroTable* table = NULL;
 
-    fprintf(stdout, "#---------------------------------------------------------#\n");
-    fprintf(stdout, "Starting Test - Macro Table Functions in macro_table.h\n");
+    log_out(__FILE__,__LINE__, "#---------------------------------------------------------#\n");
+    log_out(__FILE__,__LINE__, "Starting Test - Macro Table Functions in macro_table.h\n");
 
     table = macro_table_create(10);
     if (table)
@@ -51,8 +51,8 @@ void test_macro_table()
         log_test("Test_macro_table_remove", TEST_FAIL, "Macro removal failed.", "test_log.txt");
 
     macro_table_destroy(table);
-    fprintf(stdout, "Done - Testing Macro Table Functions\n");
-    fprintf(stdout, "#---------------------------------------------------------#\n\n");
+    log_out(__FILE__,__LINE__, "Done - Testing Macro Table Functions\n");
+    log_out(__FILE__,__LINE__, "#---------------------------------------------------------#\n\n");
 }
 
 /* =======================
@@ -63,8 +63,8 @@ void test_instruction_table()
     InstructionTable table;  
     InstructionNode* node = NULL;
 
-    fprintf(stdout, "#---------------------------------------------------------#\n");
-    fprintf(stdout, "Starting Test - Instruction Table Functions in instruction_table.h\n");
+    log_out(__FILE__,__LINE__, "#---------------------------------------------------------#\n");
+    log_out(__FILE__,__LINE__, "Starting Test - Instruction Table Functions in instruction_table.h\n");
 
     instruction_table_create(&table);  /* Pass reference instead of using malloc() */
     
@@ -88,8 +88,8 @@ void test_instruction_table()
 
     instruction_table_destroy(&table);  /* No freeing needed, just clears memory */
 
-    fprintf(stdout, "Done - Testing Instruction Table Functions\n");
-    fprintf(stdout, "#---------------------------------------------------------#\n\n");
+    log_out(__FILE__,__LINE__, "Done - Testing Instruction Table Functions\n");
+    log_out(__FILE__,__LINE__, "#---------------------------------------------------------#\n\n");
 }
 
 
@@ -101,8 +101,8 @@ void test_label_table()
     LabelTable table;
     const LabelNode* node;
 
-    fprintf(stdout, "#---------------------------------------------------------#\n");
-    fprintf(stdout, "Starting Test - Label Table Functions in label_table.h\n");
+    log_out(__FILE__,__LINE__, "#---------------------------------------------------------#\n");
+    log_out(__FILE__,__LINE__, "Starting Test - Label Table Functions in label_table.h\n");
 
     label_table_create(&table);
 
@@ -116,6 +116,6 @@ void test_label_table()
         log_test("Test_label_table_add_get", TEST_FAIL, "Label retrieval failed.", "test_log.txt");
 
     label_table_destroy(&table);
-    fprintf(stdout, "Done - Testing Label Table Functions\n");
-    fprintf(stdout, "#---------------------------------------------------------#\n\n");
+    log_out(__FILE__,__LINE__, "Done - Testing Label Table Functions\n");
+    log_out(__FILE__,__LINE__, "#---------------------------------------------------------#\n\n");
 }
