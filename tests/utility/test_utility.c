@@ -93,30 +93,27 @@ void test_filename()
    ======================= */
 void test_string_functions()
 {
-    char* str1 = NULL;
-    char* str2 = NULL;
-    char* str3 = NULL;
-    char* str4 = NULL;
+    char* str = NULL;
     char*  dup = NULL;
     fprintf(stdout, "#---------------------------------------------------------#\n");
     fprintf(stdout, "Starting Test - string memory allocation functions in utility.h\n");
 
-    str1 = string_malloc(10);
-    if (str1)
+    str = string_malloc(10);
+    if (str)
     {
         log_test("Test_string_malloc", TEST_PASS, "Allocated memory successfully.", "test_log.txt");
-        free(str1);
+        free(str);
     }
     else
     {
         log_test("Test_string_malloc", TEST_FAIL, "Memory allocation failed.", "test_log.txt");
     }
 
-    str2 = string_calloc(5, sizeof(char));
-    if (str2)
+    str = string_calloc(5, sizeof(char));
+    if (str)
     {
         log_test("Test_string_calloc", TEST_PASS, "Allocated and zero-initialized memory successfully.", "test_log.txt");
-        free(str2);
+        free(str);
     }
     else
     {
@@ -135,28 +132,41 @@ void test_string_functions()
     }
 
 
-    str3 = remove_last_character("MAIN:");
-    if (str3 && strcmp(str3, "MAIN") == 0)
+    str = remove_last_character("MAIN:");
+    if (str && strcmp(str, "MAIN") == 0)
     {
         
         log_test("Test_remove_last_character", TEST_PASS, "Removing string's last character correctly.", "test_log.txt");
-        free(str3);
+        free(str);
     }
     else
     {
         log_test("Test_remove_last_character", TEST_FAIL, "Removing string's last character failed.", "test_log.txt");
     } 
 
-    str4 = remove_last_character("r3,");
-    if (str4 && strcmp(str4, "r3") == 0)
+    str = remove_last_character("r3,");
+    if (str && strcmp(str, "r3") == 0)
     {
         log_test("Test_remove_last_character", TEST_PASS, "Removing string's last character correctly.", "test_log.txt");
-        free(str4);
+        free(str);
     }
     else
     {
         log_test("Test_remove_last_character", TEST_FAIL, "Removing string's last character failed.", "test_log.txt");
     } 
+
+
+    str = strncpy_from_pos("hello, world",5);
+    if (str && strcmp(str, ", world") == 0)
+    {
+        log_test("Test_strncpy_from_pos", TEST_PASS, "Copying n characters from position correctly.", "test_log.txt");
+        free(str);
+    }
+    else
+    {
+        log_test("Test_strncpy_from_pos", TEST_FAIL, "Copying n characters from position failed.", "test_log.txt");
+    } 
+
 
     fprintf(stdout, "Done Testing - string memory allocation functions in utility.h\n");
     fprintf(stdout, "#---------------------------------------------------------#\n\n");

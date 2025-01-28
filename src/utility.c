@@ -92,6 +92,27 @@ char* remove_last_character(const char *s)
     return str;
 }
 
+char* strncpy_from_pos(char* src,unsigned int pos)
+{
+    char* str;
+    int i = 0, j = 0, len = 0;
+
+    if(src == NULL)
+        return NULL;
+    
+    len = (strlen(src)-pos);
+    str = string_calloc(len,sizeof(char));
+    
+    i = pos;
+    j = 0;
+    while(j <= len)
+    {
+        str[j++] = src[i++];
+    }
+    str[j] = '\0';
+    return str;
+}
+
 bool is_instruction(char* word)
 {
     int i;

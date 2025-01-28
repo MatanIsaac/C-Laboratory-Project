@@ -3,6 +3,7 @@
 #include "common.h"
 #include "utility.h"
 #include "instruction_table.h"
+#include "wordfield.h"
 
 void prepare_first_pass(const char* filepath)
 {
@@ -74,7 +75,22 @@ int execute_first_pass(FILE* fp, LabelTable* label_table)
         {
             if(is_instruction(word))
             {
+                char* str;
+                /*wordfield* wf;*/
+                int temp = 0;
+                
+                printf("instruction line: [%s]\n",line);
+                printf("instruction word: [%s]\n",word);
+                
+                temp = position - strlen(word);
+                printf("instruction word position: [%d]\n",temp);
 
+                str = strncpy_from_pos(line,temp);
+                printf("copied word: [%s]\n",str);
+                /*
+                wf = create_wordfield(str);
+                print_wordfield(wf)
+                ;*/
             }
             else if(is_directive(word))
             {
@@ -82,6 +98,11 @@ int execute_first_pass(FILE* fp, LabelTable* label_table)
             }
             else
             {
+                /*
+                    TODO: 
+                    1. make sure this symbol check is correct
+                    2. make sure to check if symbol already exists - handle errors
+                */
                 if(strrchr(word,':'))
                 {
                     char* name;

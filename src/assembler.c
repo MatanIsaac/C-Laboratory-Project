@@ -25,7 +25,7 @@ int main(int argc,char* argv[])
         /*
         fprintf(stderr,"Usage: build/assembler <filename1> <filename2> ...");
         */
-        ISAAC_LOG_ERR("Usage: build/assembler <filename1> <filename2> ...");
+        log_error(__FILE__,__LINE__,"Usage: build/assembler <filename1> <filename2> ...");
         return -1;
     }
 
@@ -33,23 +33,23 @@ int main(int argc,char* argv[])
     {
         strcpy(current_file,argv[file_index]);
         strcat(current_file, ".as");
-        fmt_log_out(__FILE__, __LINE__,"opening filename: %s\n",current_file);
+        log_out(__FILE__, __LINE__,"opening filename: %s\n",current_file);
         fp = fopen(current_file,"r");
         if(fp == NULL)
         {
-            fmt_log_error(__FILE__,__LINE__,"Failed to open %s\n", current_file);
+            log_error(__FILE__,__LINE__,"Failed to open %s\n", current_file);
             return -1;
         }
 
         if(parse_macros(fp,current_file,output_file) != -1)
         {
-            fmt_log_out(__FILE__,__LINE__,"Done Parsing Macros for - %s\n", current_file);
+            log_out(__FILE__,__LINE__,"Done Parsing Macros for - %s\n", current_file);
             fclose(fp);           
             prepare_first_pass(output_file);
         }
         else
         {
-            fmt_log_out(__FILE__,__LINE__,"Done Parsing Macros for - %s\n", current_file);
+            log_out(__FILE__,__LINE__,"Done Parsing Macros for - %s\n", current_file);
             fclose(fp);
         }
 

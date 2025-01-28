@@ -10,8 +10,9 @@ char* get_filename(const char* file);
 /* string utility functions */
 char* string_calloc(size_t element_count,size_t size_of_element);
 char* string_malloc(size_t size);
-char* my_strdup(const char *s);
-char* remove_last_character(const char *s);
+char* my_strdup(const char* s);
+char* remove_last_character(const char* s);
+char* strncpy_from_pos(char* src,unsigned int pos); /* copies n characters starting from pos */
 /*------------------------------------------------------------------*/
 
 /*------------------------------------------------------------------*/
