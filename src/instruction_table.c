@@ -55,8 +55,18 @@ int instruction_table_insert(InstructionTable* table, const char* op_name, unsig
 
     if (table->instructions[index].op_name[0] == NULL_TERMINATOR)
     {
-        strncpy(table->instructions[index].op_name, op_name, MAX_OP_NAME - 1);
-        table->instructions[index].op_name[MAX_OP_NAME - 1] = NULL_TERMINATOR; /* ensure null-termination */
+        if(strcmp(op_name,"stop") == 0)
+        {
+            strncpy(table->instructions[index].op_name, op_name, MAX_OP_NAME);
+            table->instructions[index].op_name[MAX_OP_NAME] = NULL_TERMINATOR; /* ensure null-termination */
+        }   
+        else
+        {
+            strncpy(table->instructions[index].op_name, op_name, MAX_OP_NAME - 1);
+            table->instructions[index].op_name[MAX_OP_NAME - 1] = NULL_TERMINATOR; /* ensure null-termination */
+        }
+
+        
         table->instructions[index].op_code = op_code;
         table->instructions[index].funct   = funct;
         return 0;

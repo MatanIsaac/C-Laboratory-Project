@@ -17,6 +17,7 @@ char* strncpy_from_pos(char* src,unsigned int pos); /* copies n characters start
 
 /*------------------------------------------------------------------*/
 /* first pass utility functions */
+bool is_register(char* word);
 bool is_instruction(char* word);
 bool is_directive(char* word);
 bool is_line_empty(char* line);

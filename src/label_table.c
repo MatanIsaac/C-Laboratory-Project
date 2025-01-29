@@ -36,7 +36,12 @@ void label_table_destroy(LabelTable* table)
 /* Dynamically adds a label to the table */
 void label_table_add(LabelTable* table, const char* name, unsigned int address, enum LabelType type) 
 {
-    /* TODO: check if already exists, and if so log error here . */
+    if(label_table_search(table,name) > 1)
+    {
+        log_error(__FILE__,__LINE__, "Error, label already exists in the label table!\n");
+        return;
+    }
+
     if (table->size >= table->capacity) 
     {
         /* Grow the array dynamically (double the capacity) */
@@ -55,6 +60,39 @@ void label_table_add(LabelTable* table, const char* name, unsigned int address, 
     table->size++;
 }
 
+void label_table_print(LabelTable* table) 
+{
+    unsigned int i = 0;
+
+    if(table->size == 0)
+    {
+        log_out(__FILE__,__LINE__, "Label Table is empty.\n");    
+    }
+
+    log_out(__FILE__,__LINE__, "| %-6s | %-10s | %-6s |\n", "Label", "Address", "Type");
+    log_out(__FILE__,__LINE__, "---------------------------------\n");
+
+    for (; i < table->size; i++) 
+    {
+        fprintf(stdout, "| %-6s | %-10u | %-6s |\n",
+               table->labels[i].name,
+               table->labels[i].address,
+               labeltype_to_string(table->labels[i].type));
+    }
+}
+
+int label_table_search(LabelTable* table, const char* name)
+{
+    unsigned int i = 0;
+    for (; i < table->size; i++)
+    {
+        if(strcmp(name,table->labels[i].name) == 0)
+        {
+            return 1;
+        }
+    }
+    return -1;
+}
 
 void label_node_print(LabelNode* node)
 {
@@ -68,19 +106,3 @@ void label_node_print(LabelNode* node)
             node->name, node->address, labeltype_to_string(node->type));
 }
 
-
-void label_table_print(LabelTable* table) 
-{
-    unsigned int i = 0;
-
-    log_error(__FILE__,__LINE__, "| %-6s | %-10s | %-6s |\n", "Label", "Address", "Type");
-    log_error(__FILE__,__LINE__, "---------------------------------\n");
-
-    for (; i < table->size; i++) 
-    {
-        log_error(__FILE__,__LINE__, "| %-6s | %-10u | %-6s |\n",
-               table->labels[i].name,
-               table->labels[i].address,
-               labeltype_to_string(table->labels[i].type));
-    }
-}

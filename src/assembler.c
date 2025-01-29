@@ -33,7 +33,7 @@ int main(int argc,char* argv[])
         fp = fopen(current_file,"r");
         if(fp == NULL)
         {
-            log_error(__FILE__,__LINE__,"Failed to open %s\n", current_file);
+            log_error(__FILE__,__LINE__,"Failed to open %s, file doesn't exists.\n", current_file);
             return -1;
         }
 

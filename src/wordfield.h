@@ -2,6 +2,7 @@
 #define WORDFIELD_H
 
 #include <stdio.h>
+#include "instruction_table.h"
 
 /* Define the bitfield structure */
 typedef struct 
@@ -15,12 +16,13 @@ typedef struct
     unsigned int are         : 3;  /* A-R-E Bits (Absolute, Relocatable, External) */
 } wordfield;
 
-void print_wordfield(wordfield* w);
-wordfield* create_wordfield(const char* str);
+void print_wordfield(wordfield* word);
+wordfield* init_wordfield();
+wordfield* create_wordfield_by_opname(char* str, InstructionTable* instruction_table);
 
 void set_wordfield_op_funct(wordfield* word, unsigned int opcode, unsigned int funct);
 void set_wordfield_src(wordfield* word, unsigned int src_mode, unsigned int src_reg);
 void set_wordfield_dest(wordfield* word, unsigned int src_mode, unsigned int src_reg);
-void set_wordfield_are(wordfield* word, unsigned int src_mode);
+void set_wordfield_are(wordfield* word, unsigned int are);
 
 #endif

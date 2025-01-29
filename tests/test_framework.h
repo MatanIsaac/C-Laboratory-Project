@@ -3,7 +3,7 @@
 
 #include <stdio.h>
 #include <time.h>
-#include "isaac_logger.h"
+#include "../src/isaac_logger.h"
 
 typedef enum 
 {
@@ -25,38 +25,19 @@ const char* test_result_to_string(TestResultType result)
 }
 
 /* Function to log test results */
-void log_test(const char* test_name, TestResultType result, const char* details, const char* log_file) 
+void log_test(const char* test_name, TestResultType result, const char* details) 
 {
-    /* Get current timestamp */
     time_t now = time(NULL);
     struct tm *t = localtime(&now);
     char timestamp[20];
     strftime(timestamp, sizeof(timestamp), "%Y-%m-%d %H:%M:%S", t);
 
-    /* Print to console with improved alignment */
-    log_error(__FILE__,__LINE__,"[%s] Test:     [%s]\n"
-           "                      Result:   [%s]\n"
-           "                      Details:  [%s]\n\n",
+    
+    log_out(__FILE__,__LINE__,"  [%s]\n\tTest:   [%s]\n"
+           "\tResult:   [%s]\n"
+           "\tDetails:  [%s]\n\n",
            timestamp, test_name, test_result_to_string(result), details ? details : "N/A");
-
-    /* Write to log file if specified */
-    if (log_file) 
-    {
-        FILE *file = fopen(log_file, "a");
-        if (file) 
-        {
-            log_error(__FILE__,__LINE__, "[%s] Test:     [%s]\n"
-                          "              Result:   [%s]\n"
-                          "              Details:  [%s]\n\n",
-                    timestamp, test_name, test_result_to_string(result), details ? details : "N/A");
-            fclose(file);
-        }
-        else 
-        {
-            log_error(__FILE__,__LINE__,"Warning: Could not open log file %s for writing.\n", log_file);
-        }
-    }
 }
 
 
-#endif /* TEST_FRAMEWORK_H */
+#endif

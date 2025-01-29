@@ -12,7 +12,7 @@ MacroTable* macro_table_create(size_t size)
     MacroTable *table = malloc(sizeof(MacroTable));
     if (table == NULL)
     {
-        perror("[macro_ table__create]: Failed to allocate memory for HashTable\n");
+        log_error(__FILE__,__LINE__,"Failed to allocate memory for HashTable\n");
         return NULL;
     }
     table->size = size;

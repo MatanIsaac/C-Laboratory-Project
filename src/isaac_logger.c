@@ -28,4 +28,3 @@ void log_error(const char *file, int line, const char *fmt, ...)
 
     va_end(args);
 }
-

@@ -113,10 +113,25 @@ char* strncpy_from_pos(char* src,unsigned int pos)
     return str;
 }
 
+bool is_register(char* word)
+{
+    int i;
+    static const char* registers[MAX_REGISTERS] = 
+    { "r0", "r1","r2", "r3", "r4", "r5", "r6", "r7"};
+    for(i = 0; i < MAX_REGISTERS; i++)
+    {   
+        if(strcmp(word,registers[i]) == 0)
+        {
+            return true;
+        }   
+    }
+    return false;
+}
+
 bool is_instruction(char* word)
 {
     int i;
-    static const char* instructions[16] = 
+    static const char* instructions[MAX_INSTRUCTIONS] = 
     { "mov", "cmp","add", "sub", "lea", "clr", "not", "inc", "dec", "jmp", "bne", "jsr", "red", "prn", "rts", "stop"};
     for(i = 0; i < 16; i++)
     {   

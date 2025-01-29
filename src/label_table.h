@@ -37,6 +37,7 @@ void label_table_create(LabelTable* table);
 void label_table_destroy(LabelTable* table);
 void label_table_add(LabelTable* table, const char* name, unsigned int address, enum LabelType type);
 void label_table_print(LabelTable* table);
+int label_table_search(LabelTable* table, const char* name);
 
 void label_node_print(LabelNode* node);
 

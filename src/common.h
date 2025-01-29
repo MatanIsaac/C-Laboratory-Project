@@ -22,4 +22,6 @@
 #define MAX_WORDS 3
 #define MAX_MEMORY 2097152 /* memory size 2^21 */
 #define MAX_OPERANDS 2
+#define MAX_REGISTERS 8
+#define MAX_INSTRUCTIONS 16
 #endif 

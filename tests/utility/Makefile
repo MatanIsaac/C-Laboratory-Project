@@ -2,7 +2,7 @@ CC = gcc
 CFLAGS = -Wall -Wextra -ansi -pedantic -g
 TARGET = test_utility
 SRC = test_utility.c
-UTIL_LIB = ../../build/obj/utility.o  # Assuming utility.o is already compiled
+UTIL_LIB = ../../build/obj/utility.o ../../build/obj/isaac_logger.o  
 
 all: $(TARGET)
 
@@ -13,4 +13,4 @@ run: $(TARGET)
 	./$(TARGET)
 
 clean:
-	rm -f $(TARGET) test_log.txt
+	rm -f $(TARGET)
