@@ -92,6 +92,21 @@ char* remove_last_character(const char *s)
     return str;
 }
 
+char* remove_first_character(char* s)
+{
+    char* str;
+    int len = strlen(s); 
+
+    str = string_calloc(len,sizeof(char));
+    str = strncpy_from_pos(s,1);
+    if (str == NULL) 
+        return NULL;
+    
+    str[len] = '\0';
+
+    return str;
+}
+
 char* strncpy_from_pos(char* src,unsigned int pos)
 {
     char* str;

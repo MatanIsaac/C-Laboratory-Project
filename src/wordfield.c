@@ -89,6 +89,20 @@ int main(void)
 }
 */
 
+void set_wordfield_by_num(wordfield* wf, unsigned int num)
+{
+    if (!wf) 
+        return;
+
+    wf->opcode      = (num >> 15) & 0x3F;  /* Extract bits 3-8 (6 bits) */
+    wf->src_mode    = (num >> 13) & 0x03;  /* Extract bits 9-10 (2 bits) */
+    wf->src_reg     = (num >> 10) & 0x07;  /* Extract bits 11-13 (3 bits) */
+    wf->dest_mode   = (num >> 8)  & 0x03;  /* Extract bits 14-15 (2 bits) */
+    wf->dest_reg    = (num >> 5)  & 0x07;  /* Extract bits 16-18 (3 bits) */
+    wf->funct       = (num >> 0)  & 0x1F;  /* Extract bits 19-23 (5 bits) */
+    wf->are         = 4;                   /* The first 3 bits are intentionally '100' */
+}
+
 void set_wordfield_op_funct(wordfield* word, unsigned int opcode, unsigned int funct)
 {
     if(word == NULL)

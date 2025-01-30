@@ -14,13 +14,13 @@ void test_hash_function();
 
 int main()
 {
-    test_filename();
     /*
+    test_filename();
     test_instruction_functions();
     test_directive_functions();
     test_hash_function();
-    test_string_functions();
     */
+    test_string_functions();
     
     return 0;
 }
@@ -155,7 +155,6 @@ void test_string_functions()
         log_test("Test_remove_last_character", TEST_FAIL, "Removing string's last character failed.");
     } 
 
-
     str = strncpy_from_pos("hello, world",5);
     if (str && strcmp(str, ", world") == 0)
     {
@@ -167,6 +166,16 @@ void test_string_functions()
         log_test("Test_strncpy_from_pos", TEST_FAIL, "Copying n characters from position failed.");
     } 
 
+    str = remove_first_character("#37");
+    if (str && strcmp(str, "37") == 0)
+    {
+        log_test("Test_remove_first_character", TEST_PASS, "Removing string's first character correctly.");
+        free(str);
+    }
+    else
+    {
+        log_test("Test_remove_first_character", TEST_FAIL, "Removing string's first character failed.");
+    }
 
     log_out(__FILE__,__LINE__, "Done Testing - string memory allocation functions in utility.h\n");
 }

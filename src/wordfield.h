@@ -20,6 +20,9 @@ void print_wordfield(wordfield* word);
 wordfield* init_wordfield();
 wordfield* create_wordfield_by_opname(char* str, InstructionTable* instruction_table);
 
+/* Function to set the bitfield from a 21-bit number */
+void set_wordfield_by_num(wordfield* wf, unsigned int num);
+
 void set_wordfield_op_funct(wordfield* word, unsigned int opcode, unsigned int funct);
 void set_wordfield_src(wordfield* word, unsigned int src_mode, unsigned int src_reg);
 void set_wordfield_dest(wordfield* word, unsigned int src_mode, unsigned int src_reg);

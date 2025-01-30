@@ -9,6 +9,8 @@
 #define TAB '\t'
 #define DOT '.'
 #define COMMA ','
+#define HASHTAG '#'
+#define AMPERSAND '&'
 #define DASH '-'
 #define PLUS '+'
 #define SEMICOLON ';'

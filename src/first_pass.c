@@ -89,14 +89,48 @@ int execute_first_pass(FILE* fp, LabelTable* label_table, InstructionTable* inst
                     ,line, word,IC);
                 
                 operands_count = get_operands_count(word);
-                if(operands_count > 0)
+                if(operands_count == 0)
                 {
                     wf = create_wordfield_by_opname(word, instruction_table);
+                    set_wordfield_are(wf,4);
+                    print_wordfield(wf);
+                    break;
                 }
-                else if(operands_count == 0)
+                else if (operands_count == 1)
                 {
+                    wordfield* new_wf;
+                    OperandType operand1_type;
                     wf = create_wordfield_by_opname(word, instruction_table);
+                    set_wordfield_are(wf,4);        
+                    print_wordfield(wf);
+                    operand1_type = get_operand_type(word);
+                    position = read_word_from_line(line, word, position);
+                    switch (operand1_type)
+                    {
+                    case IMMEDIATE:
+                        log_out(__FILE__,__LINE__,"word: [%s]\n",word);
+                        break;
+                    case DIRECT:
+                        word = remove_first_character(word);
+                        log_out(__FILE__,__LINE__,"word: [%s]\n",word);
+                        new_wf = init_wordfield();
+                        set_wordfield_by_num(new_wf,atoi(word));
+                        print_wordfield(new_wf);
+                        IC++;
+                        break;
+                    case RELATIVE:
+                        log_out(__FILE__,__LINE__,"word: [%s]\n",word);
+                        break;
+                    case REGISTER:
+                        log_out(__FILE__,__LINE__,"word: [%s]\n",word);
+                        break;
+                    default:
+                        break;
+                    }
+
                 }
+                /*
+                wf = create_wordfield_by_opname(word, instruction_table);
                 set_wordfield_are(wf,4);
                 print_wordfield(wf);
                 
@@ -108,6 +142,7 @@ int execute_first_pass(FILE* fp, LabelTable* label_table, InstructionTable* inst
                 }
                 word = remove_last_character(word);
                 log_out(__FILE__,__LINE__, "instruction operand1: [%s]",word);
+                */
                 /* 
                     TODO: 
                         1. create a function for getting operand type: 0,1,2 or 3 
@@ -180,4 +215,26 @@ int get_operands_count(char* str)
         return 2;
     }
     return 1;
+}
+
+OperandType get_operand_type(char* str)
+{
+    if(str[0] == HASHTAG) 
+    {
+        return IMMEDIATE; /* addressing mode: 0 */
+    }
+    else if(str[0] == AMPERSAND)
+    {
+        return RELATIVE; /* addressing mode: 2*/
+    }
+    else if(is_register(str))
+    {
+        return REGISTER; /* addressing mode: 3 */
+    }
+    else /* addressing mode: 3 */
+    {
+        return DIRECT;
+    }
+    
+    return -1;
 }
