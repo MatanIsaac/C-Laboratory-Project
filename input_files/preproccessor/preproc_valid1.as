@@ -1,6 +1,4 @@
-; adding LIST to r3 register 
 MAIN:       add r3, LIST 
-
 LOOP:       prn #48
             mcro a_mc
             cmp K, #-6
@@ -15,9 +13,7 @@ LOOP:       prn #48
             dec K
             jmp &LOOP 
 END:        stop 
-
 STR:        .string "abcd" 
-
 LIST:       .data 6, -9 
             .data -100
 K:          .data 31

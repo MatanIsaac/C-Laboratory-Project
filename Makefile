@@ -32,19 +32,11 @@ $(BUILD_DIR):
 $(OUTPUT_DIR):
 	mkdir $(OUTPUT_DIR)
 
-ifeq ($(OS),Windows_NT)
-clean:
-	del /q $(OBJ_DIR)\*.o 2>nul || exit 0
-	del /q $(BUILD_DIR)\*.exe 2>nul || exit 0
-	rmdir /s /q $(OBJ_DIR) 2>nul || exit 0
-	rmdir /s /q $(BUILD_DIR) 2>nul || exit 0
-else
 clean: 
 	rm -rf $(OBJ_DIR)/*.o
 	rm -rf $(BUILD_DIR)/*.exe
 	rm -rf $(OBJ_DIR)
 	rm -rf $(BUILD_DIR)
-endif
-
+	
 # Declare phony targets
 .PHONY: all clean

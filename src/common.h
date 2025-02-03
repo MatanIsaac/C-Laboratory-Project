@@ -7,6 +7,7 @@
 
 #define NEW_LINE '\n'
 #define TAB '\t'
+#define DOUBLE_QUOTE '\"'
 #define DOT '.'
 #define COMMA ','
 #define HASHTAG '#'

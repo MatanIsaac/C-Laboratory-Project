@@ -131,8 +131,11 @@ char* strncpy_from_pos(char* src,unsigned int pos)
 bool is_register(char* word)
 {
     int i;
-    static const char* registers[MAX_REGISTERS] = 
-    { "r0", "r1","r2", "r3", "r4", "r5", "r6", "r7"};
+    static char* registers[MAX_REGISTERS] = { "r0", "r1","r2", "r3", "r4", "r5", "r6", "r7"};
+
+    if(word == NULL)
+        return false;
+    
     for(i = 0; i < MAX_REGISTERS; i++)
     {   
         if(strcmp(word,registers[i]) == 0)

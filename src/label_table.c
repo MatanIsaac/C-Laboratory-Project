@@ -81,19 +81,6 @@ void label_table_print(LabelTable* table)
     }
 }
 
-int label_table_search(LabelTable* table, const char* name)
-{
-    unsigned int i = 0;
-    for (; i < table->size; i++)
-    {
-        if(strcmp(name,table->labels[i].name) == 0)
-        {
-            return 1;
-        }
-    }
-    return -1;
-}
-
 void label_node_print(LabelNode* node)
 {
     if (!node) 
@@ -105,4 +92,29 @@ void label_node_print(LabelNode* node)
     log_error(__FILE__,__LINE__, "[name: %s] - [address: %u, type: %s]\n",
             node->name, node->address, labeltype_to_string(node->type));
 }
+
+int label_table_search(LabelTable* table, const char* name)
+{
+    unsigned int i = 0;
+    for (; i < table->size; i++)
+    {
+        if(strcmp(name,table->labels[i].name) == 0)
+        {
+            return i;
+        }
+    }
+    return -1;
+}
+
+int label_table_set_node_by_name(LabelTable* table,const char* name, unsigned int address, enum LabelType type)
+{
+    int node_index = -1;
+    if((node_index = label_table_search(table,name)) > 1)
+    {
+        table->labels[node_index].type      = type;
+        table->labels[node_index].address   = address;
+    }   
+    return -1; 
+}
+
 

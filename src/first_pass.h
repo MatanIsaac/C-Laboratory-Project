@@ -3,14 +3,23 @@
 #include <stdlib.h>
 #include "label_table.h"
 #include "instruction_table.h"
+#include "wordfield.h"
 
-typedef enum OperandType
+typedef enum
 {
-    IMMEDIATE,
-    DIRECT,
-    RELATIVE,
-    REGISTER
+    OPERAND_TYPE_IMMEDIATE,
+    OPERAND_TYPE_DIRECT,
+    OPERAND_TYPE_RELATIVE,
+    OPERAND_TYPE_REGISTER
 } OperandType;
+
+typedef enum
+{
+    DIRECTIVE_TYPE_STRING,
+    DIRECTIVE_TYPE_DATA,
+    DIRECTIVE_TYPE_EXTERN,
+    DIRECTIVE_TYPE_ENTRY
+} DirectiveType;
 
 void prepare_first_pass(const char* filepath);
 int execute_first_pass(FILE* fp, LabelTable* label_table, InstructionTable* instruction_table);
@@ -18,4 +27,7 @@ int get_operands_count(char* str);
 
 /* return -1 if operand is N/A or incorrect etc.. s*/
 OperandType get_operand_type(char* str);
+DirectiveType get_directive_type(char* str);
+
+wordfield* get_char_wordfield(char* character);
 #endif

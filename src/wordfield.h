@@ -4,6 +4,12 @@
 #include <stdio.h>
 #include "instruction_table.h"
 
+#define MASK_SIX_BITS   0x3F 
+#define MASK_FIVE_BITS  0x1F  
+#define MASK_THREE_BITS 0x07
+#define MASK_TWO_BITS   0x03
+
+
 /* Define the bitfield structure */
 typedef struct 
 {
@@ -20,7 +26,8 @@ void print_wordfield(wordfield* word);
 wordfield* init_wordfield();
 wordfield* create_wordfield_by_opname(char* str, InstructionTable* instruction_table);
 
-/* Function to set the bitfield from a 21-bit number */
+/* Function to set the wordfield from a 21-bit number */
+void set_wordfield_are_num(wordfield* wf, unsigned int num, unsigned int are);
 void set_wordfield_by_num(wordfield* wf, unsigned int num);
 
 void set_wordfield_op_funct(wordfield* word, unsigned int opcode, unsigned int funct);

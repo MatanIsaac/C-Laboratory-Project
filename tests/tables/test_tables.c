@@ -31,24 +31,24 @@ void test_macro_table()
 
     table = macro_table_create(10);
     if (table)
-        log_test("Test_macro_table_create", TEST_PASS, "Macro table created successfully.", "test_log.txt");
+        log_test("Test_macro_table_create", TEST_PASS, "Macro table created successfully.");
     else
-        log_test("Test_macro_table_create", TEST_FAIL, "Macro table creation failed.", "test_log.txt");
+        log_test("Test_macro_table_create", TEST_FAIL, "Macro table creation failed.");
 
     macro_table_insert(table, "MAX_SIZE", "1024");
     macro_table_insert(table, "VERSION", "1.0.3");
 
     value = macro_table_get(table, "MAX_SIZE");
     if (value && strcmp(value, "1024") == 0)
-        log_test("Test_macro_table_insert_get", TEST_PASS, "Macro retrieved correctly.", "test_log.txt");
+        log_test("Test_macro_table_insert_get", TEST_PASS, "Macro retrieved correctly.");
     else
-        log_test("Test_macro_table_insert_get", TEST_FAIL, "Macro retrieval failed.", "test_log.txt");
+        log_test("Test_macro_table_insert_get", TEST_FAIL, "Macro retrieval failed.");
 
     macro_table_remove(table, "MAX_SIZE");
     if (!macro_table_get(table, "MAX_SIZE"))
-        log_test("Test_macro_table_remove", TEST_PASS, "Macro removed successfully.", "test_log.txt");
+        log_test("Test_macro_table_remove", TEST_PASS, "Macro removed successfully.");
     else
-        log_test("Test_macro_table_remove", TEST_FAIL, "Macro removal failed.", "test_log.txt");
+        log_test("Test_macro_table_remove", TEST_FAIL, "Macro removal failed.");
 
     macro_table_destroy(table);
     log_out(__FILE__,__LINE__, "Done - Testing Macro Table Functions\n");
@@ -69,22 +69,22 @@ void test_instruction_table()
     instruction_table_create(&table);  /* Pass reference instead of using malloc() */
     
     /* No need for pointer checks since it's stack allocated */
-    log_test("Test_instruction_table_create", TEST_PASS, "Instruction table initialized successfully.", "test_log.txt");
+    log_test("Test_instruction_table_create", TEST_PASS, "Instruction table initialized successfully.");
 
     instruction_table_insert(&table, "ADD", 1, 10);
     instruction_table_insert(&table, "SUB", 2, 20);
 
     node = instruction_table_get(&table, "ADD");
     if (node && strcmp(node->op_name, "ADD") == 0)
-        log_test("Test_instruction_table_insert_get", TEST_PASS, "Instruction retrieved correctly.", "test_log.txt");
+        log_test("Test_instruction_table_insert_get", TEST_PASS, "Instruction retrieved correctly.");
     else
-        log_test("Test_instruction_table_insert_get", TEST_FAIL, "Instruction retrieval failed.", "test_log.txt");
+        log_test("Test_instruction_table_insert_get", TEST_FAIL, "Instruction retrieval failed.");
 
     instruction_table_remove(&table, "ADD");
     if (!instruction_table_get(&table, "ADD"))
-        log_test("Test_instruction_table_remove", TEST_PASS, "Instruction removed successfully.", "test_log.txt");
+        log_test("Test_instruction_table_remove", TEST_PASS, "Instruction removed successfully.");
     else
-        log_test("Test_instruction_table_remove", TEST_FAIL, "Instruction removal failed.", "test_log.txt");
+        log_test("Test_instruction_table_remove", TEST_FAIL, "Instruction removal failed.");
 
     instruction_table_destroy(&table);  /* No freeing needed, just clears memory */
 
@@ -106,14 +106,14 @@ void test_label_table()
 
     label_table_create(&table);
 
-    label_table_add(&table, "start", 0x1000, CODE);
-    label_table_add(&table, "var1", 0x2000, DATA);
+    label_table_add(&table, "start", 0x1000, LABELTYPE_CODE);
+    label_table_add(&table, "var1", 0x2000, LABELTYPE_DATA);
 
     node = &table.labels[0];
     if (node && strcmp(node->name, "start") == 0)
-        log_test("Test_label_table_add_get", TEST_PASS, "Label added and retrieved correctly.", "test_log.txt");
+        log_test("Test_label_table_add_get", TEST_PASS, "Label added and retrieved correctly.");
     else
-        log_test("Test_label_table_add_get", TEST_FAIL, "Label retrieval failed.", "test_log.txt");
+        log_test("Test_label_table_add_get", TEST_FAIL, "Label retrieval failed.");
 
     label_table_destroy(&table);
     log_out(__FILE__,__LINE__, "Done - Testing Label Table Functions\n");

@@ -2,7 +2,6 @@
 #include "input.h"
 #include "common.h"
 #include "utility.h"
-#include "wordfield.h"
 #include "isaac_logger.h"
 
 void prepare_first_pass(const char* filepath)
@@ -73,113 +72,218 @@ int execute_first_pass(FILE* fp, LabelTable* label_table, InstructionTable* inst
         {
             if(is_instruction(word))
             {
-                /*char* str;
-                int temp = 0;
-                temp = position - strlen(word);
-                log_out(__FILE__,__LINE__, "instruction word position: [%d]\n",temp);
-
-                str = strncpy_from_pos(line,position);
-                log_out(__FILE__,__LINE__, "copied word: [%s]\n",str);                
-                */
                 int operands_count = 0;
                 wordfield* wf = init_wordfield();
-                
+                wf = create_wordfield_by_opname(word, instruction_table);
+                set_wordfield_are(wf,4);
+
                 log_out(__FILE__,__LINE__, 
-                    "instruction line: [%s]\n\tinstruction word: [%s]\n\taddress [%u]\n"
+                    "instruction line: [%s]\n\tinstruction word: [%s]\n\taddress [%u]\n\twordfield: "
                     ,line, word,IC);
-                
+                print_wordfield(wf);
                 operands_count = get_operands_count(word);
-                if(operands_count == 0)
+                if(operands_count == -1)
                 {
-                    wf = create_wordfield_by_opname(word, instruction_table);
-                    set_wordfield_are(wf,4);
-                    print_wordfield(wf);
+                    log_error(__FILE__,__LINE__, "Failed to get operands count!\n");
+                }
+                else if(operands_count == 0)
+                {
+                    
                     break;
                 }
                 else if (operands_count == 1)
                 {
                     wordfield* new_wf;
                     OperandType operand1_type;
-                    wf = create_wordfield_by_opname(word, instruction_table);
-                    set_wordfield_are(wf,4);        
-                    print_wordfield(wf);
-                    operand1_type = get_operand_type(word);
                     position = read_word_from_line(line, word, position);
+                    operand1_type = get_operand_type(word);
                     switch (operand1_type)
                     {
-                    case IMMEDIATE:
-                        log_out(__FILE__,__LINE__,"word: [%s]\n",word);
-                        break;
-                    case DIRECT:
+                    case OPERAND_TYPE_IMMEDIATE:
                         word = remove_first_character(word);
                         log_out(__FILE__,__LINE__,"word: [%s]\n",word);
                         new_wf = init_wordfield();
-                        set_wordfield_by_num(new_wf,atoi(word));
+                        set_wordfield_are_num(new_wf,atoi(word),4);
                         print_wordfield(new_wf);
                         IC++;
                         break;
-                    case RELATIVE:
+                    case OPERAND_TYPE_DIRECT:
                         log_out(__FILE__,__LINE__,"word: [%s]\n",word);
+                        IC++;
                         break;
-                    case REGISTER:
+                    case OPERAND_TYPE_RELATIVE:
                         log_out(__FILE__,__LINE__,"word: [%s]\n",word);
+                        IC++;
+                        break;
+                    case OPERAND_TYPE_REGISTER:
+                        log_out(__FILE__,__LINE__,"register: [%s]\n",word);
+                        word = remove_first_character(word);
+                        log_out(__FILE__,__LINE__,"word: [%s]\n",word);
+                        
+                        set_wordfield_src(wf,3,atoi(word));
+                        print_wordfield(wf);
+                        
                         break;
                     default:
                         break;
                     }
 
                 }
-                /*
-                wf = create_wordfield_by_opname(word, instruction_table);
-                set_wordfield_are(wf,4);
-                print_wordfield(wf);
-                
-                position = read_word_from_line(line, word, position);
-                if(word[strlen(word)-1] != COMMA)
+                else /* operands count is 2 */
                 {
-                    log_error(__FILE__,__LINE__,"Missing comma after first operand!.\n");
-                    flag = -1;
-                }
-                word = remove_last_character(word);
-                log_out(__FILE__,__LINE__, "instruction operand1: [%s]",word);
-                */
-                /* 
-                    TODO: 
-                        1. create a function for getting operand type: 0,1,2 or 3 
-                        2. check operand 1 and its src_mode and src_reg -
-                        - determine if we need 1+ wordfield or not. 
-                        add it or not, accordingly.
-                        3. do the same for operand2 - if its a label yet to be defined - 
-                        to be check in the second pass.
-                */
+                    wordfield* new_wf1;
+                    wordfield* new_wf2;
+                    OperandType operand1_type, operand2_type;
 
-                /* 
-                TODO: 
-                    1.
-                    identify which lines need 1,2 or 3 wordfields.
-                    and update IC accordinigly.
-                    2. 
-                    add address + wordfield + additional wordfield (depends on the operand number)
-                    to the dynamically allocated binary table. 
-                */
+                    position = read_word_from_line(line, word, position);
+                    if(word[strlen(word)-1] != COMMA)
+                    {
+                        log_error(__FILE__,__LINE__,"Missing comma after first operand!.\n");
+                        flag = -1;
+                    }
+                    word = remove_last_character(word);
+                    log_out(__FILE__,__LINE__, "instruction operand1: [%s]\n",word);    
+
+                    
+                    operand1_type = get_operand_type(word);
+                    switch (operand1_type)
+                    {
+                    case OPERAND_TYPE_IMMEDIATE:
+                        word = remove_first_character(word);
+                        log_out(__FILE__,__LINE__,"value: [%s]\n",word);
+                        new_wf1 = init_wordfield();
+                        set_wordfield_are_num(new_wf1,atoi(word),4);
+                        print_wordfield(new_wf1);
+                        IC++;
+                        break;
+                    case OPERAND_TYPE_DIRECT:
+                        log_out(__FILE__,__LINE__,"label: [%s]\n",word);
+                        set_wordfield_src(wf,1,0);
+                        print_wordfield(wf);
+                        IC++;
+                        break;
+                    case OPERAND_TYPE_RELATIVE:
+                        log_out(__FILE__,__LINE__,"word: [%s]\n",word);
+                        IC++;
+                        break;
+                    case OPERAND_TYPE_REGISTER:
+                        log_out(__FILE__,__LINE__,"register: [%s]\n",word);
+                        word = remove_first_character(word);
+                        log_out(__FILE__,__LINE__,"register number: [%s]\n",word);
+                        
+                        set_wordfield_src(wf,3,atoi(word));
+                        print_wordfield(wf);
+                        break;
+                    default:
+                        break;
+                    }
+
+
+                    position = read_word_from_line(line, word, position);
+                    log_out(__FILE__,__LINE__, "instruction operand2: [%s]\n",word);    
+                    
+                    operand2_type = get_operand_type(word);
+                    switch (operand2_type)
+                    {
+                    case OPERAND_TYPE_IMMEDIATE:
+                        word = remove_first_character(word);
+                        log_out(__FILE__,__LINE__,"value: [%s]\n",word);
+                        new_wf2 = init_wordfield();
+                        set_wordfield_are_num(new_wf2,atoi(word),4);
+                        print_wordfield(new_wf2);
+                        IC++;
+                        break;
+                    case OPERAND_TYPE_DIRECT:
+                        log_out(__FILE__,__LINE__,"word: [%s]\n",word);
+                        set_wordfield_dest(wf,1,0);
+                        print_wordfield(wf);
+                        IC++;
+                        break;
+                    case OPERAND_TYPE_RELATIVE:
+                        log_out(__FILE__,__LINE__,"word: [%s]\n",word);
+                        IC++;
+                        break;
+                    case OPERAND_TYPE_REGISTER:
+                        log_out(__FILE__,__LINE__,"register: [%s]\n",word);
+                        word = remove_first_character(word);
+                        log_out(__FILE__,__LINE__,"register number: [%s]\n",word);
+                        
+                        set_wordfield_dest(wf,3,atoi(word));
+                        print_wordfield(wf);
+                        break;
+                    default:
+                        break;
+                    }
+                }
             }
             else if(is_directive(word))
             {
-
+                DirectiveType directive_type;
+                int str_length = -1, i = 0;
+                wordfield* null_wf = init_wordfield();
+                log_out(__FILE__,__LINE__, 
+                    "directive line: [%s]\n\tdirective word: [%s]\n\taddress [%u]\n"
+                    ,line, word,IC);
+                /*
+                    IMPORTANT: .entry is handled in the 2nd pass. 
+                    TODO: 
+                    1. switch on directive type .data / .string / .extern ? 
+                */
+                directive_type = get_directive_type(word);
+                switch (directive_type)
+                {
+                case DIRECTIVE_TYPE_STRING:
+                    position = read_word_from_line(line, word, position);
+                    log_out(__FILE__,__LINE__,  "directive string: [%s] | [%c]\n",word);
+                    str_length = strlen(word);
+                    if((word[0] != DOUBLE_QUOTE || word[str_length] != DOUBLE_QUOTE) && (word[0] != DOUBLE_QUOTE && word[str_length] != DOUBLE_QUOTE))
+                    {
+                        log_error(__FILE__,__LINE__,"Error reading string data, missing quotes.\n");
+                        flag = -1;
+                    }
+                    word = remove_first_character(word);
+                    word = remove_last_character(word);
+                    str_length -= 2; /* not including 2 double quotes */
+                    log_out(__FILE__,__LINE__,  "directive string length: [%d]\n",str_length);
+    
+                    /* 
+                        TODO:
+                        make sure to handle DC and all that is relevant to that . 
+                    */
+                    for( ; i < str_length; i++)
+                    {
+                        wordfield* char_wf = get_char_wordfield(&word[i]);
+                        IC++;
+                    }
+                    log_out(__FILE__,__LINE__,"null -> ");
+                    print_wordfield(null_wf);
+                    log_out(__FILE__,__LINE__,"\n");
+                    break;
+                case DIRECTIVE_TYPE_DATA:
+                    break;
+                case DIRECTIVE_TYPE_EXTERN:
+                    break;
+                case DIRECTIVE_TYPE_ENTRY:
+                    break;
+                default:
+                    break;
+                }
             }
             else
             {
                 /*
                     TODO: 
                     1. make sure this symbol check is correct
-                    2. make sure to check if symbol already exists - handle errors
+                    2. make sure to check if symbol already exists or
+                       if the name is valid (no macro names with the same name)- handle errors
+                    3. replace this with a function (?) 
                 */
-                if(strrchr(word,':'))
+                if(strrchr(word,':')) 
                 {
                     
                     char* name;
                     name = remove_last_character(word);
-                    label_table_add(label_table,name,IC,CODE); /* check if already exists in inside label_table_add() */
+                    label_table_add(label_table,name,IC,LABELTYPE_CODE); /* check if already exists in inside label_table_add() */
                 }
             }
         }
@@ -221,20 +325,51 @@ OperandType get_operand_type(char* str)
 {
     if(str[0] == HASHTAG) 
     {
-        return IMMEDIATE; /* addressing mode: 0 */
+        return OPERAND_TYPE_IMMEDIATE; /* addressing mode: 0 */
     }
     else if(str[0] == AMPERSAND)
     {
-        return RELATIVE; /* addressing mode: 2*/
+        return OPERAND_TYPE_RELATIVE; /* addressing mode: 2*/
     }
     else if(is_register(str))
     {
-        return REGISTER; /* addressing mode: 3 */
+        return OPERAND_TYPE_REGISTER; /* addressing mode: 3 */
     }
     else /* addressing mode: 3 */
     {
-        return DIRECT;
+        return OPERAND_TYPE_DIRECT;
     }
     
     return -1;
+}
+
+DirectiveType get_directive_type(char* str)
+{
+    if(strcmp(str,".string") == 0) /* .string */
+    {
+        return DIRECTIVE_TYPE_STRING; 
+    }
+    else if(strcmp(str,".data") == 0) /* .data 2*/
+    {
+        return DIRECTIVE_TYPE_DATA; 
+    }
+    else if(strcmp(str,".extern") == 0) /* .extern */
+    {
+        return DIRECTIVE_TYPE_EXTERN;
+    }
+    else if(strcmp(str,".entry") == 0) /* .entry */
+    {
+        return DIRECTIVE_TYPE_ENTRY;
+    }
+    
+    return -1;
+}
+
+wordfield* get_char_wordfield(char* character)
+{
+    wordfield* wf = init_wordfield();
+    set_wordfield_by_num(wf,(int)*character);
+    log_out(__FILE__,__LINE__,"char: [%c] | ascii_code: [%d] | ",*character,(int)*character);
+    print_wordfield(wf);
+    return wf;
 }

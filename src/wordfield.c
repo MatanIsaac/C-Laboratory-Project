@@ -89,7 +89,7 @@ int main(void)
 }
 */
 
-void set_wordfield_by_num(wordfield* wf, unsigned int num)
+void set_wordfield_are_num(wordfield* wf, unsigned int num, unsigned int are)
 {
     if (!wf) 
         return;
@@ -100,7 +100,34 @@ void set_wordfield_by_num(wordfield* wf, unsigned int num)
     wf->dest_mode   = (num >> 8)  & 0x03;  /* Extract bits 14-15 (2 bits) */
     wf->dest_reg    = (num >> 5)  & 0x07;  /* Extract bits 16-18 (3 bits) */
     wf->funct       = (num >> 0)  & 0x1F;  /* Extract bits 19-23 (5 bits) */
-    wf->are         = 4;                   /* The first 3 bits are intentionally '100' */
+    wf->are         = are;                   /* Manually set first 3 bits */
+}
+
+void set_wordfield_by_num(wordfield* wf, unsigned int num)
+{
+    if (!wf) 
+        return;
+
+    /* Extract 6 bits (0x3F is binary 111111),  bits 23 to 18. */
+    wf->opcode      = (num >> 18) & MASK_SIX_BITS;  
+
+    /* Extract 2 bits (0x03 is binary 11), bits 17 to 16. */
+    wf->src_mode    = (num >> 16) & MASK_TWO_BITS;  
+
+    /* Extract 3 bits ( 0x07 is binary 111), bits 15 to 13. */
+    wf->src_reg     = (num >> 13) & MASK_THREE_BITS;
+
+    /* Extract 2 bits (0x03 is binary 11), bits 12 to 11. */
+    wf->dest_mode   = (num >> 11)  & MASK_TWO_BITS;
+
+    /* Extract 3 bits (0x07 is binary 11), bits 10 to 8. */
+    wf->dest_reg    = (num >> 8)  & MASK_THREE_BITS;
+
+    /* Extract 5 bits (0x1F is binary 11111), bits 7 to 3. */
+    wf->funct       = (num >> 3)  & MASK_FIVE_BITS; 
+
+    /* Extract 3 bits (0x03 is binary 11), bits 2 to 0. */
+    wf->are         = (num >> 0)  & MASK_THREE_BITS; 
 }
 
 void set_wordfield_op_funct(wordfield* word, unsigned int opcode, unsigned int funct)
