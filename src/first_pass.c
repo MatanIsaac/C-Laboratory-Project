@@ -3,8 +3,9 @@
 #include "common.h"
 #include "utility.h"
 #include "isaac_logger.h"
+#include "binary_table.h"
 
-void prepare_first_pass(const char* filepath)
+void prepare_first_pass(const char* filepath, MacroTable* macro_table)
 {
     FILE* fp;
     LabelTable label_table;
@@ -40,7 +41,7 @@ void prepare_first_pass(const char* filepath)
         log_error(__FILE__,__LINE__, "Failed to open [%s] for first pass\n.", filepath);
     }
 
-    if(execute_first_pass(fp,&label_table,&instruction_table) >= 0) /* success */
+    if(execute_first_pass(fp,&label_table,&instruction_table, macro_table) >= 0) /* success */
     {
         log_out(__FILE__,__LINE__, "Done First-Pass for [%s]\n.", filepath);
     }
@@ -51,14 +52,14 @@ void prepare_first_pass(const char* filepath)
 }   
 
 
-int execute_first_pass(FILE* fp, LabelTable* label_table, InstructionTable* instruction_table)
+int execute_first_pass(FILE* fp, LabelTable* label_table, InstructionTable* instruction_table, MacroTable* macro_table)
 {
-    int flag        = 0;  /* flag is used to signal if we encounted errors while executing first pass */
-    unsigned int DC = 0; /* Data Counter */
-    unsigned int IC = 100; /* Instruction Counter */
-    char* line      = string_calloc(MAX_LINE, sizeof(char)); 
-    char* word      = string_calloc(MAX_WORD, sizeof(char));
-
+    int flag                    = 0;    /* flag is used to signal if we encounted errors while executing first pass */
+    unsigned int DC             = 0;    /* Data Counter */
+    unsigned int IC             = 100;  /* Instruction Counter */
+    char* line                  = string_calloc(MAX_LINE, sizeof(char)); 
+    char* word                  = string_calloc(MAX_WORD, sizeof(char));
+    BinaryTable* binary_table   = init_binary_table(5);
 
     while(read_line(fp,line) != -1)
     {
@@ -68,6 +69,9 @@ int execute_first_pass(FILE* fp, LabelTable* label_table, InstructionTable* inst
             /* ignore comments and empty lines */
             continue;
         }
+
+        add_binary_node(binary_table,IC,line);
+
         while ((position = read_word_from_line(line, word, position)) != -1) 
         {
             if(is_instruction(word))
@@ -93,36 +97,84 @@ int execute_first_pass(FILE* fp, LabelTable* label_table, InstructionTable* inst
                 }
                 else if (operands_count == 1)
                 {
-                    wordfield* new_wf;
                     OperandType operand1_type;
+                    wordfield* new_wf = init_wordfield();
                     position = read_word_from_line(line, word, position);
                     operand1_type = get_operand_type(word);
                     switch (operand1_type)
                     {
                     case OPERAND_TYPE_IMMEDIATE:
+                        set_binary_node_wordfield(binary_table,IC,wf);
                         word = remove_first_character(word);
                         log_out(__FILE__,__LINE__,"word: [%s]\n",word);
                         new_wf = init_wordfield();
                         set_wordfield_are_num(new_wf,atoi(word),4);
                         print_wordfield(new_wf);
                         IC++;
+                        add_binary_node(binary_table,IC,"Immediate value");
+                        set_binary_node_wordfield(binary_table,IC,new_wf);
+                        print_binary_table(binary_table);
                         break;
                     case OPERAND_TYPE_DIRECT:
-                        log_out(__FILE__,__LINE__,"word: [%s]\n",word);
+                        log_out(__FILE__,__LINE__,"operand_type_direct operand: [%s]\n",word);
+                        set_wordfield_dest(wf,1,0);
+                        print_wordfield(wf);
+                        set_binary_node_wordfield(binary_table,IC,wf);
                         IC++;
+                        add_binary_node(binary_table,IC,"Address of Label");
+                        set_binary_node_wordfield(binary_table,IC,new_wf);
+                        print_binary_table(binary_table);
+
+                        /* TODO: 
+                            1. check if its a jump instruction or else
+                            2. if jump type instruction - calculate distance between addresses etc.. 
+                            3. else - check instruction type, I.E: 
+                                x: .data 23 \n dec x
+                                or 
+                                jmp next
+                                or 
+                                .entry / .extern
+                                etc..
+                                multiple option can be here.
+                                make sure to find them all.
+                        */
                         break;
                     case OPERAND_TYPE_RELATIVE:
                         log_out(__FILE__,__LINE__,"word: [%s]\n",word);
+                        if(word[0] != AMPERSAND)
+                        {
+                            log_error(__FILE__,__LINE__, "Error missing '&' before label for relative type addressing!.\n");
+                            flag = -1;
+                        }
+                        word = remove_first_character(word);
+                        log_out(__FILE__,__LINE__,"label: [%s]\n",word);
                         IC++;
+                        /* 
+                            IMPORTANT: this is relevant only for: jmp, jsr, bne
+                            TODO:
+                            1. check if label already exists in label table and declared before
+                            2. if not - 
+                            add an empty extra line with IC to the binary table 
+                            for the unknown label we've encountered, will be handled in the 2nd pass.
+                            3. if exists - already declared - calculate distance from current address to label's address :
+                            if label is in 300 and jmp is 500: jumping distance is -200
+                                LABEL_ADDRESS - CURRENT_OP_ADDRESS = DIFF
+                            set jump instruction wf dest mode to 02 (decimal) relative addressing, dest register 0.
+                            add a new wordfield, set are field to 100 'A=1,R=0,E=0',
+                            add DIFF to the new wordfield at the bit 23-3.
+                            add both new and instruction wordfield to the binary table.                            
+                        */
                         break;
                     case OPERAND_TYPE_REGISTER:
                         log_out(__FILE__,__LINE__,"register: [%s]\n",word);
                         word = remove_first_character(word);
                         log_out(__FILE__,__LINE__,"word: [%s]\n",word);
                         
-                        set_wordfield_src(wf,3,atoi(word));
+                        set_wordfield_dest(wf,3,atoi(word));
                         print_wordfield(wf);
-                        
+                        set_binary_node_wordfield(binary_table,IC,wf);
+                        print_binary_table(binary_table);
+
                         break;
                     default:
                         break;
@@ -131,9 +183,9 @@ int execute_first_pass(FILE* fp, LabelTable* label_table, InstructionTable* inst
                 }
                 else /* operands count is 2 */
                 {
-                    wordfield* new_wf1;
-                    wordfield* new_wf2;
                     OperandType operand1_type, operand2_type;
+                    wordfield* new_wf1 = init_wordfield();
+                    wordfield* new_wf2 = init_wordfield();
 
                     position = read_word_from_line(line, word, position);
                     if(word[strlen(word)-1] != COMMA)
@@ -160,7 +212,10 @@ int execute_first_pass(FILE* fp, LabelTable* label_table, InstructionTable* inst
                         log_out(__FILE__,__LINE__,"label: [%s]\n",word);
                         set_wordfield_src(wf,1,0);
                         print_wordfield(wf);
+                        set_binary_node_wordfield(binary_table,IC,wf); /* if theres another label we set this again in the operand2 switch case */
                         IC++;
+                        add_binary_node(binary_table,IC,"Address of Label");
+                        set_binary_node_wordfield(binary_table,IC,new_wf1);
                         break;
                     case OPERAND_TYPE_RELATIVE:
                         log_out(__FILE__,__LINE__,"word: [%s]\n",word);
@@ -170,19 +225,27 @@ int execute_first_pass(FILE* fp, LabelTable* label_table, InstructionTable* inst
                         log_out(__FILE__,__LINE__,"register: [%s]\n",word);
                         word = remove_first_character(word);
                         log_out(__FILE__,__LINE__,"register number: [%s]\n",word);
-                        
                         set_wordfield_src(wf,3,atoi(word));
                         print_wordfield(wf);
+                        /* 
+                            if theres another register we set this again in the operand2 switch case 
+                        */
+                        set_binary_node_wordfield(binary_table,IC,wf); 
+
                         break;
                     default:
                         break;
                     }
 
-
+                    /*
+                    if(operand1_type != OPERAND_TYPE_RELATIVE && operand1_type != OPERAND_TYPE_REGISTER && 
+                    operand2_type != OPERAND_TYPE_RELATIVE && operand2_type != OPERAND_TYPE_REGISTER)
+                    {
+                    }
+                    */
                     position = read_word_from_line(line, word, position);
                     log_out(__FILE__,__LINE__, "instruction operand2: [%s]\n",word);    
-                    
-                    operand2_type = get_operand_type(word);
+                    operand2_type = get_operand_type(word);                    
                     switch (operand2_type)
                     {
                     case OPERAND_TYPE_IMMEDIATE:
@@ -192,12 +255,19 @@ int execute_first_pass(FILE* fp, LabelTable* label_table, InstructionTable* inst
                         set_wordfield_are_num(new_wf2,atoi(word),4);
                         print_wordfield(new_wf2);
                         IC++;
+                        add_binary_node(binary_table,IC,"Immediate value");
+                        set_binary_node_wordfield(binary_table,IC,new_wf2);
+                        print_binary_table(binary_table);
                         break;
                     case OPERAND_TYPE_DIRECT:
                         log_out(__FILE__,__LINE__,"word: [%s]\n",word);
                         set_wordfield_dest(wf,1,0);
                         print_wordfield(wf);
+                        set_binary_node_wordfield(binary_table,IC,wf);
                         IC++;
+                        add_binary_node(binary_table,IC,"Address of Label");
+                        set_binary_node_wordfield(binary_table,IC,new_wf2);
+                        print_binary_table(binary_table);
                         break;
                     case OPERAND_TYPE_RELATIVE:
                         log_out(__FILE__,__LINE__,"word: [%s]\n",word);
@@ -210,10 +280,15 @@ int execute_first_pass(FILE* fp, LabelTable* label_table, InstructionTable* inst
                         
                         set_wordfield_dest(wf,3,atoi(word));
                         print_wordfield(wf);
+                        if(operand1_type != OPERAND_TYPE_REGISTER)
+                            set_binary_node_wordfield(binary_table,IC-1,wf);
+                        else /* we did not update IC if operand1 is register, reset node wordfield to updated one */
+                            set_binary_node_wordfield(binary_table,IC,wf); 
                         break;
                     default:
                         break;
                     }
+
                 }
             }
             else if(is_directive(word))
@@ -221,6 +296,7 @@ int execute_first_pass(FILE* fp, LabelTable* label_table, InstructionTable* inst
                 DirectiveType directive_type;
                 int str_length = -1, i = 0;
                 wordfield* null_wf = init_wordfield();
+                wordfield* last_num_wf = init_wordfield(); 
                 log_out(__FILE__,__LINE__, 
                     "directive line: [%s]\n\tdirective word: [%s]\n\taddress [%u]\n"
                     ,line, word,IC);
@@ -260,6 +336,18 @@ int execute_first_pass(FILE* fp, LabelTable* label_table, InstructionTable* inst
                     log_out(__FILE__,__LINE__,"\n");
                     break;
                 case DIRECTIVE_TYPE_DATA:
+                    while ((position = read_word_from_line(line, word, position)) != -1 && word[strlen(word)-1] == COMMA)
+                    {
+                        wordfield* num_wf = init_wordfield();
+                        const char* num_char = remove_last_character(word);
+                        log_out(__FILE__,__LINE__,"directive word: [%s]\n",num_char);
+                        set_wordfield_by_num(num_wf,(unsigned int)atoi(num_char));
+                        print_wordfield(num_wf);
+                        IC++;
+                    }
+                    log_out(__FILE__,__LINE__,"last directive word: [%s]\n",word);
+                    set_wordfield_by_num(last_num_wf,(unsigned int)atoi(word));
+                    print_wordfield(last_num_wf);
                     break;
                 case DIRECTIVE_TYPE_EXTERN:
                     break;
@@ -284,6 +372,7 @@ int execute_first_pass(FILE* fp, LabelTable* label_table, InstructionTable* inst
                     char* name;
                     name = remove_last_character(word);
                     label_table_add(label_table,name,IC,LABELTYPE_CODE); /* check if already exists in inside label_table_add() */
+
                 }
             }
         }
@@ -373,3 +462,4 @@ wordfield* get_char_wordfield(char* character)
     print_wordfield(wf);
     return wf;
 }
+

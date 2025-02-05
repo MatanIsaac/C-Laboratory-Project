@@ -148,19 +148,19 @@ void macro_table_remove(MacroTable *table, const char *key)
 void macro_table_print(MacroTable* table)
 {
     size_t i;
-    log_error(__FILE__,__LINE__,"Index  Bucket\n");
-    log_error(__FILE__,__LINE__,"-----  -------------------------------------------------\n");
+    log_out(__FILE__,__LINE__,"Index  Bucket\n");
+    log_out(__FILE__,__LINE__,"-----  -------------------------------------------------\n");
     for(i = 0; i < table->size; i++)
     {
         MacroNode* node = table->buckets[i];
-        log_error(__FILE__,__LINE__,"%-5lu  ", (unsigned long)i);
+        log_out(__FILE__,__LINE__,"%-5lu  ", (unsigned long)i);
         if(node != NULL)
         {
             macro_node_print(node);
         }
         else
         {
-            log_error(__FILE__,__LINE__,"[Empty]\n");
+            log_out(__FILE__,__LINE__,"[Empty]\n");
         }
     }
 }

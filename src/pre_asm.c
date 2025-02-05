@@ -20,7 +20,7 @@
 
 */
 
-int parse_macros(FILE* fp, const char* filepath, char* output_file)
+int parse_macros(FILE* fp, const char* filepath, char* output_file, MacroTable* macro_table)
 {
     int position = 0, flag = 0;
     FILE* new_fp;
@@ -32,9 +32,8 @@ int parse_macros(FILE* fp, const char* filepath, char* output_file)
     char* word                  = string_calloc(MAX_WORD, sizeof(char));
     char* current_macro_key     = string_calloc(MAX_WORD, sizeof(char));
     char* current_macro_value   = string_calloc(MAX_LINE, sizeof(char));
-    MacroTable* macro_table      = macro_table_create(10);
-    
-    char* filename        = get_filename(filepath);
+
+    char* filename              = get_filename(filepath);
     size_t base_len             = strlen(filename);
     base_filename               = string_malloc(base_len + 4); /* +4 for ".am" and null terminator */
     strcpy(base_filename, filename);
@@ -183,6 +182,5 @@ int parse_macros(FILE* fp, const char* filepath, char* output_file)
     free(word);
     free(current_macro_key);
     free(current_macro_value);
-    macro_table_destroy(macro_table);
     return flag;
 }

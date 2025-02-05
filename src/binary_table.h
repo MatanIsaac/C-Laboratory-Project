@@ -9,6 +9,7 @@
 
 typedef struct BinaryNode {
     unsigned int address;
+    char* line;
     wordfield word;
 } BinaryNode;
 
@@ -24,9 +25,11 @@ typedef struct
 } BinaryTable;
 
 /* Functions for initializing and managing a BinaryTable */
-BinaryTable init_binary_table(size_t initial_size);
+BinaryTable* init_binary_table(size_t initial_size);
 void free_binary_table(BinaryTable* table);
-void add_binary_node(BinaryTable* table, unsigned int address, wordfield* word);
+void add_binary_node(BinaryTable* table, unsigned int address, char* line);
+void set_binary_node_wordfield(BinaryTable* table, unsigned int address, wordfield* word);
 void print_binary_table(BinaryTable* table);
-
+/* returns -1 if not found, otherwise returns the index where found */
+int search_binary_table(BinaryTable* table, unsigned int address);
 #endif /* BINARY_TABLE_H */

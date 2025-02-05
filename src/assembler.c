@@ -14,10 +14,12 @@
 int main(int argc,char* argv[])
 {
     FILE* fp;
-    int file_index = 1;
-    int arg_count = argc;
     char current_file[MAX_FILENAME];
     char output_file[MAX_FILENAME];
+    int file_index          = 1;
+    int arg_count           = argc;
+    MacroTable* macro_table = macro_table_create(10);
+
 
     if(argc < 2)
     {
@@ -37,11 +39,12 @@ int main(int argc,char* argv[])
             return -1;
         }
 
-        if(parse_macros(fp,current_file,output_file) != -1)
+        if(parse_macros(fp,current_file,output_file,macro_table) != -1)
         {
-            log_out(__FILE__,__LINE__,"Done Parsing Macros for - %s\n", current_file);
+            log_out(__FILE__,__LINE__,"Done Parsing Macros for - %s\nMacro-Table:\n", current_file);
+            macro_table_print(macro_table);
             fclose(fp);           
-            prepare_first_pass(output_file);
+            prepare_first_pass(output_file,macro_table);
         }
         else
         {
