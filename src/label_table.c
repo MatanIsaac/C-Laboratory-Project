@@ -106,15 +106,43 @@ int label_table_search(LabelTable* table, const char* name)
     return -1;
 }
 
+int label_table_search_by_address(LabelTable* table, unsigned int address)
+{
+    unsigned int i = 0;
+    for (; i < table->size; i++)
+    {
+        if(table->labels[i].address == address)
+        {
+            return i;
+        }
+    }
+    return -1;
+}
+
 int label_table_set_node_by_name(LabelTable* table,const char* name, unsigned int address, enum LabelType type)
 {
     int node_index = -1;
+    if(table == NULL || name == NULL)
+    {
+        log_out(__FILE__,__LINE__, "Error setting label node.\n");    
+        return -1;
+    }
     if((node_index = label_table_search(table,name)) > 1)
     {
         table->labels[node_index].type      = type;
         table->labels[node_index].address   = address;
+        return 1;
     }   
     return -1; 
 }
 
-
+int label_table_set_label_type(LabelTable* table,unsigned int address, enum LabelType type)
+{
+    int node_index = -1;
+    if((node_index = label_table_search_by_address(table,address)) > 1)
+    {
+        table->labels[node_index].type      = type;
+        return 1;
+    }
+    return -1; 
+}

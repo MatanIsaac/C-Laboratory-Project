@@ -19,7 +19,7 @@ void print_binary_node(BinaryNode* node)
     if (node)
     {
         /* Found a valid entry */
-        log_out(__FILE__,__LINE__,  "[address: %u] - [line: %s] - ", node->address, (node->line) ? node->line : "NULL");
+        fprintf(stdout,  "[address: %u] - [line: %s] - \t\t", node->address, (node->line) ? node->line : "NULL");
         print_wordfield(&node->word);
 
     }
@@ -132,6 +132,7 @@ void print_binary_table(BinaryTable* table)
     if (!table || !table->data) 
         return;
 
+    log_out(__FILE__,__LINE__,"Printing the Binary Table: \n");
     for (i = 0; i < table->size; i++) 
     {
         print_binary_node(table->data[i]);

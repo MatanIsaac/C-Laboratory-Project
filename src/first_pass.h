@@ -4,6 +4,7 @@
 #include "label_table.h"
 #include "macro_table.h"
 #include "instruction_table.h"
+#include "binary_table.h"
 #include "wordfield.h"
 
 typedef enum
@@ -31,5 +32,9 @@ OperandType get_operand_type(char* str);
 DirectiveType get_directive_type(char* str);
 
 wordfield* get_char_wordfield(char* character);
+
+void handle_labels(LabelTable* label_table, unsigned int IC, char* line, char* word,int position);
+int handle_instruction(BinaryTable* binary_table, LabelTable* label_table,InstructionTable* instruction_table, 
+        unsigned int* IC, char* line, char* word,int* position);
 
 #endif
