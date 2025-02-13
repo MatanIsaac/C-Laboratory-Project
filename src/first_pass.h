@@ -34,7 +34,10 @@ DirectiveType get_directive_type(char* str);
 wordfield* get_char_wordfield(char* character);
 
 void handle_labels(LabelTable* label_table, unsigned int IC, char* line, char* word,int position);
+
 int handle_instruction(BinaryTable* binary_table, LabelTable* label_table,InstructionTable* instruction_table, 
         unsigned int* IC, char* line, char* word,int* position);
+    
+int handle_directive(BinaryTable* binary_table, unsigned int* IC, char* line, char* word,int* position);
 
 #endif

@@ -1,5 +1,5 @@
 MAIN:       sub r3, LIST
-LOOP:       mcro b_mc
+            mcro b_mc
             cmp K, #-7
             bne &END
             mcroend

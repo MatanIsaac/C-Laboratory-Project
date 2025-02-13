@@ -29,7 +29,4 @@ bool is_line_empty(char* line);
 int get_instruction_index(const char* op_name);
 /*------------------------------------------------------------------*/
 
-/* Hash function for strings using djb2 algorithm */
-unsigned long hash(const char* str);
-
 #endif

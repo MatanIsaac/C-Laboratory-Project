@@ -25,11 +25,12 @@ typedef struct
 } BinaryTable;
 
 /* Functions for initializing and managing a BinaryTable */
-BinaryTable* init_binary_table(size_t initial_size);
-void free_binary_table(BinaryTable* table);
-void add_binary_node(BinaryTable* table, unsigned int address, char* line);
+BinaryTable* binary_table_create(size_t initial_size);
+void binary_table_free(BinaryTable* table);
+void binary_node_add(BinaryTable* table, unsigned int address, char* line);
+/* sets a binary node in the table, by its address */
 void set_binary_node_wordfield(BinaryTable* table, unsigned int address, wordfield* word);
-void print_binary_table(BinaryTable* table);
+void binary_table_print(BinaryTable* table);
 /* returns -1 if not found, otherwise returns the index where found */
-int search_binary_table(BinaryTable* table, unsigned int address);
+int binary_table_search(BinaryTable* table, unsigned int address);
 #endif /* BINARY_TABLE_H */

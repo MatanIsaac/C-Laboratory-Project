@@ -48,11 +48,12 @@ int main(int argc,char* argv[])
         }
         else
         {
-            log_out(__FILE__,__LINE__,"Done Parsing Macros for - %s\n", current_file);
+            log_out(__FILE__,__LINE__,"Error Parsing Macros for - %s\n", current_file);
             fclose(fp);
         }
 
         file_index++;
+        macro_table_reset(&macro_table);
     }
 
     return 0;

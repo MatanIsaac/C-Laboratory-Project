@@ -30,7 +30,7 @@ void print_binary_node(BinaryNode* node)
     }
 }
 
-BinaryTable* init_binary_table(size_t initial_size) 
+BinaryTable* binary_table_create(size_t initial_size) 
 {
     size_t i;
     BinaryTable* table = malloc(sizeof(BinaryTable));
@@ -55,7 +55,7 @@ BinaryTable* init_binary_table(size_t initial_size)
     return table;
 }
 
-void free_binary_table(BinaryTable* table) 
+void binary_table_free(BinaryTable* table) 
 {
     size_t i;
     if (!table || !table->data) 
@@ -73,7 +73,7 @@ void free_binary_table(BinaryTable* table)
     free(table);
 }
 
-void add_binary_node(BinaryTable* table, unsigned int address, char* line) 
+void binary_node_add(BinaryTable* table, unsigned int address, char* line) 
 {
     if (!table || !table->data) 
         return;
@@ -119,14 +119,14 @@ void set_binary_node_wordfield(BinaryTable* table, unsigned int address, wordfie
     if (!table || !table->data || !word) 
         return;
 
-    node_index = search_binary_table(table, address);
+    node_index = binary_table_search(table, address);
     if(node_index != -1)
     {
         table->data[node_index]->word = *word;    
     }
 }
 
-void print_binary_table(BinaryTable* table)
+void binary_table_print(BinaryTable* table)
 {
     size_t i;
     if (!table || !table->data) 
@@ -139,7 +139,7 @@ void print_binary_table(BinaryTable* table)
     }
 }
 
-int search_binary_table(BinaryTable* table, unsigned int address)
+int binary_table_search(BinaryTable* table, unsigned int address)
 {
     size_t i;
     if (!table || !table->data) 

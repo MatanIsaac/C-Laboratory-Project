@@ -54,13 +54,13 @@ void prepare_first_pass(const char* filepath, MacroTable* macro_table)
 int execute_first_pass(FILE* fp, LabelTable* label_table, InstructionTable* instruction_table, MacroTable* macro_table)
 {
     int flag                    = 0;    /* flag is used to signal if we encounted errors while executing first pass */
-    unsigned int DC             = 0;    /* Data Counter */
-    unsigned int IC             = 100;  /* Instruction Counter */
-    unsigned int DCF            = -1;    /* Data Counter */
-    unsigned int ICF            = -1;  /* Instruction Counter */
+    unsigned int DC             = 0;    /* data counter */
+    unsigned int IC             = 100;  /* instruction counter */
+    unsigned int DCF            = -1;    /* data counter */
+    unsigned int ICF            = -1;  /* instruction counter */
     char* line                  = string_calloc(MAX_LINE, sizeof(char)); 
     char* word                  = string_calloc(MAX_WORD, sizeof(char));
-    BinaryTable* binary_table   = init_binary_table(5);
+    BinaryTable* binary_table   = binary_table_create(5);
 
     while(read_line(fp,line) != -1)
     {
@@ -71,7 +71,14 @@ int execute_first_pass(FILE* fp, LabelTable* label_table, InstructionTable* inst
             continue;
         }
 
-        add_binary_node(binary_table,IC,line);
+        /* 
+            first we add a binary node to the binary table.
+            we set its type and wordfield later, based on 3 things: 
+            1. an instruction
+            2. a directive 
+            3. a label
+        */
+        binary_node_add(binary_table,IC,line);
 
         while ((position = read_word_from_line(line, word, position)) != -1) 
         {
@@ -81,115 +88,10 @@ int execute_first_pass(FILE* fp, LabelTable* label_table, InstructionTable* inst
             }
             else if(is_directive(word))
             {
-                DirectiveType directive_type;
-                char last_num_str[MAX_WORD] = "Integer "; 
-                int str_length = -1, i = 0, numbers_count = 0, char_count = 0;
-                wordfield* last_wf = init_wordfield(); 
-                /*log_out(__FILE__,__LINE__, 
-                    "directive line: [%s]\n\tdirective word: [%s]\n\taddress [%u]\n"
-                    ,line, word,IC);*/
-                /*
-                    IMPORTANT: .entry is handled in the 2nd pass. 
-                    TODO: 
-                    1. switch on directive type .data / .string / .extern ? 
-                */
-                directive_type = get_directive_type(word);
-                switch (directive_type)
-                {
-                case DIRECTIVE_TYPE_STRING:
-                    position = read_word_from_line(line, word, position);
-                    /*log_out(__FILE__,__LINE__,  "directive string: [%s] | [%c]\n",word);*/
-                    str_length = strlen(word);
-                    if((word[0] != DOUBLE_QUOTE || word[str_length] != DOUBLE_QUOTE) && (word[0] != DOUBLE_QUOTE && word[str_length] != DOUBLE_QUOTE))
-                    {
-                        log_error(__FILE__,__LINE__,"Error reading string data, missing quotes.\n");
-                        flag = -1;
-                    }
-                    word = remove_first_character(word);
-                    word = remove_last_character(word);
-                    str_length -= 2; /* not including 2 double quotes */
-        
-                    /*log_out(__FILE__,__LINE__,  "directive string length: [%d]\n",str_length);*/
-    
-                    /* 
-                        TODO:
-                        make sure to handle DC and all that is relevant to that . 
-                    */
-                    for( ; i < str_length; i++)
-                    {
-                        wordfield* char_wf;
-                        char character[2];
-                        char ascii_str[MAX_WORD] = "Ascii code ";
-                        strncpy(character,&word[i],1);
-                        char_wf = get_char_wordfield(character);
-                        print_wordfield(char_wf);
-                        if(char_count == 0)
-                        {
-                            set_binary_node_wordfield(binary_table,IC,char_wf);
-                            IC++;
-                            char_count++;
-                            continue;
-                        }
-                        strncat(ascii_str, character,1);
-                        add_binary_node(binary_table,IC,ascii_str);
-                        set_binary_node_wordfield(binary_table,IC,char_wf);
-                        IC++;
-                        char_count++;
-                    }
-                    add_binary_node(binary_table,IC,"Ascii code \'\\0\'");
-                    set_binary_node_wordfield(binary_table,IC,last_wf);
-                    /*log_out(__FILE__,__LINE__,"\n");*/
-                    break;
-                case DIRECTIVE_TYPE_DATA:
-                    while ((position = read_word_from_line(line, word, position)) != -1 && word[strlen(word)-1] == COMMA)
-                    {
-                        char final_str[MAX_WORD] = "Integer ";
-                        wordfield* num_wf = init_wordfield();
-                        word = remove_last_character(word);
-                        set_wordfield_by_num(num_wf,(unsigned int)atoi(word));
-                        if(numbers_count == 0)
-                        {
-                            set_binary_node_wordfield(binary_table,IC,num_wf);
-                            numbers_count++;
-                            IC++;
-                            continue;
-                        }
-                        
-                        strcat(final_str, word);
-                        add_binary_node(binary_table,IC, final_str);
-                        set_binary_node_wordfield(binary_table,IC,num_wf);
-                        IC++;
-                        numbers_count++;
-                    }
-                    if(numbers_count == 0)
-                    {
-                        set_wordfield_by_num(last_wf,(unsigned int)atoi(word));
-                        set_binary_node_wordfield(binary_table,IC,last_wf);
-                        numbers_count++; 
-                        break;
-                    }
-                    /*log_out(__FILE__,__LINE__,"last directive word: [%s]\n",word);*/
-                    set_wordfield_by_num(last_wf,(unsigned int)atoi(word));
-                    strcat(last_num_str, word);
-                    add_binary_node(binary_table,IC, last_num_str);
-                    set_binary_node_wordfield(binary_table,IC,last_wf);
-                    break;
-                case DIRECTIVE_TYPE_EXTERN:
-                    break;
-                case DIRECTIVE_TYPE_ENTRY:
-                    break;
-                default:
-                    break;
-                }
+                flag = handle_directive(binary_table,&IC,line,word,&position);
             }
             else
             {
-                /*
-                    TODO: 
-                    1. make sure this symbol check is correct
-                    2. make sure to check if symbol already exists or
-                       if the name is valid (no macro names with the same name)- handle errors
-                */
                 handle_labels(label_table,IC,line,word,position);
             }
         }
@@ -201,9 +103,14 @@ int execute_first_pass(FILE* fp, LabelTable* label_table, InstructionTable* inst
 
     printf("\n\n");
     printf("\n\n");
-    print_binary_table(binary_table);
+    binary_table_print(binary_table);
     printf("\n\n");
     label_table_print(label_table);
+
+    free(line);
+    free(word);
+    binary_table_free(binary_table);
+
     return flag;
 }
 
@@ -332,7 +239,6 @@ int handle_instruction(BinaryTable* binary_table, LabelTable* label_table,Instru
     else if(operands_count == 0)
     {
         set_binary_node_wordfield(binary_table,*IC,wf);
-
     }
     else if (operands_count == 1)
     {
@@ -348,14 +254,14 @@ int handle_instruction(BinaryTable* binary_table, LabelTable* label_table,Instru
             new_wf  = init_wordfield();
             set_wordfield_are_num(new_wf,atoi(word),4);
             (*IC)++;
-            add_binary_node(binary_table,*IC,"Immediate value");
+            binary_node_add(binary_table,*IC,"Immediate value");
             set_binary_node_wordfield(binary_table,*IC,new_wf);
             break;
         case OPERAND_TYPE_DIRECT:
             set_wordfield_dest(wf,OPERAND_TYPE_DIRECT,0);
             set_binary_node_wordfield(binary_table,*IC,wf);
             (*IC)++;
-            add_binary_node(binary_table,*IC,"Address of Label");
+            binary_node_add(binary_table,*IC,"Address of Label");
             set_binary_node_wordfield(binary_table,*IC,new_wf);
             break;
         case OPERAND_TYPE_RELATIVE:
@@ -367,7 +273,7 @@ int handle_instruction(BinaryTable* binary_table, LabelTable* label_table,Instru
             set_wordfield_dest(wf,OPERAND_TYPE_RELATIVE,0);
             set_binary_node_wordfield(binary_table,*IC,wf);
             (*IC)++;
-            add_binary_node(binary_table,*IC,"Distance to Label");
+            binary_node_add(binary_table,*IC,"Distance to Label");
             set_binary_node_wordfield(binary_table,*IC,new_wf);
             
             /* 
@@ -399,8 +305,8 @@ int handle_instruction(BinaryTable* binary_table, LabelTable* label_table,Instru
     else /* operands count is 2 */
     {
         OperandType operand1_type, operand2_type;
-        wordfield* new_wf1 = init_wordfield();
-        wordfield* new_wf2 = init_wordfield();
+        wordfield* new_wf1 = NULL; /* = init_wordfield(); */
+        wordfield* new_wf2 = NULL; /* = init_wordfield(); */
 
         *position = read_word_from_line(line, word, *position);
         if(word[strlen(word)-1] != COMMA)
@@ -422,22 +328,32 @@ int handle_instruction(BinaryTable* binary_table, LabelTable* label_table,Instru
             set_wordfield_src(wf,OPERAND_TYPE_DIRECT,0);
             set_binary_node_wordfield(binary_table,*IC,wf);
             (*IC)++;
-            add_binary_node(binary_table,*IC,"Address of Label");
+            binary_node_add(binary_table,*IC,"Address of Label");
+            new_wf1 = init_wordfield();
             set_binary_node_wordfield(binary_table,*IC,new_wf1);
             break;
         case OPERAND_TYPE_RELATIVE:
             (*IC)++;
+            /* no use for this if 1nd operand is relative - for 2nd Pass */
+            free(new_wf1);
             break;
         case OPERAND_TYPE_REGISTER:
             word = remove_first_character(word);
             set_wordfield_src(wf,OPERAND_TYPE_REGISTER,atoi(word));
             set_binary_node_wordfield(binary_table,*IC,wf); 
+            /* no use for this if 1st operand is a register */
+            free(new_wf1);
             break;
         default:
             break;
         }
 
         *position = read_word_from_line(line, word, *position);
+        if(*position == -1)
+        {
+            return flag;    
+            free(new_wf2);   
+        }
         operand2_type = get_operand_type(word);                    
         switch (operand2_type)
         {
@@ -446,32 +362,148 @@ int handle_instruction(BinaryTable* binary_table, LabelTable* label_table,Instru
             new_wf2 = init_wordfield();
             set_wordfield_are_num(new_wf2,atoi(word),4);
             (*IC)++;
-            add_binary_node(binary_table,*IC,"Immediate value");
+            binary_node_add(binary_table,*IC,"Immediate value");
             set_binary_node_wordfield(binary_table,*IC,new_wf2);
             break;
         case OPERAND_TYPE_DIRECT:
             set_wordfield_dest(wf,OPERAND_TYPE_DIRECT,0);
             set_binary_node_wordfield(binary_table,*IC,wf);
             (*IC)++;
-            add_binary_node(binary_table,*IC,"Address of Label");
+            binary_node_add(binary_table,*IC,"Address of Label");
+            new_wf2 = init_wordfield();
             set_binary_node_wordfield(binary_table,*IC,new_wf2);
             break;
         case OPERAND_TYPE_RELATIVE:
             (*IC)++;
+            /* no use for this if 2nd operand is relative - for 2nd Pass */
+            free(new_wf2);
             break;
         case OPERAND_TYPE_REGISTER:
             word = remove_first_character(word);
-            
             set_wordfield_dest(wf,OPERAND_TYPE_REGISTER,atoi(word));
             if(operand1_type != OPERAND_TYPE_REGISTER)
                 set_binary_node_wordfield(binary_table,*IC-1,wf);
             else /* we did not update *IC if operand1 is register, reset node wordfield to updated one */
                 set_binary_node_wordfield(binary_table,*IC,wf); 
+            /* no use for this if 2nd operand is a register */
+            free(new_wf2);
             break;
         default:
             break;
         }
     } 
+
+    return flag;
+}
+
+int handle_directive(BinaryTable* binary_table, unsigned int* IC, char* line, char* word,int* position)
+{
+    DirectiveType directive_type;
+    int flag                    = 0;
+    int str_length              = -1;
+    int i                       = 0; 
+    int numbers_count           = 0;
+    int char_count              = 0;
+    char last_num_str[MAX_WORD] = "Integer "; 
+    wordfield* last_wf          = init_wordfield(); 
+    
+    /*log_out(__FILE__,__LINE__, 
+        "directive line: [%s]\n\tdirective word: [%s]\n\taddress [%u]\n"
+        ,line, word,IC);    
+    */
+    /*
+        IMPORTANT: .entry is handled in the 2nd pass. 
+        TODO: 
+        1. switch on directive type .data / .string / .extern ? 
+    */
+    directive_type = get_directive_type(word);
+    switch (directive_type)
+    {
+    case DIRECTIVE_TYPE_STRING:
+        *position = read_word_from_line(line, word, *position);
+        /*log_out(__FILE__,__LINE__,  "directive string: [%s] | [%c]\n",word);*/
+        str_length = strlen(word);
+        if((word[0] != DOUBLE_QUOTE || word[str_length] != DOUBLE_QUOTE) && (word[0] != DOUBLE_QUOTE && word[str_length] != DOUBLE_QUOTE))
+        {
+            log_error(__FILE__,__LINE__,"Error reading string data, missing quotes.\n");
+            flag = -1;
+        }
+        word = remove_first_character(word);
+        word = remove_last_character(word);
+        str_length -= 2; /* not including 2 double quotes */
+
+        /*log_out(__FILE__,__LINE__,  "directive string length: [%d]\n",str_length);*/
+
+        /* 
+            TODO:
+            make sure to handle DC and all that is relevant to that . 
+        */
+        for( ; i < str_length; i++)
+        {
+            wordfield* char_wf;
+            char character[2];
+            char ascii_str[MAX_WORD] = "Ascii code ";
+            strncpy(character,&word[i],1);
+            char_wf = get_char_wordfield(character);
+            print_wordfield(char_wf);
+            if(char_count == 0)
+            {
+                set_binary_node_wordfield(binary_table,*IC,char_wf);
+                (*IC)++;
+                char_count++;
+                continue;
+            }
+            strncat(ascii_str, character,1);
+            binary_node_add(binary_table,*IC,ascii_str);
+            set_binary_node_wordfield(binary_table,*IC,char_wf);
+            (*IC)++;
+            char_count++;
+        }
+        binary_node_add(binary_table,*IC,"Ascii code \'\\0\'");
+        set_binary_node_wordfield(binary_table,*IC,last_wf);
+        /*log_out(__FILE__,__LINE__,"\n");*/
+        break;
+    case DIRECTIVE_TYPE_DATA:
+        while ((*position = read_word_from_line(line, word, *position)) != -1 && word[strlen(word)-1] == COMMA)
+        {
+            char final_str[MAX_WORD] = "Integer ";
+            wordfield* num_wf = init_wordfield();
+            word = remove_last_character(word);
+            set_wordfield_by_num(num_wf,(unsigned int)atoi(word));
+            if(numbers_count == 0)
+            {
+                set_binary_node_wordfield(binary_table,*IC,num_wf);
+                numbers_count++;
+                (*IC)++;
+                continue;
+            }
+            
+            strcat(final_str, word);
+            binary_node_add(binary_table,*IC, final_str);
+            set_binary_node_wordfield(binary_table,*IC,num_wf);
+            (*IC)++;
+            numbers_count++;
+        }
+        if(numbers_count == 0)
+        {
+            set_wordfield_by_num(last_wf,(unsigned int)atoi(word));
+            set_binary_node_wordfield(binary_table,*IC,last_wf);
+            numbers_count++; 
+            break;
+        }
+        /*log_out(__FILE__,__LINE__,"last directive word: [%s]\n",word);*/
+        set_wordfield_by_num(last_wf,(unsigned int)atoi(word));
+        strcat(last_num_str, word);
+        binary_node_add(binary_table,*IC, last_num_str);
+        set_binary_node_wordfield(binary_table,*IC,last_wf);
+        break;
+    case DIRECTIVE_TYPE_EXTERN:
+        break;
+    case DIRECTIVE_TYPE_ENTRY:
+        break;
+    default:
+        break;
+    }
 
     return flag;
 }

@@ -2,23 +2,26 @@
 #define MACRO_TABLE_H
 
 #include <stddef.h>
+#define DEFAULT_MACRO_TABLE_SIZE 10
 
 /* Node structure for the linked list in each bucket */
 typedef struct MacroNode 
 {
-    char *key;
-    char *value;
-    struct MacroNode *next;
+    char *macro_name;
+    char *macro_definition;
 } MacroNode;
 
 /* Prints the contents of a hashtable node */
 void macro_node_print(MacroNode* node);
+/* Allocates memory for a macro node and returns the node */
+MacroNode* macro_node_create();
 
 /* Hash table structure */
 struct MacroTable 
 {
     MacroNode **buckets;
     size_t size;
+    size_t next_free_index;  /* next free index */
 };
 
 /* Opaque hash table structure */
@@ -41,5 +44,8 @@ void macro_table_remove(MacroTable* table, const char *key);
 
 /* Prints the hashtable in an orderly manner */
 void macro_table_print(MacroTable* table);
+
+/* Loops through the table and resets all macro nodes */
+void macro_table_reset(MacroTable** pTable);
 
 #endif

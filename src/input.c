@@ -35,7 +35,11 @@ int read_word_from_line(const char* line, char* word, int start_pos)
 {
     int i = start_pos;
     int j = 0;
-
+    if (i == -1)
+    {
+        return -1;
+    }
+    
     while (line[i] != NULL_TERMINATOR && isspace(line[i])) 
     {
         i++;

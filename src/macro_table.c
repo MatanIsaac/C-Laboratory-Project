@@ -6,22 +6,52 @@
 #include "utility.h"
 #include "isaac_logger.h"
 
+/* Prints the contents of a hashtable node */
+void macro_node_print(MacroNode* node)
+{
+    log_error(__FILE__,__LINE__,"[%s | %s]", node->macro_name, node->macro_definition);
+    if(node != NULL)
+    {
+        log_error(__FILE__,__LINE__," -> ");
+    }
+    else
+    {
+        log_error(__FILE__,__LINE__," -> NULL\n");
+    }
+}
+
+MacroNode* macro_node_create()
+{
+    MacroNode* node = malloc(sizeof(MacroNode));
+    if(node == NULL)
+    {
+        log_error(__FILE__,__LINE__,"Failed to allocate memory for Macro Node !\n");
+        return NULL;
+    }
+    return node;
+}
+
 /* Create a new hash table */
 MacroTable* macro_table_create(size_t size) 
 {
     MacroTable *table = malloc(sizeof(MacroTable));
+    
     if (table == NULL)
     {
-        log_error(__FILE__,__LINE__,"Failed to allocate memory for HashTable\n");
+        log_error(__FILE__,__LINE__,"Failed to allocate memory for Macro Table\n");
         return NULL;
     }
-    table->size = size;
-    table->buckets = calloc(table->size, sizeof(MacroNode*));
+
+    table->next_free_index  = 0;
+    table->size             = size;
+    table->buckets          = calloc(table->size, sizeof(MacroNode*));
+
     if (table->buckets == NULL) 
     {
         free(table);
         return NULL;
     }
+    
     return table;
 }
 
@@ -36,13 +66,11 @@ void macro_table_destroy(MacroTable *table)
     for (; i < table->size; i++) 
     {
         MacroNode *node = table->buckets[i];
-        while (node != NULL) 
+        if(node != NULL) 
         {
-            MacroNode *next = node->next;
-            free(node->key);
-            free(node->value);
+            free(node->macro_name);
+            free(node->macro_definition);
             free(node);
-            node = next;
         }
     }
     free(table->buckets);
@@ -52,58 +80,43 @@ void macro_table_destroy(MacroTable *table)
 /* Insert a key-value pair into the hash table */
 void macro_table_insert(MacroTable *table, const char *key, const char *value) 
 {
-    unsigned long hashValue;
     size_t index;
-    MacroNode *node;
-    MacroNode *new_node;
-
     if (table == NULL || key == NULL)
         return;
 
-    hashValue = hash(key);
-    index = hashValue % table->size;
-
-    node = table->buckets[index];
-    while (node != NULL) 
+    
+    if(macro_table_get(table,key) == NULL)
     {
-        if (strcmp(node->key, key) == 0) 
+        if (table->next_free_index >= table->size) 
         {
-            /* Update the value */
-            free(node->value);
-            node->value = my_strdup(value);
-            return;
+            /* Expand or do something else */
         }
-        node = node->next;
+        else 
+        {
+            index = table->next_free_index++;    
+            table->buckets[index] = macro_node_create();
+            table->buckets[index]->macro_name = my_strdup(key);
+            table->buckets[index]->macro_definition = my_strdup(value);
+            return;
+        } 
     }
-    /* Key not found, insert new node */
-    new_node = malloc(sizeof(MacroNode));
-    if (new_node == NULL)
-        return;
-    new_node->key = my_strdup(key);
-    new_node->value = my_strdup(value);
-    new_node->next = table->buckets[index];
-    table->buckets[index] = new_node;
+    log_out(__FILE__,__LINE__,"Macro Node index not empty.\n");
 }
 
-/* Retrieve a value associated with a key */
+/* Retrieve a value associated with a key or NULL if not found */
 const char* macro_table_get(MacroTable *table, const char *key) 
 {
-    unsigned long hashValue;
-    size_t index;
-    MacroNode *node;
+    size_t i;
 
     if (table == NULL || key == NULL)
         return NULL;
     
-    hashValue = hash(key);
-    index = hashValue % table->size;
-    node = table->buckets[index];
-
-    while (node != NULL) 
+    for(i = 0; i < table->size; i++)
     {
-        if (strcmp(node->key, key) == 0)
-            return node->value;
-        node = node->next;
+        MacroNode* node = table->buckets[i];
+
+        if (node != NULL && strcmp(node->macro_name, key) == 0)
+            return node->macro_definition;
     }
     return NULL; /* Key not found */
 }
@@ -111,37 +124,23 @@ const char* macro_table_get(MacroTable *table, const char *key)
 /* Remove a key-value pair from the hash table */
 void macro_table_remove(MacroTable *table, const char *key) 
 {
-    unsigned long hashValue;
-    size_t index;
-    MacroNode *node;
-    MacroNode *prev;
-    
+    size_t i;
+
     if (table == NULL || key == NULL)
         return;
-
-    hashValue = hash(key);
-    index = hashValue % table->size;
-
-    node = table->buckets[index];
-    prev = NULL;
-    while (node != NULL) 
+    
+    for(i = 0; i < table->size; i++)
     {
-        if (strcmp(node->key, key) == 0) 
+        MacroNode* node = table->buckets[i];        
+        if (node != NULL && strcmp(node->macro_name, key) == 0) 
         {
-            /* Key found, remove node */
-            if (prev == NULL)
-                table->buckets[index] = node->next;
-            else
-                prev->next = node->next;
-            free(node->key);
-            free(node->value);
+            free(node->macro_name);
+            free(node->macro_definition);
             free(node);
+            table->buckets[i] = NULL;
             return;
         }
-        prev = node;
-        node = node->next;
     }
-    /* Key not found, nothing to remove */
 }
 
 /* Prints the hashtable in an orderly manner */
@@ -165,20 +164,8 @@ void macro_table_print(MacroTable* table)
     }
 }
 
-/* Prints the contents of a hashtable node */
-void macro_node_print(MacroNode* node)
+void macro_table_reset(MacroTable** table)
 {
-    while(node != NULL)
-    {
-        log_error(__FILE__,__LINE__,"[%s | %s]", node->key, node->value);
-        node = node->next;
-        if(node != NULL)
-        {
-            log_error(__FILE__,__LINE__," -> ");
-        }
-        else
-        {
-            log_error(__FILE__,__LINE__," -> NULL\n");
-        }
-    }
+    macro_table_destroy(*table);
+    *table = macro_table_create(DEFAULT_MACRO_TABLE_SIZE);
 }

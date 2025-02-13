@@ -190,15 +190,6 @@ bool is_line_empty(char* line)
     return true;
 }
 
-unsigned long hash(const char *str)
-{
-    unsigned long hash = 5381;
-    int c;
-    while ((c = (unsigned char)*str++))
-        hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
-    return hash;
-}
-
 int get_instruction_index(const char *s)
 {
     switch (s[0])
