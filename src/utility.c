@@ -2,6 +2,7 @@
 #include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
+#include "isaac_logger.h"
 
 char* get_filename(const char* file)
 {
@@ -128,6 +129,61 @@ char* strncpy_from_pos(char* src,unsigned int pos)
     return str;
 }
 
+bool is_label(char* word, int ignore_colon)
+{
+    int length;
+    int i = 0;
+    bool flag = true;
+    if(word == NULL)
+    {
+        log_error(__FILE__,__LINE__,"Can't check label, word is null\n");
+        return false;
+    }
+    
+    length = strlen(word) + 1;
+    if(length > MAX_LABEL_LEN)
+    {
+        log_error(__FILE__,__LINE__,"Invalid label!, too long, must be <= 31\n");
+        return false;
+    }
+
+    if(ignore_colon == true && length == 1 && !isalpha(word[0]))
+    {
+        log_error(__FILE__,__LINE__,"Invalid label!, invalid first letter of label, must be upper/lower case letter.\n");
+        return false;
+    }
+
+    if (is_register(word))
+    {
+        log_error(__FILE__,__LINE__,"Invalid label!, can't be a register!\n");
+        return false;
+    }
+
+    if(!isalpha(word[0])) /* make sure first letter is legal */
+    {
+        log_error(__FILE__,__LINE__,"Invalid label!, invalid first letter of label, must be upper/lower case letter.\n");
+        return false;
+    }
+    
+    i++; /* skip first letter of label */
+    /* check other letters not including last letter and null terminator */
+    for(; i < length-2 && flag != false; i++)
+    {
+        if(!isalpha(word[i]) && !isdigit(word[i]))
+        {
+            log_error(__FILE__,__LINE__,"Invalid label!, must consist of upper/lower letters and/or numbers.\n");
+            return false;
+        } 
+    }
+    if(ignore_colon == false && word[i] != COLON)
+    {
+        log_error(__FILE__,__LINE__,"Invalid label!, missing colon ':' at the end of the label.\n");
+        return false;
+    }
+    
+    return true;
+}
+
 bool is_register(char* word)
 {
     int i;
@@ -187,6 +243,34 @@ bool is_line_empty(char* line)
         }
         i++;
     }
+    return true;
+}
+
+bool is_valid_number(char* word)
+{
+    if (word == NULL || *word == '\0') 
+    {
+        return false; 
+    }
+
+    if (*word == DASH) 
+    {
+        ++word;
+        if (*word == '\0') 
+        {
+            return false; 
+        }
+    }
+
+    for (; *word != '\0'; ++word) 
+    {
+        if (!isdigit((unsigned char)*word)) 
+        {
+            log_error(__FILE__,__LINE__,"Error reading immediate value, NAN.\n");
+            return false;
+        }
+    }
+
     return true;
 }
 

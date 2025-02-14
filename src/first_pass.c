@@ -4,6 +4,8 @@
 #include "utility.h"
 #include "isaac_logger.h"
 
+#include <ctype.h>
+
 void prepare_first_pass(const char* filepath, MacroTable* macro_table)
 {
     FILE* fp;
@@ -90,9 +92,9 @@ int execute_first_pass(FILE* fp, LabelTable* label_table, InstructionTable* inst
             {
                 flag = handle_directive(binary_table,&IC,line,word,&position);
             }
-            else
+            else if(is_label(word,false))
             {
-                handle_labels(label_table,IC,line,word,position);
+                flag = handle_labels(label_table,IC,line,word,position);
             }
         }
         IC++;
@@ -155,7 +157,7 @@ OperandType get_operand_type(char* str)
     {
         return OPERAND_TYPE_REGISTER; /* addressing mode: 3 */
     }
-    else /* addressing mode: 3 */
+    else if(is_label(str,true))
     {
         return OPERAND_TYPE_DIRECT;
     }
@@ -199,23 +201,37 @@ wordfield* get_char_wordfield(char* character)
     return wf;
 }
 
-void handle_labels(LabelTable* label_table, unsigned int IC, char* line, char* word,int position)
+int handle_labels(LabelTable* label_table, unsigned int IC, char* line, char* word,int position)
 {
-    char temp[MAX_WORD];
-    if(strrchr(word,':')) 
+    char* name;
+    char temp[MAX_LABEL_LEN];
+    int flag            = 0;
+    int temp_position   = position;
+    name = remove_last_character(word);
+    
+    if(label_table_search(label_table,name) != -1)
     {
-        int temp_position = position;
-        char* name;
-        name = remove_last_character(word);
-        label_table_add(label_table,name,IC,LABELTYPE_CODE); /* check if already exists in inside label_table_add() */
-        
-        temp_position = read_word_from_line(line, temp, temp_position);
-        if(is_directive(temp))
-        {
-            label_table_set_label_type(label_table,IC,LABELTYPE_DATA);
-        }
-       
-    }   
+        log_error(__FILE__,__LINE__,"Label Redefinition - the label [%s] already exists in the label tabel.\n",name);
+        flag = -1;
+    }
+
+    else if(is_instruction(name) || is_directive(name) || is_register(name))
+    {
+        log_error(__FILE__,__LINE__,"Invalid label name - the label [%s] can't be an instruction or a directive or a register\n",name);
+        flag = -1;
+    }
+
+    /* add the valid label to the label table and set its type as CODE */
+    label_table_add(label_table,name,IC,LABELTYPE_CODE);
+    
+    /* if the next word is a directive, change label type to DATA */
+    temp_position = read_word_from_line(line, temp, temp_position);
+    if(is_directive(temp))
+    {
+        label_table_set_label_type(label_table,IC,LABELTYPE_DATA);
+    }
+
+    return flag;
 }
 
 int handle_instruction(BinaryTable* binary_table, LabelTable* label_table,InstructionTable* instruction_table, 
@@ -251,6 +267,7 @@ int handle_instruction(BinaryTable* binary_table, LabelTable* label_table,Instru
         case OPERAND_TYPE_IMMEDIATE:
             set_binary_node_wordfield(binary_table,*IC,wf);
             word    = remove_first_character(word);
+            is_valid_number(word);
             new_wf  = init_wordfield();
             set_wordfield_are_num(new_wf,atoi(word),4);
             (*IC)++;
@@ -258,6 +275,7 @@ int handle_instruction(BinaryTable* binary_table, LabelTable* label_table,Instru
             set_binary_node_wordfield(binary_table,*IC,new_wf);
             break;
         case OPERAND_TYPE_DIRECT:
+            is_label(word,true); /* checks if its a valid label and will print errors accordingly */
             set_wordfield_dest(wf,OPERAND_TYPE_DIRECT,0);
             set_binary_node_wordfield(binary_table,*IC,wf);
             (*IC)++;
@@ -293,6 +311,12 @@ int handle_instruction(BinaryTable* binary_table, LabelTable* label_table,Instru
             */
             break;
         case OPERAND_TYPE_REGISTER:
+            /* checks if its a valid register */
+            if(!is_register(word)) 
+            {
+                log_error(__FILE__,__LINE__,"Register name invalid!\n");
+                return -1;
+            }
             word = remove_first_character(word);
             set_wordfield_dest(wf,OPERAND_TYPE_REGISTER,atoi(word));
             set_binary_node_wordfield(binary_table,*IC,wf);
@@ -312,7 +336,7 @@ int handle_instruction(BinaryTable* binary_table, LabelTable* label_table,Instru
         if(word[strlen(word)-1] != COMMA)
         {
             log_error(__FILE__,__LINE__,"Missing comma after first operand!.\n");
-            flag = -1;
+            return -1;
         }
         word            = remove_last_character(word);
         operand1_type   = get_operand_type(word);
@@ -320,11 +344,13 @@ int handle_instruction(BinaryTable* binary_table, LabelTable* label_table,Instru
         {
         case OPERAND_TYPE_IMMEDIATE:
             word    = remove_first_character(word);
+            is_valid_number(word);
             new_wf1 = init_wordfield();
             set_wordfield_are_num(new_wf1,atoi(word),4);
             (*IC)++;
             break;
         case OPERAND_TYPE_DIRECT:
+            is_label(word,true); /* checks if its a valid label and will print errors accordingly */
             set_wordfield_src(wf,OPERAND_TYPE_DIRECT,0);
             set_binary_node_wordfield(binary_table,*IC,wf);
             (*IC)++;
@@ -338,6 +364,12 @@ int handle_instruction(BinaryTable* binary_table, LabelTable* label_table,Instru
             free(new_wf1);
             break;
         case OPERAND_TYPE_REGISTER:
+            /* checks if its a valid register */
+            if(!is_register(word)) 
+            {
+                log_error(__FILE__,__LINE__,"Register name invalid!\n");
+                return -1;
+            }
             word = remove_first_character(word);
             set_wordfield_src(wf,OPERAND_TYPE_REGISTER,atoi(word));
             set_binary_node_wordfield(binary_table,*IC,wf); 
@@ -358,7 +390,8 @@ int handle_instruction(BinaryTable* binary_table, LabelTable* label_table,Instru
         switch (operand2_type)
         {
         case OPERAND_TYPE_IMMEDIATE:
-            word = remove_first_character(word);
+            word = remove_first_character(word); /* removing '#' */
+            is_valid_number(word);
             new_wf2 = init_wordfield();
             set_wordfield_are_num(new_wf2,atoi(word),4);
             (*IC)++;
@@ -366,6 +399,7 @@ int handle_instruction(BinaryTable* binary_table, LabelTable* label_table,Instru
             set_binary_node_wordfield(binary_table,*IC,new_wf2);
             break;
         case OPERAND_TYPE_DIRECT:
+            is_label(word,true); /* checks if its a valid label and will print errors accordingly */
             set_wordfield_dest(wf,OPERAND_TYPE_DIRECT,0);
             set_binary_node_wordfield(binary_table,*IC,wf);
             (*IC)++;
@@ -379,6 +413,12 @@ int handle_instruction(BinaryTable* binary_table, LabelTable* label_table,Instru
             free(new_wf2);
             break;
         case OPERAND_TYPE_REGISTER:
+            /* checks if its a valid register */
+            if(!is_register(word)) 
+            {
+                log_error(__FILE__,__LINE__,"Register name invalid!\n");
+                return -1;
+            }
             word = remove_first_character(word);
             set_wordfield_dest(wf,OPERAND_TYPE_REGISTER,atoi(word));
             if(operand1_type != OPERAND_TYPE_REGISTER)
@@ -445,7 +485,7 @@ int handle_directive(BinaryTable* binary_table, unsigned int* IC, char* line, ch
             char ascii_str[MAX_WORD] = "Ascii code ";
             strncpy(character,&word[i],1);
             char_wf = get_char_wordfield(character);
-            print_wordfield(char_wf);
+            
             if(char_count == 0)
             {
                 set_binary_node_wordfield(binary_table,*IC,char_wf);

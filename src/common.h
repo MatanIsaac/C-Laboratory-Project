@@ -9,6 +9,7 @@
 #define TAB '\t'
 #define DOUBLE_QUOTE '\"'
 #define DOT '.'
+#define COLON ':'
 #define COMMA ','
 #define HASHTAG '#'
 #define AMPERSAND '&'
@@ -20,7 +21,7 @@
 #define MAX_LINE 81 /* max line is 80 not including '\n'*/
 #define MAX_WORD 25
 #define MAX_FILENAME 200
-#define LABEL_MAX_LEN 31 /* the length of a symbolic label of a memory address */
+#define MAX_LABEL_LEN 31 /* the length of a symbolic label of a memory address */
 #define MAX_BITS_PER_WORD 24 /* 24 bits per memory cell AKA word */
 #define MAX_WORDS 3
 #define MAX_MEMORY 2097152 /* memory size 2^21 */

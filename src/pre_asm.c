@@ -9,15 +9,7 @@
 #include <ctype.h>
 
 /*
-    TODO: Make sure NOTHING is missing here, necessary checks, etc..
-    NOTE: MUST ENSURE:
-    FIXME: make sure to identify lines longer than 81 including '\n' 
-    1. macro names are correct and cannot be - an instruction / directive.
-    2. if there are no additional charaters in LABEL definitions : I.E: MAIN:, LOOP:, END:, STR:, LIST:,
-    3. remember: spaces can appear almost everywhere, especially before and after ','
-    IMPORTANT: if there is an error in the preprocessor phase
-    report to the user the errors, and continue to the next line (if available)
-
+    NOTE: MUST ENSURE: identify lines longer than 81 including '\n' 
 */
 
 int parse_macros(FILE* fp, const char* filepath, char* output_file, MacroTable* macro_table)
@@ -30,8 +22,8 @@ int parse_macros(FILE* fp, const char* filepath, char* output_file, MacroTable* 
     char* output_path           = "build/output_files/";
     char* line                  = string_calloc(MAX_LINE, sizeof(char));
     char* word                  = string_calloc(MAX_WORD, sizeof(char));
-    char* current_macro_key     = string_calloc(MAX_WORD, sizeof(char));
-    char* current_macro_value   = string_calloc(MAX_LINE, sizeof(char));
+    /*char* current_macro_key     = string_calloc(MAX_WORD, sizeof(char));*/
+    /*char* current_macro_value   = string_calloc(MAX_LINE, sizeof(char));*/
 
     char* filename              = get_filename(filepath);
     size_t base_len             = strlen(filename);
@@ -48,8 +40,8 @@ int parse_macros(FILE* fp, const char* filepath, char* output_file, MacroTable* 
         free(base_filename);
         free(line);
         free(word);
-        free(current_macro_key);
-        free(current_macro_value);
+        /*free(current_macro_key);*/
+        /*free(current_macro_value);*/
         macro_table_destroy(macro_table);
         return -1;
     }
@@ -66,8 +58,8 @@ int parse_macros(FILE* fp, const char* filepath, char* output_file, MacroTable* 
         free(file_path);
         free(line);
         free(word);
-        free(current_macro_key);
-        free(current_macro_value);
+        /*free(current_macro_key);*/
+        /*free(current_macro_value);*/
         macro_table_destroy(macro_table);
         return -1;
     }
@@ -90,17 +82,19 @@ int parse_macros(FILE* fp, const char* filepath, char* output_file, MacroTable* 
             while ((position = read_word_from_line(line, word, position)) != -1) 
             {
                 const char* temp = macro_table_get(macro_table,word);
-                if(temp == NULL)
-                {
-                    fprintf(new_fp,"%s",line);
-                    fputc(NEW_LINE,new_fp);
-                    break;   
-                }
-                else
+                /* 
+                    if temp is not null -> we have a macro call, 
+                    it exists in the macro table so we parse it into the new file. 
+                    and break;
+                */
+                if(temp != NULL) 
                 {
                     fprintf(new_fp,"%s",temp);    
                     break;
                 }
+                fprintf(new_fp,"%s",line);
+                fputc(NEW_LINE,new_fp);
+                break;
             }
             continue;
         }
@@ -110,22 +104,24 @@ int parse_macros(FILE* fp, const char* filepath, char* output_file, MacroTable* 
             {
                 if (strcmp("mcro", word) == 0)
                 { 
-                    const char* temp = macro_table_get(macro_table,word);
+                    const char* temp;
+                    position = read_word_from_line(line, word, position);
+                    /* 
+                        TODO: Make sure to check here if macro name is valid
+                        'mcro label'
+                             ^ - must be space, make sure its valid ?  
+                    */
+                    if(is_instruction(word) || is_directive(word))
+                    {
+                        log_error(__FILE__,__LINE__, "Macro's name cannot be an instruction or a direective! \n");
+                       flag = -1;
+                    }
+                    temp = macro_table_get(macro_table,word);
                     if (temp == NULL)
                     {
-                        position = read_word_from_line(line, word, position);
-
-                        /* 
-                            TODO: Make sure to check here if macro name is valid
-                            'mcro label'
-                                 ^ - must be space, make sure its valid ?  
-                        */
-                        if(is_instruction(word) || is_directive(word))
-                        {
-                            log_error(__FILE__,__LINE__, "Macro's name cannot be an instruction or a direective! \n");
-                            flag = -1;
-                        }
-                        
+                        flag = handle_new_macro(fp,macro_table,word);
+                        /*
+                                                
                         strcpy(current_macro_key, word);
 
                         if(read_word_from_line(line, word, position) != -1)
@@ -167,7 +163,8 @@ int parse_macros(FILE* fp, const char* filepath, char* output_file, MacroTable* 
                                     
                         macro_table_insert(macro_table, current_macro_key, current_macro_value);
                         memset(current_macro_key, 0, MAX_WORD);
-                        memset(current_macro_value, 0, MAX_LINE);                        
+                        memset(current_macro_value, 0, MAX_LINE); 
+                        */
                     }
                 }
             }
@@ -180,7 +177,69 @@ int parse_macros(FILE* fp, const char* filepath, char* output_file, MacroTable* 
     free(file_path);
     free(line);
     free(word);
-    free(current_macro_key);
-    free(current_macro_value);
+    /*free(current_macro_key);*/
+    /*free(current_macro_value);*/
+    return flag;
+}
+
+
+int handle_new_macro(FILE* fp,MacroTable* macro_table, char* macro_name)
+{
+    int flag                    = 0;
+    int position                = 0;
+    char* line                  = string_calloc(MAX_LINE, sizeof(char));
+    char* word                  = string_calloc(MAX_WORD, sizeof(char));
+    char* current_macro_key     = string_calloc(MAX_WORD, sizeof(char));
+    char* current_macro_value   = string_calloc(MAX_LINE, sizeof(char));
+
+    strcpy(current_macro_key, macro_name);
+
+    if(read_word_from_line(line, word, position) != -1)
+    {
+        log_error(__FILE__,__LINE__, "Found extraneous text after macro definition\n");
+        free(line);
+        free(word);
+        free(current_macro_key);
+        free(current_macro_value);
+        flag = -1;
+    }
+
+    while(read_line(fp, line) != -1)
+    {
+        if(strstr(line,"mcroend") == NULL)
+        {
+            strcat(current_macro_value,line);
+            strcat(current_macro_value,"\n");
+        }
+        else
+        {
+            int i = 0;
+            while(line[i] != NULL_TERMINATOR && isspace(line[i]))
+                i++;
+
+            while(line[i] != NULL_TERMINATOR && !isspace(line[i]))
+            {
+                i++;
+            }
+
+            while(line[i] != NULL_TERMINATOR && isspace(line[i]))
+                i++;
+
+            if(line[i] != NULL_TERMINATOR && !isspace(line[i]))
+            {
+                log_error(__FILE__,__LINE__, "Found extraneous text after macro definition\n");
+                flag = -1;
+            }
+            
+            break;
+        }
+    }
+                
+    macro_table_insert(macro_table, current_macro_key, current_macro_value);
+    /*memset(current_macro_key, 0, MAX_WORD);*/
+    /*memset(current_macro_value, 0, MAX_LINE); */
+    free(line);
+    free(word);
+
     return flag;
 }

@@ -44,6 +44,10 @@ int main(int argc,char* argv[])
             log_out(__FILE__,__LINE__,"Done Parsing Macros for - %s\nMacro-Table:\n", current_file);
             macro_table_print(macro_table);
             fclose(fp);           
+            /* 
+                preprares first pass and executes it, 
+                if theres no errors, it continues to the 2nd pass 
+            */
             prepare_first_pass(output_file,macro_table);
         }
         else

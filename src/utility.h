@@ -18,10 +18,12 @@ char* strncpy_from_pos(char* src,unsigned int pos); /* copies n characters start
 
 /*------------------------------------------------------------------*/
 /* first pass utility functions */
+bool is_label(char* word, int ignore_colon);
 bool is_register(char* word);
 bool is_instruction(char* word);
 bool is_directive(char* word);
 bool is_line_empty(char* line);
+bool is_valid_number(char* word);
 /* 
     returns the index for the instruction with the name 'op-name' 
     in the instruction table 
