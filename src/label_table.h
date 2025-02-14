@@ -11,7 +11,12 @@
     The table grows x2 every time it is full.
 */
 
-enum LabelType { LABELTYPE_CODE, LABELTYPE_DATA };
+enum LabelType 
+{ 
+    LABELTYPE_CODE, 
+    LABELTYPE_DATA, 
+    LABELTYPE_EXTERN
+};
 
 const char* labeltype_to_string(enum LabelType type);
 

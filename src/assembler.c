@@ -41,8 +41,8 @@ int main(int argc,char* argv[])
 
         if(parse_macros(fp,current_file,output_file,macro_table) != -1)
         {
-            log_out(__FILE__,__LINE__,"Done Parsing Macros for - %s\nMacro-Table:\n", current_file);
             macro_table_print(macro_table);
+            log_out(__FILE__,__LINE__,"Done Parsing Macros for - %s\n", current_file);
             fclose(fp);           
             /* 
                 preprares first pass and executes it, 
@@ -62,3 +62,14 @@ int main(int argc,char* argv[])
 
     return 0;
 }
+
+/*
+    TODO: 
+    1. assembler should ignore label that are defining:
+        .entry
+        .extern
+    2. assembler should check if a wrong operands are given to an instruction 
+       and print errors accordingly. 
+    3. assembler should check for errors in the macro defintion before parsing them. 
+
+*/

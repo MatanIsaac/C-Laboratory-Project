@@ -136,51 +136,59 @@ bool is_label(char* word, int ignore_colon)
     bool flag = true;
     if(word == NULL)
     {
-        log_error(__FILE__,__LINE__,"Can't check label, word is null\n");
+        /*log_error(__FILE__,__LINE__,"Can't check label, word is null\n");*/
         return false;
     }
     
-    length = strlen(word) + 1;
-    if(length > MAX_LABEL_LEN)
+    length = strlen(word);
+    if((length + 1) > MAX_LABEL_LEN) /* + 1 for '\0' */
     {
-        log_error(__FILE__,__LINE__,"Invalid label!, too long, must be <= 31\n");
+        /*log_error(__FILE__,__LINE__,"Invalid label!, too long, must be <= 31\n");*/
         return false;
     }
 
-    if(ignore_colon == true && length == 1 && !isalpha(word[0]))
+    if(ignore_colon == true && length == 1)
     {
-        log_error(__FILE__,__LINE__,"Invalid label!, invalid first letter of label, must be upper/lower case letter.\n");
+        if(isalpha(word[0]))
+        {
+            return true;   
+        }
+        /*log_error(__FILE__,__LINE__,"Invalid label!, invalid first letter of label, must be uppercase/lowercase letter.\n");*/
         return false;
     }
 
     if (is_register(word))
     {
-        log_error(__FILE__,__LINE__,"Invalid label!, can't be a register!\n");
+        /*log_error(__FILE__,__LINE__,"Invalid label!, can't be a register!\n");*/
         return false;
     }
 
     if(!isalpha(word[0])) /* make sure first letter is legal */
     {
-        log_error(__FILE__,__LINE__,"Invalid label!, invalid first letter of label, must be upper/lower case letter.\n");
+        /*log_error(__FILE__,__LINE__,"Invalid label!, invalid first letter of label, must be uppercase/lowercase letter.\n");*/
         return false;
     }
     
     i++; /* skip first letter of label */
     /* check other letters not including last letter and null terminator */
-    for(; i < length-2 && flag != false; i++)
+    for(; i < length-1 && flag != false; i++)
     {
         if(!isalpha(word[i]) && !isdigit(word[i]))
         {
-            log_error(__FILE__,__LINE__,"Invalid label!, must consist of upper/lower letters and/or numbers.\n");
+            /*log_error(__FILE__,__LINE__,"Invalid label!, must consist of uppercase/lowercase letters and/or numbers.\n");*/
             return false;
         } 
     }
     if(ignore_colon == false && word[i] != COLON)
     {
-        log_error(__FILE__,__LINE__,"Invalid label!, missing colon ':' at the end of the label.\n");
+        /*log_error(__FILE__,__LINE__,"Invalid label!, missing colon ':' at the end of the label.\n");*/
         return false;
     }
-    
+    else if(ignore_colon == true && (!isalpha(word[i]) && !isdigit(word[i])))
+    {
+        /*log_error(__FILE__,__LINE__,"Invalid label!, must consist of uppercase/lowercase letters and/or numbers.\n");*/
+        return false;
+    } 
     return true;
 }
 

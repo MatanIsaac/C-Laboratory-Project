@@ -10,16 +10,13 @@ void test_filename();
 void test_string_functions();
 void test_instruction_functions();
 void test_directive_functions();
-void test_hash_function();
 
 int main()
 {
-    /*
+    
     test_filename();
     test_instruction_functions();
     test_directive_functions();
-    test_hash_function();
-    */
     test_string_functions();
     
     return 0;
@@ -220,28 +217,3 @@ void test_directive_functions()
     log_out(__FILE__,__LINE__, "Done Testing - is_directive function in utility.h\n");
 }
 
-/* =======================
-   Test: hash() Function
-   ======================= */
-void test_hash_function()
-{
-    unsigned long hash1,hash2,hash3;
-
-    log_out(__FILE__,__LINE__, "Starting Test - hash function in utility.h\n");
-
-    hash1 = hash("test_string");
-    hash2 = hash("test_string");
-
-    if (hash1 == hash2)
-        log_test("Test_hash_deterministic", TEST_PASS, "Hash function produced consistent results.");
-    else
-        log_test("Test_hash_deterministic", TEST_FAIL, "Hash function produced inconsistent results.");
-
-    hash3 = hash("different_string");
-    if (hash1 != hash3)
-        log_test("Test_hash_unique", TEST_PASS, "Hash function produced unique values.");
-    else
-        log_test("Test_hash_unique", TEST_FAIL, "Hash function produced duplicate values.");
-
-    log_out(__FILE__,__LINE__, "Done Testing - hash function in utility.h\n");
-}

@@ -79,8 +79,8 @@ int execute_first_pass(FILE* fp, LabelTable* label_table, InstructionTable* inst
             1. an instruction
             2. a directive 
             3. a label
+            binary_node_add(binary_table,IC,line);
         */
-        binary_node_add(binary_table,IC,line);
 
         while ((position = read_word_from_line(line, word, position)) != -1) 
         {
@@ -90,14 +90,13 @@ int execute_first_pass(FILE* fp, LabelTable* label_table, InstructionTable* inst
             }
             else if(is_directive(word))
             {
-                flag = handle_directive(binary_table,&IC,line,word,&position);
+                flag = handle_directive(binary_table,label_table,&IC,line,word,&position);
             }
             else if(is_label(word,false))
             {
                 flag = handle_labels(label_table,IC,line,word,position);
             }
         }
-        IC++;
     }
 
     ICF = IC;
@@ -254,45 +253,54 @@ int handle_instruction(BinaryTable* binary_table, LabelTable* label_table,Instru
     }
     else if(operands_count == 0)
     {
+        binary_node_add(binary_table,*IC,line);
         set_binary_node_wordfield(binary_table,*IC,wf);
+        (*IC)++;
     }
     else if (operands_count == 1)
     {
         OperandType operand1_type;
         wordfield* new_wf   = init_wordfield();
-        *position            = read_word_from_line(line, word, *position);
+        *position           = read_word_from_line(line, word, *position);
         operand1_type       = get_operand_type(word);
         switch (operand1_type)
         {
         case OPERAND_TYPE_IMMEDIATE:
+            binary_node_add(binary_table,*IC,line);
             set_binary_node_wordfield(binary_table,*IC,wf);
+            (*IC)++;
             word    = remove_first_character(word);
-            is_valid_number(word);
+            flag    = is_valid_number(word);
             new_wf  = init_wordfield();
             set_wordfield_are_num(new_wf,atoi(word),4);
-            (*IC)++;
             binary_node_add(binary_table,*IC,"Immediate value");
             set_binary_node_wordfield(binary_table,*IC,new_wf);
+            (*IC)++;
             break;
         case OPERAND_TYPE_DIRECT:
-            is_label(word,true); /* checks if its a valid label and will print errors accordingly */
+            /* checks if its a valid label and will print errors accordingly */
+            flag = is_label(word,true);
             set_wordfield_dest(wf,OPERAND_TYPE_DIRECT,0);
+            binary_node_add(binary_table,*IC,line);
             set_binary_node_wordfield(binary_table,*IC,wf);
             (*IC)++;
             binary_node_add(binary_table,*IC,"Address of Label");
             set_binary_node_wordfield(binary_table,*IC,new_wf);
+            (*IC)++;
             break;
         case OPERAND_TYPE_RELATIVE:
             if(word[0] != AMPERSAND)
             {
                 log_error(__FILE__,__LINE__, "Error missing '&' before label for relative type addressing!.\n");
-                flag = -1;
+                flag = -1;    
             }
             set_wordfield_dest(wf,OPERAND_TYPE_RELATIVE,0);
+            binary_node_add(binary_table,*IC,line);
             set_binary_node_wordfield(binary_table,*IC,wf);
             (*IC)++;
             binary_node_add(binary_table,*IC,"Distance to Label");
             set_binary_node_wordfield(binary_table,*IC,new_wf);
+            (*IC)++;
             
             /* 
                 IMPORTANT: this is relevant only for: jmp, jsr, bne
@@ -319,7 +327,9 @@ int handle_instruction(BinaryTable* binary_table, LabelTable* label_table,Instru
             }
             word = remove_first_character(word);
             set_wordfield_dest(wf,OPERAND_TYPE_REGISTER,atoi(word));
+            binary_node_add(binary_table,*IC,line);
             set_binary_node_wordfield(binary_table,*IC,wf);
+            (*IC)++;
             break;
         default:
             break;
@@ -347,20 +357,24 @@ int handle_instruction(BinaryTable* binary_table, LabelTable* label_table,Instru
             is_valid_number(word);
             new_wf1 = init_wordfield();
             set_wordfield_are_num(new_wf1,atoi(word),4);
+            binary_node_add(binary_table,*IC,line);
             (*IC)++;
             break;
         case OPERAND_TYPE_DIRECT:
             is_label(word,true); /* checks if its a valid label and will print errors accordingly */
             set_wordfield_src(wf,OPERAND_TYPE_DIRECT,0);
+            binary_node_add(binary_table,*IC,line);
             set_binary_node_wordfield(binary_table,*IC,wf);
             (*IC)++;
-            binary_node_add(binary_table,*IC,"Address of Label");
             new_wf1 = init_wordfield();
+            binary_node_add(binary_table,*IC,"Address of Label");
             set_binary_node_wordfield(binary_table,*IC,new_wf1);
+            (*IC)++;
             break;
         case OPERAND_TYPE_RELATIVE:
             (*IC)++;
-            /* no use for this if 1nd operand is relative - for 2nd Pass */
+            
+            /* no use for this if 1st operand is relative - processed in 2nd Pass */
             free(new_wf1);
             break;
         case OPERAND_TYPE_REGISTER:
@@ -372,7 +386,10 @@ int handle_instruction(BinaryTable* binary_table, LabelTable* label_table,Instru
             }
             word = remove_first_character(word);
             set_wordfield_src(wf,OPERAND_TYPE_REGISTER,atoi(word));
+            binary_node_add(binary_table,*IC,line);
             set_binary_node_wordfield(binary_table,*IC,wf); 
+            (*IC)++;
+
             /* no use for this if 1st operand is a register */
             free(new_wf1);
             break;
@@ -394,22 +411,26 @@ int handle_instruction(BinaryTable* binary_table, LabelTable* label_table,Instru
             is_valid_number(word);
             new_wf2 = init_wordfield();
             set_wordfield_are_num(new_wf2,atoi(word),4);
-            (*IC)++;
             binary_node_add(binary_table,*IC,"Immediate value");
             set_binary_node_wordfield(binary_table,*IC,new_wf2);
+            (*IC)++;
             break;
         case OPERAND_TYPE_DIRECT:
             is_label(word,true); /* checks if its a valid label and will print errors accordingly */
+            /*
             set_wordfield_dest(wf,OPERAND_TYPE_DIRECT,0);
             set_binary_node_wordfield(binary_table,*IC,wf);
             (*IC)++;
-            binary_node_add(binary_table,*IC,"Address of Label");
+            */
             new_wf2 = init_wordfield();
+            binary_node_add(binary_table,*IC,"Address of Label");
             set_binary_node_wordfield(binary_table,*IC,new_wf2);
+            (*IC)++;
             break;
         case OPERAND_TYPE_RELATIVE:
             (*IC)++;
-            /* no use for this if 2nd operand is relative - for 2nd Pass */
+            
+            /* no use for this if 2nd operand if its relative - processed in 2nd Pass */
             free(new_wf2);
             break;
         case OPERAND_TYPE_REGISTER:
@@ -425,6 +446,7 @@ int handle_instruction(BinaryTable* binary_table, LabelTable* label_table,Instru
                 set_binary_node_wordfield(binary_table,*IC-1,wf);
             else /* we did not update *IC if operand1 is register, reset node wordfield to updated one */
                 set_binary_node_wordfield(binary_table,*IC,wf); 
+            
             /* no use for this if 2nd operand is a register */
             free(new_wf2);
             break;
@@ -436,7 +458,7 @@ int handle_instruction(BinaryTable* binary_table, LabelTable* label_table,Instru
     return flag;
 }
 
-int handle_directive(BinaryTable* binary_table, unsigned int* IC, char* line, char* word,int* position)
+int handle_directive(BinaryTable* binary_table, LabelTable* label_table,unsigned int* IC, char* line, char* word,int* position)
 {
     DirectiveType directive_type;
     int flag                    = 0;
@@ -488,6 +510,7 @@ int handle_directive(BinaryTable* binary_table, unsigned int* IC, char* line, ch
             
             if(char_count == 0)
             {
+                binary_node_add(binary_table,*IC,line);
                 set_binary_node_wordfield(binary_table,*IC,char_wf);
                 (*IC)++;
                 char_count++;
@@ -501,6 +524,7 @@ int handle_directive(BinaryTable* binary_table, unsigned int* IC, char* line, ch
         }
         binary_node_add(binary_table,*IC,"Ascii code \'\\0\'");
         set_binary_node_wordfield(binary_table,*IC,last_wf);
+        (*IC)++;
         /*log_out(__FILE__,__LINE__,"\n");*/
         break;
     case DIRECTIVE_TYPE_DATA:
@@ -512,6 +536,7 @@ int handle_directive(BinaryTable* binary_table, unsigned int* IC, char* line, ch
             set_wordfield_by_num(num_wf,(unsigned int)atoi(word));
             if(numbers_count == 0)
             {
+                binary_node_add(binary_table,*IC,line);
                 set_binary_node_wordfield(binary_table,*IC,num_wf);
                 numbers_count++;
                 (*IC)++;
@@ -527,7 +552,9 @@ int handle_directive(BinaryTable* binary_table, unsigned int* IC, char* line, ch
         if(numbers_count == 0)
         {
             set_wordfield_by_num(last_wf,(unsigned int)atoi(word));
+            binary_node_add(binary_table,*IC,line);
             set_binary_node_wordfield(binary_table,*IC,last_wf);
+            (*IC)++;
             numbers_count++; 
             break;
         }
@@ -536,10 +563,22 @@ int handle_directive(BinaryTable* binary_table, unsigned int* IC, char* line, ch
         strcat(last_num_str, word);
         binary_node_add(binary_table,*IC, last_num_str);
         set_binary_node_wordfield(binary_table,*IC,last_wf);
+        (*IC)++;
         break;
     case DIRECTIVE_TYPE_EXTERN:
+        *position = read_word_from_line(line, word, *position);
+        is_label(word,true);        
+        if(label_table_search(label_table,word) != -1)
+        {
+            log_error(__FILE__,__LINE__,"Label Redefinition - the label [%s] already exists in the label tabel.\n",word);
+            flag = -1;
+            break;
+        }
+        /* add the valid label to the label table and set its type as CODE */
+        label_table_add(label_table,my_strdup(word),0,LABELTYPE_EXTERN);
         break;
     case DIRECTIVE_TYPE_ENTRY:
+        while((*position = read_word_from_line(line, word, *position)) != -1);
         break;
     default:
         break;

@@ -9,14 +9,9 @@
 /* Prints the contents of a hashtable node */
 void macro_node_print(MacroNode* node)
 {
-    log_error(__FILE__,__LINE__,"[%s | %s]", node->macro_name, node->macro_definition);
     if(node != NULL)
-    {
-        log_error(__FILE__,__LINE__," -> ");
-    }
-    else
-    {
-        log_error(__FILE__,__LINE__," -> NULL\n");
+    {   
+        printf("macro-name:\n\t    %s\nmacro-definition:\n%s\n", node->macro_name, node->macro_definition);
     }
 }
 
@@ -147,21 +142,23 @@ void macro_table_remove(MacroTable *table, const char *key)
 void macro_table_print(MacroTable* table)
 {
     size_t i;
-    log_out(__FILE__,__LINE__,"Index  Bucket\n");
-    log_out(__FILE__,__LINE__,"-----  -------------------------------------------------\n");
+    log_out(__FILE__,__LINE__,"Macro-Table:\n");
+    log_out(__FILE__,__LINE__,"--------------------------------------------------------\n");
     for(i = 0; i < table->size; i++)
     {
         MacroNode* node = table->buckets[i];
-        log_out(__FILE__,__LINE__,"%-5lu  ", (unsigned long)i);
+        log_out(__FILE__,__LINE__,"At Index [%lu]", (unsigned long)i);
         if(node != NULL)
         {
+            printf("\n");
             macro_node_print(node);
         }
         else
         {
-            log_out(__FILE__,__LINE__,"[Empty]\n");
+            printf("\t[Empty]\n");
         }
     }
+    printf("\n");
 }
 
 void macro_table_reset(MacroTable** table)

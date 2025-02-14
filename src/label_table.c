@@ -3,9 +3,9 @@
 
 const char* labeltype_to_string(enum LabelType type) 
 {
-    static const char* labels[] = { "code", "data" };
+    static const char* labels[] = { "code", "data", "external", "code, entry", "data, entry",};
 
-    if (type < 0 || type > 1) return "UNKNOWN";
+    if (type < 0 || type > 4) return "UNKNOWN";
     return labels[type];
 }
 

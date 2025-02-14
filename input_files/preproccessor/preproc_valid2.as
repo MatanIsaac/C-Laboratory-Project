@@ -1,4 +1,4 @@
-MAIN:       sub r3, LIST
+MAIN:       sub r2, LIST
             mcro b_mc
             cmp K, #-7
             bne &END
