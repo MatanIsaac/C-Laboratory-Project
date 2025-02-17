@@ -26,6 +26,11 @@ void label_table_destroy(LabelTable* table)
 {
     if (table->labels) 
     {
+        size_t i = 0;
+        for (; i < table->size; i++) 
+        {
+            free(table->labels[i].name);
+        }
         free(table->labels);
         table->labels = NULL;
     }
@@ -34,7 +39,7 @@ void label_table_destroy(LabelTable* table)
 }
 
 /* Dynamically adds a label to the table */
-void label_table_add(LabelTable* table, const char* name, unsigned int address, enum LabelType type) 
+void label_table_add(LabelTable* table, char* name, unsigned int address, enum LabelType type) 
 {
     if(label_table_search(table,name) > 1)
     {
@@ -93,7 +98,7 @@ void label_node_print(LabelNode* node)
             node->name, node->address, labeltype_to_string(node->type));
 }
 
-int label_table_search(LabelTable* table, const char* name)
+int label_table_search(LabelTable* table, char* name)
 {
     unsigned int i = 0;
     for (; i < table->size; i++)
@@ -119,7 +124,7 @@ int label_table_search_by_address(LabelTable* table, unsigned int address)
     return -1;
 }
 
-int label_table_set_node_by_name(LabelTable* table,const char* name, unsigned int address, enum LabelType type)
+int label_table_set_node_by_name(LabelTable* table, char* name, unsigned int address, enum LabelType type)
 {
     int node_index = -1;
     if(table == NULL || name == NULL)

@@ -4,15 +4,19 @@
 #include <stdio.h>
 #include "common.h"
 
-char* get_filename(const char* file);
+/*------------------------------------------------------------------*/
+/* files utility functions */
+char* get_filename(char* file);
+char* get_root_folder_name(char* file);
+/*------------------------------------------------------------------*/
 
 /*------------------------------------------------------------------*/
 /* string utility functions */
 char* string_calloc(size_t element_count,size_t size_of_element);
 char* string_malloc(size_t size);
 char* my_strdup(const char* src);
-char* remove_last_character(const char* s);
-char* remove_first_character(char* s);
+void remove_last_character(char* s);
+void remove_first_character(char* s);
 char* strncpy_from_pos(char* src,unsigned int pos); /* copies n characters starting from pos */
 /*------------------------------------------------------------------*/
 

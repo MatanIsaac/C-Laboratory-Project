@@ -7,10 +7,11 @@
 
 #define DEFAULT_BINARY_TABLE_SIZE 25
 
-typedef struct BinaryNode {
+typedef struct BinaryNode 
+{
     unsigned int address;
     char* line;
-    wordfield word;
+    wordfield* word;
 } BinaryNode;
 
 BinaryNode* init_binary_node();

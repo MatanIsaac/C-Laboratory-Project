@@ -4,38 +4,61 @@
 #include <string.h>
 #include "isaac_logger.h"
 
-char* get_filename(const char* file)
+char* get_filename(char* file)
 {
-    const char* last_slash;
-    const char* filename;
-    const char* last_dot;
-    size_t name_length;
-    char* result;
+    char* last_slash;
+    char* filename;
     
     if (file == NULL)
         return NULL;
 
-    last_slash = strrchr(file, '\\');
-    if (!last_slash) 
+    last_slash = strrchr(file, '/');
+    
+
+    filename = (last_slash) ? last_slash + 1 : file;
+
+    return filename;
+}
+
+char* get_root_folder_name(char* file)
+{
+    int len = strlen(file);
+    int i = len - 1;
+    int slash_count = 0;
+    char* root_folder = string_calloc(len + 2, sizeof(char)); 
+    
+    if (file == NULL)
+        return NULL;
+    
+    if (!root_folder)
+        return NULL;
+    
+    for (; i >= 0; i--)
     {
-        last_slash = strrchr(file, '/');
+        if (file[i] == '/')
+        {
+            slash_count++;
+            if (slash_count == 3)
+                break;
+        }
     }
 
-    filename = last_slash ? last_slash + 1 : file;
+    if (i < 0)
+    {
+        strncpy(root_folder, file, len);
+        root_folder[len] = '\0';
+        return root_folder;
+    }
+    
+    strncpy(root_folder, file, i);
+    root_folder[i] = '\0';
+    
 
-    last_dot = strrchr(filename, '.');
-
-    name_length = last_dot ? (size_t)(last_dot - filename) : strlen(filename);
-
-    result = (char*)malloc(name_length + 1);
-    if (!result)
-        return NULL;
-
-    strncpy(result, filename, name_length);
-    result[name_length] = '\0';
-
-    return result;
+    strcat(root_folder, "/");
+    
+    return root_folder;
 }
+
 
 char* string_calloc(size_t element_count,size_t size_of_element)
 {
@@ -78,56 +101,57 @@ char* my_strdup(const char* s)
     return copy;
 }
 
-char* remove_last_character(const char *s)
+void remove_last_character(char *s)
 {
-    char* str;
     int len = strlen(s);
 
-    str = string_calloc(len-1,sizeof(char));
-    strncpy(str,s,len-1);
-    if (str == NULL) 
-        return NULL;
-    
-    str[len-1] = '\0';
+    if (!s || len == 0)
+        return;
 
-    return str;
+    s[len-1] = '\0';
 }
 
-char* remove_first_character(char* s)
+void remove_first_character(char* s)
 {
-    char* str;
-    int len = strlen(s); 
+    int i = 1;
+    int len = strlen(s);
 
-    str = string_calloc(len,sizeof(char));
-    str = strncpy_from_pos(s,1);
-    if (str == NULL) 
-        return NULL;
-    
-    str[len] = '\0';
+    if (!s || len == 0)
+        return;
 
-    return str;
+    while(i < len)
+    {    
+        s[i-1] = s[i]; 
+        i++;
+    }
+    s[len-1] = '\0';
 }
 
-char* strncpy_from_pos(char* src,unsigned int pos)
+char* strncpy_from_pos(char* src, unsigned int pos)
 {
+    int len; 
     char* str;
-    int i = 0, j = 0, len = 0;
+    int i = pos, j = 0;
 
-    if(src == NULL)
+    if (!src || pos >= strlen(src))
         return NULL;
+
+    len = strlen(src) - pos;
     
-    len = (strlen(src)-pos);
-    str = string_calloc(len,sizeof(char));
+    str = string_calloc(len + 1, sizeof(char));
+    if (!str)
+        return NULL; 
+
     
-    i = pos;
-    j = 0;
-    while(j <= len)
+    while (j < len)  
     {
         str[j++] = src[i++];
     }
-    str[j] = '\0';
+    
+    str[j] = '\0'; 
     return str;
 }
+
 
 bool is_label(char* word, int ignore_colon)
 {

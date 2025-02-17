@@ -22,7 +22,7 @@ const char* labeltype_to_string(enum LabelType type);
 
 typedef struct LabelNode
 {
-    const char* name;
+    char* name;
     unsigned int address;
     enum LabelType type;
 
@@ -40,17 +40,17 @@ typedef struct LabelTable
 /* Function Declarations */
 void label_table_create(LabelTable* table);
 void label_table_destroy(LabelTable* table);
-void label_table_add(LabelTable* table, const char* name, unsigned int address, enum LabelType type);
+void label_table_add(LabelTable* table, char* name, unsigned int address, enum LabelType type);
 void label_table_print(LabelTable* table);
 /* if found returns the index in the label table -> labels, else -1 */
-int label_table_search(LabelTable* table, const char* name);
+int label_table_search(LabelTable* table, char* name);
 int label_table_search_by_address(LabelTable* table, unsigned int address);
 
 /* 
     Sets a label node's address and type in the label table by its name. 
     returns -1 if not found.
 */
-int label_table_set_node_by_name(LabelTable* table,const char* name, unsigned int address, enum LabelType type);
+int label_table_set_node_by_name(LabelTable* table,char* name, unsigned int address, enum LabelType type);
 /*
     Sets a label's type by its address
 */

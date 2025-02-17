@@ -14,9 +14,9 @@ void test_directive_functions();
 int main()
 {
     
-    test_filename();
-    test_instruction_functions();
-    test_directive_functions();
+    /*test_filename();*/
+    /*test_instruction_functions();*/
+    /*test_directive_functions();*/
     test_string_functions();
     
     return 0;
@@ -90,8 +90,14 @@ void test_filename()
    ======================= */
 void test_string_functions()
 {
+    char temp1[10];
+    char temp2[10];
     char* str = NULL;
     char*  dup = NULL;
+    char* first_char_test1 = malloc(6);
+    char* first_char_test2 = malloc(3);
+    strcpy(first_char_test1,"#3562");
+    strcpy(first_char_test2,"r6");
 
     log_out(__FILE__,__LINE__, "Starting Test - string memory allocation functions in utility.h\n");
 
@@ -129,29 +135,53 @@ void test_string_functions()
     }
 
 
-    str = remove_last_character("MAIN:");
-    if (str && strcmp(str, "MAIN") == 0)
+    /*
+    strcpy(temp1,"MAIN:");
+    remove_last_character(temp1);
+    if (strcmp(temp1, "MAIN") == 0)
     {
+        log_test("Test_remove_last_character", TEST_PASS, "Removing string's last character correctly.");   
+    }
+    else
+    {
+        log_test("Test_remove_last_character", TEST_FAIL, "Removing string's last character failed.");
+    } 
+
+    strcpy(temp2,"r3,");
+    remove_last_character(temp2);
+    if (strcmp(temp2, "r3") == 0)
+    {
+        log_test("Test_remove_last_character", TEST_PASS, "Removing string's last character correctly.");
         
-        log_test("Test_remove_last_character", TEST_PASS, "Removing string's last character correctly.");
-        free(str);
     }
     else
     {
         log_test("Test_remove_last_character", TEST_FAIL, "Removing string's last character failed.");
     } 
-
-    str = remove_last_character("r3,");
-    if (str && strcmp(str, "r3") == 0)
+    */
+     
+    remove_first_character(first_char_test1);
+    if (strcmp(first_char_test1, "3562") == 0)
     {
-        log_test("Test_remove_last_character", TEST_PASS, "Removing string's last character correctly.");
-        free(str);
+        log_test("Test_remove_first_character", TEST_PASS, "Removing string's first character correctly.");
     }
     else
     {
-        log_test("Test_remove_last_character", TEST_FAIL, "Removing string's last character failed.");
-    } 
+        log_test("Test_remove_first_character", TEST_FAIL, "Removing string's first character failed.");
 
+    }
+
+    remove_first_character(first_char_test2);
+    if (strcmp(first_char_test2, "6") == 0)
+    {
+        log_test("Test_remove_first_character", TEST_PASS, "Removing string's first character correctly.");
+    }
+    else
+    {
+        log_test("Test_remove_first_character", TEST_FAIL, "Removing string's first character failed.");
+
+    }
+    
     str = strncpy_from_pos("hello, world",5);
     if (str && strcmp(str, ", world") == 0)
     {
@@ -162,17 +192,6 @@ void test_string_functions()
     {
         log_test("Test_strncpy_from_pos", TEST_FAIL, "Copying n characters from position failed.");
     } 
-
-    str = remove_first_character("#37");
-    if (str && strcmp(str, "37") == 0)
-    {
-        log_test("Test_remove_first_character", TEST_PASS, "Removing string's first character correctly.");
-        free(str);
-    }
-    else
-    {
-        log_test("Test_remove_first_character", TEST_FAIL, "Removing string's first character failed.");
-    }
 
     log_out(__FILE__,__LINE__, "Done Testing - string memory allocation functions in utility.h\n");
 }

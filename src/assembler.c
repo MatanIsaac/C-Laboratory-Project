@@ -60,6 +60,7 @@ int main(int argc,char* argv[])
         macro_table_reset(&macro_table);
     }
 
+    macro_table_destroy(macro_table);
     return 0;
 }
 

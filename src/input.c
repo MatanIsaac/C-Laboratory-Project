@@ -19,7 +19,7 @@ int read_word(FILE* fp, char *word)
         return EOF;
 
     /* Read characters until we encounter a space or EOF */
-    while (ch != EOF && !isspace(ch)) 
+    while (ch != EOF && !isspace(ch) && i < MAX_LINE-1) 
     {
         word[i++]   = ch;
         ch          = getc(fp);

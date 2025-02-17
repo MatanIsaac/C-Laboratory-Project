@@ -41,54 +41,6 @@ wordfield* init_wordfield()
     return word;
 }
 
-/*
-    example  
-
-int main(void)
-{
-    wordfield 
-    mov,cmp,add,sub,
-    lea,clr,not,inc,
-    dec,jmp,bne,jsr,
-    red,prn,rts,stop;
-
-    set_wordfield_op_funct(&mov,0,0);
-    set_wordfield_op_funct(&cmp,1,0);
-    set_wordfield_op_funct(&add,2,1);
-    set_wordfield_op_funct(&sub,2,2);
-    set_wordfield_op_funct(&lea,4,0);
-    set_wordfield_op_funct(&clr,5,1);
-    set_wordfield_op_funct(&not,5,2);
-    set_wordfield_op_funct(&inc,5,3);
-    set_wordfield_op_funct(&dec,5,4);
-    set_wordfield_op_funct(&jmp,9,1);
-    set_wordfield_op_funct(&bne,9,2);
-    set_wordfield_op_funct(&jsr,9,3);
-    set_wordfield_op_funct(&red,12,0);
-    set_wordfield_op_funct(&prn,13,0);
-    set_wordfield_op_funct(&rts,14,0);
-    set_wordfield_op_funct(&stop,15,0);
-
-    print_wordfield(&mov);
-    print_wordfield(&cmp);
-    print_wordfield(&add);
-    print_wordfield(&sub);
-    print_wordfield(&lea);
-    print_wordfield(&clr);
-    print_wordfield(&not);
-    print_wordfield(&inc);
-    print_wordfield(&dec);
-    print_wordfield(&jmp);
-    print_wordfield(&bne);
-    print_wordfield(&jsr);
-    print_wordfield(&red);
-    print_wordfield(&prn);
-    print_wordfield(&rts);
-    print_wordfield(&stop);
-    return 0;
-}
-*/
-
 void set_wordfield_are_num(wordfield* wf, unsigned int num, unsigned int are)
 {
     if (!wf) 
@@ -141,6 +93,7 @@ void set_wordfield_op_funct(wordfield* word, unsigned int opcode, unsigned int f
     word->opcode    = opcode;  /* 000000 */
     word->funct     = funct;  /* 00000 */
 }
+
 void set_wordfield_src(wordfield* word, unsigned int src_mode, unsigned int src_reg)
 {
     if(word == NULL)
@@ -152,6 +105,7 @@ void set_wordfield_src(wordfield* word, unsigned int src_mode, unsigned int src_
     word->src_mode  = src_mode;  /* 00 */
     word->src_reg   = src_reg;  /* 000 */
 }
+
 void set_wordfield_dest(wordfield* word, unsigned int dest_mode, unsigned int dest_reg)
 {
     if(word == NULL)
@@ -163,6 +117,7 @@ void set_wordfield_dest(wordfield* word, unsigned int dest_mode, unsigned int de
     word->dest_mode = dest_mode;  /* 00 */
     word->dest_reg  = dest_reg;  /* 000 */
 }
+
 void set_wordfield_are(wordfield* word, unsigned int are)
 {
     if(word == NULL)
@@ -198,5 +153,6 @@ wordfield* create_wordfield_by_opname(char* str, InstructionTable* instruction_t
         return wf;
     }
 
+    free(wf); 
     return NULL;
 }

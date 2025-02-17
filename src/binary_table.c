@@ -20,7 +20,7 @@ void print_binary_node(BinaryNode* node)
     {
         /* Found a valid entry */
         fprintf(stdout,  "[address: %u] - [line: %s] - \t\t", node->address, (node->line) ? node->line : "NULL");
-        print_wordfield(&node->word);
+        print_wordfield(node->word);
 
     }
     else
@@ -63,8 +63,12 @@ void binary_table_free(BinaryTable* table)
 
     for (i = 0; i < table->size; i++) 
     {
-        if (table->data[i])
+        if (table->data[i]) 
+        {
+            free(table->data[i]->line); 
+            free(table->data[i]->word);
             free(table->data[i]);
+        }
     }
     free(table->data);
     table->data = NULL;
@@ -115,15 +119,22 @@ void binary_node_add(BinaryTable* table, unsigned int address, char* line)
 
 void set_binary_node_wordfield(BinaryTable* table, unsigned int address, wordfield* word)
 {
-    int node_index = -1;
-    if (!table || !table->data || !word) 
+    int node_index = binary_table_search(table, address);
+
+    if (node_index == -1 || !table || !table->data || !word) 
         return;
 
-    node_index = binary_table_search(table, address);
-    if(node_index != -1)
+    if (!table->data[node_index]->word)  /* If not already allocated, allocate memory */
     {
-        table->data[node_index]->word = *word;    
+        table->data[node_index]->word = init_wordfield();
+        if (!table->data[node_index]->word)
+        {
+            log_error(__FILE__,__LINE__,"Failed to allocate memory for wordfield\n");
+            return;
+        }
     }
+
+    *(table->data[node_index]->word) = *word;  /* assign struct contents into allocated memory */
 }
 
 void binary_table_print(BinaryTable* table)
@@ -142,12 +153,13 @@ void binary_table_print(BinaryTable* table)
 int binary_table_search(BinaryTable* table, unsigned int address)
 {
     size_t i;
+
     if (!table || !table->data) 
         return -1;
 
     for (i = 0; i < table->size; i++) 
     {
-        if(table->data[i]->address == address)
+        if(table->data[i] && table->data[i]->address == address)
         {
             return i;
         }
