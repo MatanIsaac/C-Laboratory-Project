@@ -1,43 +1,102 @@
-# C-Laboratory-Project
-The final project(mmn 14) for the open university's (israel) laboratory course in c programming language.
-Assembler Project mmn14
+# <div align="center">Assembler Project - C-Laboratory #20465 </div>
 
-Main Project Goals:
-    1. Parse and analyze a given assembly source code file.
-    2. Translate the assembly instructions into corresponding machine code.
-    3. Generate a machine code output file that can be executed or loaded by the target system.
+This project is the final project (assignment #14) for the Open University's C-Laboratory Course #20465 in C Programming. 
+The goal is to implement an assembler for an imaginary computer, converting assembly source code into machine-readable instructions.
 
-Purpose:
-    This project involves creating an assembler for a specific assembly language, converting human-readable 
-    assembly instructions into the machine-readable format required by the target hardware or virtual machine.
+### <div align="center"> Project Objectives </div>
 
-    Assmebler's Role:
-    The role of the assembler is to build a machine code file, based on a program written in assembly language. 
-    This is the first step in the process of transferring the program to create code that can be executed on the hardware. 
-    The following stages are linking (linkage) and loading, but we do not deal with these in this context.
+    Parse and analyze a given assembly source file.
+    Translate assembly instructions into corresponding machine code.
+    Generate corresponding output files: am, object, externals, entries 
 
-The Imaginary Computer and Assembly Language:
-    Computer Consists of: 
-        CPU, registers, and RAM memory(some part of the memory's for the stack)
-    CPU:
-        Has 8 general registers called: r0,r1,r2,r3,r4,r5,r6,r7 (register names always starts with 'r')
-        Size of Every Register: 24 bits
-        Least Significant Bit(LSB): bit no 0
-        Most  Significant Bit(LSB): bit no 23
-        PSW Register(Program Status Word): Contains several flags indicating the processor's status at any given moment. 
-        (For more information about the PSW register, see the machine instructions description, where the flags' usage is explained)
-    RAM:
-        The memory size is 2^21 locations, in addresses ranging from 0 to 2^21-1
-        Each address is 24 bits in size. 
-        A memory location is also called a "מילה" 
-        The bits in each "מילה" are numbered like in the registers
-    The Computer's Number Support:
-        The Computer Supports only natural and whole numbers, negative numbers are not allowed.
-        Arithmetic is performed using the 2's complement method. 
-        There is support for characters, which are represented in ASCII code.
-    Machine Instruction Structure:
-        Every machine instruction in our model consists of an operation and operands. 
-        The number of operands is between 0 and 2, depending on the type of operation. 
-        The function of each operand is determined by its role, distinguishing between a source operand and a destination operand.
-        
+### <div align="center">Project Overview</div>
 
+This assembler converts human-readable assembly language into machine code, making it executable by the imaginary computer model. 
+The assembler does not handle linking or loading; it simply translates assembly instructions into their binary representation.
+
+
+### <div align="center"> Course Development Requirements </div>
+
+
+    Strict ANSI C compliance (C89/C90)
+    No external libraries – pure C standard library usage
+    Fully self-contained implementation
+    Structured, modular design with multiple source files
+
+### <div align="center">Features </div>
+
+    Multi-pass assembler for proper label resolution.
+    Symbol table management for labels and variables.
+    Error detection with descriptive messages.
+    Optimized machine code generation.
+    Strict memory constraints for compliance with the imaginary computer's specs.
+    Small testing framework included (used to test different areas of this assembler project) 
+
+### <div align="center">The Imaginary Computer Model </div>
+
+This project simulates an imaginary CPU architecture with the following specifications:
+System Components
+
+    CPU: 
+        Contains 8 general-purpose registers: r0, r1, r2, r3, r4, r5, r6, r7
+    Register Size: 24 bits
+        LSB (Least Significant Bit): Bit 0
+        MSB (Most Significant Bit): Bit 23
+    PSW (Program Status Word) Register: 
+        Stores CPU status flags.
+    RAM: 
+        Addressable memory space of 2^21 (2,097,152 locations), each 24-bit wide.
+    Number Representation:
+        Only natural (positive) numbers are supported.
+        Arithmetic operations use 2's complement for negative numbers.
+        ASCII character representation is supported.
+
+
+### <div align="center"> Building the Assembler </div>
+
+This project is written in ANSI C and adheres to strict C89/C90 standards.
+
+Ensure you have:
+
+    GCC Compiler (or any ANSI C-compatible compiler)
+    GNU Make (for compilation automation)
+
+To build the assembler, run:
+
+    make
+
+To run the assembler test with an assembly source file:
+
+    ./build/assembler source.as
+
+The output machine code file will be generated in:  
+    
+    build/output_files/
+
+### <div align="center"> Example Input & Output </div>
+Assembly Code Example:
+
+    MAIN:   add r3, LIST
+    LOOP:   prn #48
+            lea STR, r6
+            inc r6
+
+Generated Machine Code:
+
+    Address | Source Code        | Explanation               | Binary Machine Code
+    -----------------------------------------------------------------------------------
+    0000100 | MAIN: add r3, LIST | First word of instruction | 000010110110100000001100
+    0000101 |                    | Address of label LIST     | 000000000000001111111010
+    -----------------------------------------------------------------------------------
+    0000102 | LOOP: prn #48      |                           | 001101000000000000000100
+    0000103 |                    | Immediate value 48        | 000000000000000110000100
+    -----------------------------------------------------------------------------------
+    0000104 | lea STR, r6        |                           | 000100010001111000000100
+    0000105 |                    | Address of label STR      | 000000000000001111010010
+    -----------------------------------------------------------------------------------
+    0000106 | inc r6             |                           | 000000000000001111010010
+
+
+
+### <div align="center"> Contact </div>
+For any questions, suggestions, or issues, feel free to send me a message !
