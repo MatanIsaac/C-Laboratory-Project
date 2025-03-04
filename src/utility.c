@@ -2,7 +2,7 @@
 #include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
-#include "isaac_logger.h"
+#include "logger.h"
 
 char* get_filename(char* file)
 {
@@ -150,6 +150,24 @@ char* strncpy_from_pos(char* src, unsigned int pos)
     
     str[j] = '\0'; 
     return str;
+}
+
+char* int_to_hex(int number)
+{
+    /*
+        NOTE:
+        Allocate enough space for up to 8 hex digits, and the null terminator.
+        That’s 8 (for 32-bit hex digits) + 1 = 9 characters.
+    */
+    char* hex_str = malloc(9 * sizeof(char));
+    if (hex_str == NULL) 
+    {
+        return NULL; 
+    }
+    
+    sprintf(hex_str, "%06x", number);
+    
+    return hex_str;
 }
 
 

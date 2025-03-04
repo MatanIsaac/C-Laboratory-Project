@@ -1,48 +1,80 @@
+
 #ifndef INSTRUCTION_TABLE_H
 #define INSTRUCTION_TABLE_H
 
 #include <stddef.h>
 
+/** @brief Number of instructions the table can hold. */
 #define INSTRUCTION_TABLE_SIZE 16
+
+/** @brief Maximum length of an instruction name (e.g., "ADD"). */
 #define MAX_OP_NAME 4
 
-/* Represents a single instruction */
+/**
+ * @brief Represents a single instruction.
+ */
 typedef struct InstructionNode 
 {
-   char            op_name[MAX_OP_NAME];    /* Name of the operation, e.g. "ADD", "SUB", etc. */
-   unsigned int    op_code;    /* Primary op code */
-   unsigned int    funct;      /* Secondary code (if relevant) */
+   char            op_name[MAX_OP_NAME]; /* Operation name (e.g., "ADD"). */
+   unsigned int    op_code;              /* Primary opcode. */
+   unsigned int    funct;                /* Secondary code. */
 } InstructionNode;
 
-/* Print a single instruction node */
+/**
+ * @brief Prints a single instruction node.
+ * @param node The instruction node to print.
+ */
 void instruction_node_print(InstructionNode* node);
 
+/**
+ * @brief Stores a fixed array of InstructionNode items.
+ */
 typedef struct InstructionTable
 {
-    InstructionNode instructions[INSTRUCTION_TABLE_SIZE];
+    InstructionNode instructions[INSTRUCTION_TABLE_SIZE]; /* Array of instructions. */
 } InstructionTable;
 
-/* Create a new instruction table (capacity = INSTRUCTION_TABLE_SIZE) on the stack*/
+/**
+ * @brief Creates and initializes an instruction table.
+ * @param table Pointer to the InstructionTable.
+ */
 void instruction_table_create(InstructionTable* table);
 
-/* Destroy the instruction table (freeing any dynamically allocated memory) */
+/**
+ * @brief Destroys an instruction table (frees any allocated memory).
+ * @param table Pointer to the InstructionTable.
+ */
 void instruction_table_destroy(InstructionTable* table);
 
-/* Insert a new instruction into the table 
-   Returns 0 on success, -1 on failure (e.g., table is full). */
-int instruction_table_insert(InstructionTable* table, 
-                             const char* op_name, 
-                             unsigned int op_code, 
-                             unsigned int funct);
+/**
+ * @brief Inserts a new instruction into the table.
+ * @param table Pointer to the InstructionTable.
+ * @param op_name The operation name.
+ * @param op_code The primary opcode.
+ * @param funct The secondary code.
+ * @return 0 on success, -1 if the table is full.
+ */
+int instruction_table_insert(InstructionTable* table, const char* op_name, unsigned int op_code, unsigned int funct);
 
-/* Retrieve a pointer to an instruction by operation name 
-   Returns NULL if not found. */
+/**
+ * @brief Retrieves an instruction by name.
+ * @param table Pointer to the InstructionTable.
+ * @param op_name The operation name to look up.
+ * @return Pointer to the found InstructionNode, or NULL if not found.
+ */
 InstructionNode* instruction_table_get(InstructionTable* table, const char* op_name);
 
-/* Remove an instruction by operation name (if it exists) */
+/**
+ * @brief Removes an instruction by name.
+ * @param table Pointer to the InstructionTable.
+ * @param op_name The operation name to remove.
+ */
 void instruction_table_remove(InstructionTable* table, const char* op_name);
 
-/* Print all valid instructions in the table */
+/**
+ * @brief Prints all valid instructions in the table.
+ * @param table Pointer to the InstructionTable.
+ */
 void instruction_table_print(InstructionTable* table);
 
 #endif /* INSTRUCTION_TABLE_H */

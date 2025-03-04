@@ -19,7 +19,7 @@ int read_word(FILE* fp, char *word)
         return EOF;
 
     /* Read characters until we encounter a space or EOF */
-    while (ch != EOF && !isspace(ch) && i < MAX_LINE-1) 
+    while (ch != EOF && !isspace(ch) && i < MAX_LINE) 
     {
         word[i++]   = ch;
         ch          = getc(fp);
@@ -47,7 +47,7 @@ int read_word_from_line(const char* line, char* word, int start_pos)
 
     while (line[i] != NULL_TERMINATOR && !isspace(line[i])) 
     {
-        if (j < MAX_WORD - 1) 
+        if (j < MAX_WORD) 
         {
             word[j++] = line[i];
         }
@@ -70,7 +70,7 @@ int read_line(FILE* fp, char *line)
     /* Read characters until we encounter a new line '\n' or EOF */
     while ((ch = getc(fp)) != EOF && ch != NEW_LINE)
     {
-        if(i < MAX_LINE - 1) /* to ensure not going over character per line */
+        if(i < MAX_LINE) /* to ensure not going over character per line */
         {
             line[i++] = ch;
         }

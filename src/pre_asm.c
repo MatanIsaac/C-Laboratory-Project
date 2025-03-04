@@ -3,7 +3,7 @@
 #include "common.h"
 #include "utility.h"
 #include "macro_table.h"
-#include "isaac_logger.h"
+#include "logger.h"
 #include <string.h>
 #include <ctype.h>
 
@@ -29,7 +29,7 @@ int parse_macros(FILE* fp, char* filepath, char* output_file, MacroTable* macro_
     while(read_line(fp,line) != -1)
     {
         position = 0;
-        
+        flag = check_line_length(line);
         if(line[0] == SEMICOLON || is_line_empty(line))
         {
             fprintf(new_fp,"%s",line);
@@ -66,10 +66,10 @@ int parse_macros(FILE* fp, char* filepath, char* output_file, MacroTable* macro_
                     if(is_instruction(word) || is_directive(word))
                     {
                         log_error(__FILE__,__LINE__, "Macro's name cannot be an instruction or a direective! \n");
-                       flag = -1;
+                        flag = -1;
                     }
                     temp = macro_table_get(macro_table,word);
-                    if (temp == NULL)
+                    if (temp == NULL && flag != -1)
                     {
                         flag = handle_new_macro(fp,macro_table,word);
                     }
@@ -177,4 +177,9 @@ FILE* prepare_am_file(char* file, char* output_file)
     strcpy(output_file,file_path);
     free(file_path);
     return new_fp;
+}
+
+int check_line_length(char* line)
+{
+    return (strlen(line) < MAX_LINE) ? 0 : -1;
 }

@@ -1,5 +1,5 @@
 #include "binary_table.h"
-#include "isaac_logger.h"
+#include "logger.h"
 #include <stdlib.h>
 #include "utility.h"
 

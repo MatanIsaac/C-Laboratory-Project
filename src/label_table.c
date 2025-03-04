@@ -1,5 +1,5 @@
 #include "label_table.h"
-#include "isaac_logger.h"
+#include "logger.h"
 
 const char* labeltype_to_string(enum LabelType type) 
 {

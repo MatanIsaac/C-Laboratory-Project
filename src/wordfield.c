@@ -1,7 +1,7 @@
 #include "wordfield.h"
 #include "input.h"
 #include "utility.h"
-#include "isaac_logger.h"
+#include "logger.h"
 #include <stdlib.h>
 
 /* Function to print each bit manually in the correct order */
@@ -46,12 +46,12 @@ void set_wordfield_are_num(wordfield* wf, unsigned int num, unsigned int are)
     if (!wf) 
         return;
 
-    wf->opcode      = (num >> 15) & 0x3F;  /* Extract bits 3-8 (6 bits) */
-    wf->src_mode    = (num >> 13) & 0x03;  /* Extract bits 9-10 (2 bits) */
-    wf->src_reg     = (num >> 10) & 0x07;  /* Extract bits 11-13 (3 bits) */
-    wf->dest_mode   = (num >> 8)  & 0x03;  /* Extract bits 14-15 (2 bits) */
-    wf->dest_reg    = (num >> 5)  & 0x07;  /* Extract bits 16-18 (3 bits) */
-    wf->funct       = (num >> 0)  & 0x1F;  /* Extract bits 19-23 (5 bits) */
+    wf->opcode      = (num >> 15) & MASK_SIX_BITS;  /* Extract bits 3-8 (6 bits) */
+    wf->src_mode    = (num >> 13) & MASK_TWO_BITS;  /* Extract bits 9-10 (2 bits) */
+    wf->src_reg     = (num >> 10) & MASK_THREE_BITS;  /* Extract bits 11-13 (3 bits) */
+    wf->dest_mode   = (num >> 8)  & MASK_TWO_BITS;  /* Extract bits 14-15 (2 bits) */
+    wf->dest_reg    = (num >> 5)  & MASK_THREE_BITS;  /* Extract bits 16-18 (3 bits) */
+    wf->funct       = (num >> 0)  & MASK_FIVE_BITS;  /* Extract bits 19-23 (5 bits) */
     wf->are         = are;                   /* Manually set first 3 bits */
 }
 
@@ -155,4 +155,16 @@ wordfield* create_wordfield_by_opname(char* str, InstructionTable* instruction_t
 
     free(wf); 
     return NULL;
+}
+
+
+int wordfield_to_int(wordfield* wf) 
+{
+    return (wf->opcode    << 18) |  /* Opcode into bits 23-18*/
+           (wf->src_mode  << 16) |  /* Src Mode into bits 17-16*/
+           (wf->src_reg   << 13) |  /* Src Reg into bits 15-13*/
+           (wf->dest_mode << 11) |  /* Dest Mode into bits 12-11*/
+           (wf->dest_reg  << 8)  |  /* Dest Reg into bits 10-8*/
+           (wf->funct     << 3)  |  /* Funct into bits 7-3*/
+           (wf->are);               /* ARE into bits 2-0*/
 }

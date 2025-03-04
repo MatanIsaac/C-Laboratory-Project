@@ -3,7 +3,7 @@
 
 #include <stdio.h>
 #include <time.h>
-#include "../src/isaac_logger.h"
+#include "../src/logger.h"
 
 typedef enum 
 {

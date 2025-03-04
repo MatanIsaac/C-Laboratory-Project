@@ -1,37 +1,86 @@
 #ifndef BINARY_TABLE_H
 #define BINARY_TABLE_H
-
+ 
 #include "wordfield.h"
 #include <stdlib.h>
 #include <stdio.h>
-
+ 
+/** @brief Default capacity for a BinaryTable. */
 #define DEFAULT_BINARY_TABLE_SIZE 25
 
-typedef struct BinaryNode 
+/**
+ * @brief Holds address, line text, and a pointer to a wordfield.
+ */
+typedef struct BinaryNode
 {
-    unsigned int address;
-    char* line;
-    wordfield* word;
+    unsigned int address; /* Memory address. */
+    char* line;           /* Original line text. */
+    wordfield* word;      /* Pointer to the wordfield. */
 } BinaryNode;
 
+/**
+ * @brief Allocates and initializes a BinaryNode.
+ * @return A pointer to the new BinaryNode.
+ */
 BinaryNode* init_binary_node();
+
+/**
+ * @brief Prints a single BinaryNode.
+ * @param node The BinaryNode to print.
+ */
 void print_binary_node(BinaryNode* node);
 
-/* Typedef for a dynamic array of BinaryNode pointers */
-typedef struct 
+/**
+ * @brief A dynamic array of BinaryNode pointers.
+ */
+typedef struct
 {
-    BinaryNode** data;
-    size_t size;      /* Number of elements currently in the table */
-    size_t capacity;  /* Maximum capacity before resizing */
+    BinaryNode** data;  /* Array of pointers to BinaryNode. */
+    size_t size;        /* Current number of elements. */
+    size_t capacity;    /* Maximum capacity before resizing. */
 } BinaryTable;
 
-/* Functions for initializing and managing a BinaryTable */
+/**
+ * @brief Creates a new BinaryTable.
+ * @param initial_size Initial capacity.
+ * @return Pointer to the created BinaryTable.
+ */
 BinaryTable* binary_table_create(size_t initial_size);
+
+/**
+ * @brief Frees a BinaryTable and all associated nodes.
+ * @param table Pointer to the BinaryTable.
+ */
 void binary_table_free(BinaryTable* table);
+
+/**
+ * @brief Adds a new BinaryNode with address and line to the table.
+ * @param table Pointer to the BinaryTable.
+ * @param address The address for the new node.
+ * @param line The line to associate with the node.
+ */
 void binary_node_add(BinaryTable* table, unsigned int address, char* line);
-/* sets a binary node in the table, by its address */
+
+/**
+ * @brief Sets the wordfield of a BinaryNode by its address.
+ * @param table Pointer to the BinaryTable.
+ * @param address The address to search for.
+ * @param word Pointer to the wordfield to set.
+ */
 void set_binary_node_wordfield(BinaryTable* table, unsigned int address, wordfield* word);
+
+/**
+ * @brief Prints the contents of the entire table.
+ * @param table Pointer to the BinaryTable.
+ */
 void binary_table_print(BinaryTable* table);
-/* returns -1 if not found, otherwise returns the index where found */
+
+/**
+ * @brief Searches for a BinaryNode by address.
+ * @param table Pointer to the BinaryTable.
+ * @param address The address to find.
+ * @return The index if found, otherwise -1.
+ */
 int binary_table_search(BinaryTable* table, unsigned int address);
+
 #endif /* BINARY_TABLE_H */

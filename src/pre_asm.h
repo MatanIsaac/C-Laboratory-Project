@@ -5,26 +5,34 @@
 #include "macro_table.h"
 
 /**
- * @brief looks for macros in the file
- * @param fp fp the file to read from.
+ * @brief Looks for macros in the file
+ * @param fp Fp the file to read from.
  * @return 1 on success or -1 when reaching EOF.
  */
 int parse_macros(FILE* fp, char* filepath, char* output_file, MacroTable* macro_table);
 
 /**
- * @brief add a new macro to the macro table
- * @param fp fp the file to read from.
- * @param macro_table stores the new macro in this table.
+ * @brief Add a new macro to the macro table
+ * @param fp The file to read from.
+ * @param macro_table Stores the new macro in this table.
  * @return 1 on success or -1 when reaching EOF.
  */
 int handle_new_macro(FILE* fp,MacroTable* macro_table, char* macro_name);
 
 /**
- * @brief add a new macro to the macro table
- * @param filepath the .as file to copy its name from
- * @param output_file stores the new .am output file name
+ * @brief Add a new macro to the macro table
+ * @param filepath The .as file to copy its name from
+ * @param output_file Stores the new .am output file name
  * @return NULL if error occured, new am file to write to on success
  */
 FILE* prepare_am_file(char* file, char* output_file);
+
+
+/**
+ * @brief Check if a given line is greater than 80 characters
+ * @param line The line to check 
+ * @return 0 if line is valid, -1 otherwise
+ */
+int check_line_length(char* line);
 
 #endif

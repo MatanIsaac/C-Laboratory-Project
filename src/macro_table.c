@@ -4,7 +4,7 @@
 #include <string.h>
 
 #include "utility.h"
-#include "isaac_logger.h"
+#include "logger.h"
 
 /* Prints the contents of a hashtable node */
 void macro_node_print(MacroNode* node)

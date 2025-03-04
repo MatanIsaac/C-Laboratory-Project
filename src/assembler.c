@@ -9,7 +9,7 @@
 #include "utility.h"
 #include "first_pass.h"
 #include "label_table.h"
-#include "isaac_logger.h"
+#include "logger.h"
 
 int main(int argc,char* argv[])
 {
@@ -19,7 +19,6 @@ int main(int argc,char* argv[])
     int file_index          = 1;
     int arg_count           = argc;
     MacroTable* macro_table = macro_table_create(10);
-
 
     if(argc < 2)
     {
@@ -36,10 +35,10 @@ int main(int argc,char* argv[])
         if(fp == NULL)
         {
             log_error(__FILE__,__LINE__,"Failed to open %s, file doesn't exists.\n", current_file);
-            return -1;
+            file_index++;
         }
 
-        if(parse_macros(fp,current_file,output_file,macro_table) != -1)
+        if(parse_macros(fp, current_file,output_file,macro_table) != -1)
         {
             macro_table_print(macro_table);
             log_out(__FILE__,__LINE__,"Done Parsing Macros for - %s\n", current_file);
@@ -63,14 +62,3 @@ int main(int argc,char* argv[])
     macro_table_destroy(macro_table);
     return 0;
 }
-
-/*
-    TODO: 
-    1. assembler should ignore label that are defining:
-        .entry
-        .extern
-    2. assembler should check if a wrong operands are given to an instruction 
-       and print errors accordingly. 
-    3. assembler should check for errors in the macro defintion before parsing them. 
-
-*/

@@ -4,7 +4,7 @@
 #include <string.h>
 #include "common.h"
 #include "utility.h"
-#include "isaac_logger.h"
+#include "logger.h"
 
 /* Print a single instruction node */
 void instruction_node_print(InstructionNode* node)

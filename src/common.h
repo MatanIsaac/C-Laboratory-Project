@@ -1,6 +1,8 @@
 #ifndef COMMNET_H
 #define COMMNET_H
 
+/* This header defines basic constants, macros, and a simple 'bool' type for use across the project. */
+
 #define bool int
 #define true 1
 #define false 0

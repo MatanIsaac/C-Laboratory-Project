@@ -3,7 +3,7 @@
 #include <string.h>
 #include "../test_framework.h"
 #include "../../src/utility.h"
-#include "../../src/isaac_logger.h"
+#include "../../src/logger.h"
 
 /* Function prototypes */
 void test_filename();
