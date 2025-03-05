@@ -20,7 +20,7 @@ int parse_macros(FILE* fp, char* filepath, char* output_file, MacroTable* macro_
 int handle_new_macro(FILE* fp,MacroTable* macro_table, char* macro_name);
 
 /**
- * @brief Add a new macro to the macro table
+ * @brief Opens and prepares the .am file needed for first pass
  * @param filepath The .as file to copy its name from
  * @param output_file Stores the new .am output file name
  * @return NULL if error occured, new am file to write to on success

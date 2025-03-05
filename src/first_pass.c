@@ -3,7 +3,7 @@
 #include "common.h"
 #include "utility.h"
 #include "logger.h"
-
+#include "error_manager.h"
 #include <ctype.h>
 
 void prepare_first_pass(const char* filepath, MacroTable* macro_table)
@@ -37,6 +37,7 @@ void prepare_first_pass(const char* filepath, MacroTable* macro_table)
     if(fp == NULL)
     {
         log_error(__FILE__,__LINE__, "Failed to open [%s] for first pass\n.", filepath);
+        add_error_entry(ErrorType_OpenFileFailure,__FILE__,__LINE__);
     }
 
     if(execute_first_pass(fp,&label_table,&instruction_table, macro_table) >= 0) /* success */

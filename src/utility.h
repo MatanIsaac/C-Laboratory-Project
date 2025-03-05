@@ -28,11 +28,12 @@ char* get_filename(char* file);
 char* get_root_folder_name(char* file);
 
 /* ------------------------------------------------------------------ */
+
 /* String utility functions */
 /**
  * @brief Allocates memory for an array of strings, initializing all bytes to zero.
- * @param[in] element_count   Number of elements to allocate.
- * @param[in] size_of_element Size of each element (in bytes).
+ * @param element_count   Number of elements to allocate.
+ * @param size_of_element Size of each element (in bytes).
  * @return A pointer to the allocated memory, or NULL on failure.
  */
 char* string_calloc(size_t element_count, size_t size_of_element);
@@ -45,7 +46,7 @@ char* string_calloc(size_t element_count, size_t size_of_element);
 char* string_malloc(size_t size);
 
 /**
- * @brief Duplicates a string. 
+ * @brief Duplicates a string.(mainly used to copy const char* to char*)
  * @param src The string to duplicate.
  * @return A pointer to the newly allocated copy, or NULL on failure.
  */

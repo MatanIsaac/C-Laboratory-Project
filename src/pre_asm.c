@@ -4,6 +4,7 @@
 #include "utility.h"
 #include "macro_table.h"
 #include "logger.h"
+#include "error_manager.h"
 #include <string.h>
 #include <ctype.h>
 
@@ -23,13 +24,18 @@ int parse_macros(FILE* fp, char* filepath, char* output_file, MacroTable* macro_
     {
         free(word);
         free(line);
+        add_error_entry(ErrorType_OpenFileFailure,__FILE__,__LINE__);
         return -1;
     }
 
     while(read_line(fp,line) != -1)
     {
         position = 0;
+    
         flag = check_line_length(line);
+        if(flag == -1)
+            add_error_entry(ErrorType_InvalidLineLength,__FILE__,__LINE__);
+
         if(line[0] == SEMICOLON || is_line_empty(line))
         {
             fprintf(new_fp,"%s",line);
@@ -63,10 +69,10 @@ int parse_macros(FILE* fp, char* filepath, char* output_file, MacroTable* macro_
                 { 
                     const char* temp;
                     position = read_word_from_line(line, word, position);
-                    if(is_instruction(word) || is_directive(word))
+                    if(is_instruction(word) || is_directive(word) || is_register(word))
                     {
-                        log_error(__FILE__,__LINE__, "Macro's name cannot be an instruction or a direective! \n");
                         flag = -1;
+                        add_error_entry(ErrorType_InvalidMacroName,__FILE__,__LINE__);
                     }
                     temp = macro_table_get(macro_table,word);
                     if (temp == NULL && flag != -1)
@@ -81,6 +87,17 @@ int parse_macros(FILE* fp, char* filepath, char* output_file, MacroTable* macro_
     fclose(new_fp);
     free(line);
     free(word);
+
+    /* TODO: print errors if found and return accourdingly */
+    if(is_errors_array_empty() < 0)
+    {
+        print_errors_array();
+        flag = -1;
+    }
+    else
+    {
+        log_out(__FILE__,__LINE__,"\n\nAlright Alright Alright!\n\n");
+    }
 
     return flag;
 }
@@ -97,10 +114,14 @@ int handle_new_macro(FILE* fp,MacroTable* macro_table, char* macro_name)
     if(read_word_from_line(line, word, position) != -1)
     {
         log_error(__FILE__,__LINE__, "Found extraneous text after macro definition\n");
+        /*
+        NOTE: found error, but no need to free, mark error and continue.
         free(line);
         free(word);
         free(current_macro_value);
+        */
         flag = -1;
+        add_error_entry(ErrorType_ExtraneousText,__FILE__,__LINE__);
     }
 
     while(read_line(fp, line) != -1)
@@ -132,6 +153,7 @@ int handle_new_macro(FILE* fp,MacroTable* macro_table, char* macro_name)
             {
                 log_error(__FILE__,__LINE__, "Found extraneous text after macro definition\n");
                 flag = -1;
+                add_error_entry(ErrorType_ExtraneousText,__FILE__,__LINE__);
             }
             break;
         }
@@ -160,7 +182,7 @@ FILE* prepare_am_file(char* file, char* output_file)
     if (!file_path) 
     {
         log_error(__FILE__,__LINE__, "Memory allocation failed for file_path\n");
-        
+        add_error_entry(ErrorType_MemoryAllocationFailure,__FILE__,__LINE__);
         return NULL;
     }
     
@@ -170,6 +192,7 @@ FILE* prepare_am_file(char* file, char* output_file)
     if (!new_fp) 
     {
         log_error(__FILE__,__LINE__, "Failed to open [%s] for pre_asm output\n.", file_path);
+        add_error_entry(ErrorType_OpenFileFailure,__FILE__,__LINE__);
         free(file_path);
         return NULL;
     }
