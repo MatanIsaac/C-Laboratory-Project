@@ -13,7 +13,7 @@ static char* get_error_msg(ErrorType error_type)
     switch (error_type)
     {
     case ErrorType_InvalidLineLength:
-        strcpy(error_msg,"ErrorType_InvalidLineLength: Assembler only accepts lines with length of 80 or less (not including '\0')");
+        strcpy(error_msg,"ErrorType_InvalidLineLength: Assembler only accepts lines with length of 80 or less (not including null terminator)");
         break;
     case ErrorType_InvalidMacroName:
         strcpy(error_msg,"ErrorType_InvalidMacroName: Macro's name cannot be an instruction, a direective or a register!");

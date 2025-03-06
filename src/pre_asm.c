@@ -85,7 +85,7 @@ int parse_macros(FILE* fp, char* filepath, char* output_file, MacroTable* macro_
     }
 
     fclose(new_fp);
-    free(line);
+    /*free(line);*/
     free(word);
 
     /* TODO: print errors if found and return accourdingly */
@@ -204,5 +204,14 @@ FILE* prepare_am_file(char* file, char* output_file)
 
 int check_line_length(char* line)
 {
-    return (strlen(line) < MAX_LINE) ? 0 : -1;
+    int i = 0;
+    int count = 0;
+    for(; i <strlen(line); i++)
+    {
+        if(!isspace(line[i]))
+            count++;
+    }
+    
+    return (count < MAX_LINE) ? 0 : -1;
+    
 }
