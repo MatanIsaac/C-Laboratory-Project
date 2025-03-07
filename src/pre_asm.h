@@ -17,7 +17,7 @@ int parse_macros(FILE* fp, char* filepath, char* output_file, MacroTable* macro_
  * @param macro_table Stores the new macro in this table.
  * @return 1 on success or -1 when reaching EOF.
  */
-int handle_new_macro(FILE* fp,MacroTable* macro_table, char* macro_name);
+int handle_new_macro(FILE* fp,MacroTable* macro_table, char* macro_name,char* filepath, int* line_count);
 
 /**
  * @brief Opens and prepares the .am file needed for first pass
@@ -34,5 +34,7 @@ FILE* prepare_am_file(char* file, char* output_file);
  * @return 0 if line is valid, -1 otherwise
  */
 int check_line_length(char* line);
+
+void check_macro_name(const char* word, int* flag, char* filepath, int* line_count);
 
 #endif

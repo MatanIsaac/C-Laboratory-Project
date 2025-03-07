@@ -13,13 +13,28 @@ static char* get_error_msg(ErrorType error_type)
     switch (error_type)
     {
     case ErrorType_InvalidLineLength:
-        strcpy(error_msg,"ErrorType_InvalidLineLength: Assembler only accepts lines with length of 80 or less (not including null terminator)");
+        strcpy(error_msg,"ErrorType_InvalidLineLength: Assembler only accepts lines with length of 81 (including null terminator)");
         break;
     case ErrorType_InvalidMacroName:
-        strcpy(error_msg,"ErrorType_InvalidMacroName: Macro's name cannot be an instruction, a direective or a register!");
+        strcpy(error_msg,"ErrorType_InvalidMacroName: Macro's name cannot contain ...");
+        break;
+    case ErrorType_InvalidMacroName_Length:
+        strcpy(error_msg,"ErrorType_InvalidMacroName_Length: Macro's name is too long, must be with a length of 31 (including null terminator)");
+        break;
+    case ErrorType_InvalidMacroName_Instruction:
+        strcpy(error_msg,"ErrorType_InvalidMacroName_Instruction: Macro's name cannot be an instruction!");
+        break;
+    case ErrorType_InvalidMacroName_Directive:
+        strcpy(error_msg,"ErrorType_InvalidMacroName_Directiv: Macro's name cannot be a directive !");
+        break;
+    case ErrorType_InvalidMacroName_Register:
+        strcpy(error_msg,"ErrorType_InvalidMacroName_Register: Macro's name cannot be a register!");
         break;
     case ErrorType_ExtraneousText:
         strcpy(error_msg,"ErrorType_ExtraneousText: Found Extraneous Text");
+        break;
+    case ErrorType_ExtraneousText_Macro:
+        strcpy(error_msg,"ErrorType_ExtraneousText_Macro: Found Extraneous Text After Macro Definition");
         break;
     case ErrorType_MemoryAllocationFailure:
         strcpy(error_msg,"ErrorType_MemoryAllocationFailure: Failed to allocate memory!");
@@ -72,6 +87,9 @@ void print_errors_array()
     for (; i < error_index; i++) 
     {
         if (errors[i].error_msg != NULL)
+        {
             printf("%s, found at [%s,%d]",errors[i].error_msg,errors[i].file,errors[i].line);
+            printf("\n");
+        }
     }
 }

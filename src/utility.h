@@ -88,28 +88,28 @@ char* int_to_hex(int number);
  * @param ignore_colon Whether to ignore a trailing colon (1 for yes, 0 for no).
  * @return `true` if it is recognized as a label, otherwise `false`.
  */
-bool is_label(char* word, int ignore_colon);
+bool is_label(const char* word, int ignore_colon);
 
 /**
  * @brief Determines if a given word represents a register.
  * @param word The word to check.
  * @return `true` if it is a register, otherwise `false`.
  */
-bool is_register(char* word);
+bool is_register(const char* word);
 
 /**
  * @brief Determines if a given word is a valid instruction.
  * @param word The word to check.
  * @return `true` if it is an instruction, otherwise `false`.
  */
-bool is_instruction(char* word);
+bool is_instruction(const char* word);
 
 /**
  * @brief Determines if a given word represents a directive (e.g., data declaration).
  * @param word The word to check.
  * @return `true` if it is a directive, otherwise `false`.
  */
-bool is_directive(char* word);
+bool is_directive(const char* word);
 
 /**
  * @brief Checks if the provided line is empty or contains only whitespace.

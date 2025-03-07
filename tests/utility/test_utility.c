@@ -13,10 +13,10 @@ void test_directive_functions();
 
 int main()
 {
-    
-    /*test_filename();*/
-    /*test_instruction_functions();*/
-    /*test_directive_functions();*/
+
+    test_filename();
+    test_instruction_functions();
+    test_directive_functions();
     test_string_functions();
     
     return 0;

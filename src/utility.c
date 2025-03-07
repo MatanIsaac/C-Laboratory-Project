@@ -171,7 +171,7 @@ char* int_to_hex(int number)
 }
 
 
-bool is_label(char* word, int ignore_colon)
+bool is_label(const char* word, int ignore_colon)
 {
     int length;
     int i = 0;
@@ -183,7 +183,7 @@ bool is_label(char* word, int ignore_colon)
     }
     
     length = strlen(word);
-    if((length + 1) > MAX_LABEL_LEN) /* + 1 for '\0' */
+    if((length + 1) > MAX_LABEL_LENGTH) /* + 1 for '\0' */
     {
         /*log_error(__FILE__,__LINE__,"Invalid label!, too long, must be <= 31\n");*/
         return false;
@@ -234,7 +234,7 @@ bool is_label(char* word, int ignore_colon)
     return true;
 }
 
-bool is_register(char* word)
+bool is_register(const char* word)
 {
     int i;
     static char* registers[MAX_REGISTERS] = { "r0", "r1","r2", "r3", "r4", "r5", "r6", "r7"};
@@ -252,7 +252,7 @@ bool is_register(char* word)
     return false;
 }
 
-bool is_instruction(char* word)
+bool is_instruction(const char* word)
 {
     int i;
     static const char* instructions[MAX_INSTRUCTIONS] = 
@@ -267,7 +267,7 @@ bool is_instruction(char* word)
     return false;
 }
 
-bool is_directive(char* word)
+bool is_directive(const char* word)
 {
     int i;
     static const char* directives[4] = 

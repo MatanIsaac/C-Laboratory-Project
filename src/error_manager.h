@@ -8,7 +8,12 @@ typedef enum
 {
     ErrorType_InvalidLineLength,
     ErrorType_InvalidMacroName,
+    ErrorType_InvalidMacroName_Length,
+    ErrorType_InvalidMacroName_Instruction,
+    ErrorType_InvalidMacroName_Directive,
+    ErrorType_InvalidMacroName_Register,
     ErrorType_ExtraneousText,
+    ErrorType_ExtraneousText_Macro,
     ErrorType_MemoryAllocationFailure,
     ErrorType_OpenFileFailure
 } ErrorType;

@@ -102,6 +102,7 @@ int execute_first_pass(FILE* fp, LabelTable* label_table, InstructionTable* inst
     label_table_print(label_table);
     label_table_destroy(label_table);
     free(word);
+    free(line);
     binary_table_free(binary_table);
 
     log_out(__FILE__,__LINE__,"TC: %u\t DC: %u\n",TC,DC);
@@ -197,7 +198,7 @@ wordfield* get_char_wordfield(char* character)
 
 int handle_labels(LabelTable* label_table, unsigned int TC, char* line, char* word,int position)
 {
-    char temp[MAX_LABEL_LEN];
+    char temp[MAX_LABEL_LENGTH];
     char* label_name        = string_calloc(strlen(word)+1, sizeof(char));
     int flag                = 0;
     int temp_position       = position;

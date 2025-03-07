@@ -18,13 +18,15 @@ int main(int argc,char* argv[])
     char output_file[MAX_FILENAME];
     int file_index          = 1;
     int arg_count           = argc;
-    MacroTable* macro_table = macro_table_create(10);
+    MacroTable* macro_table;
 
     if(argc < 2)
     {
         log_error(__FILE__,__LINE__,"Usage: build/assembler <filename1> <filename2> ...");
         return -1;
     }
+
+    macro_table = macro_table_create(10);
 
     while(--arg_count > 0)
     {
@@ -51,8 +53,13 @@ int main(int argc,char* argv[])
         }
         else
         {
-            log_out(__FILE__,__LINE__,"Error Parsing Macros for - %s\n", current_file);
+            log_out(__FILE__,__LINE__,"Error Parsing Macros for - %s\n", output_file);
             fclose(fp);
+            /* Found error in Pre-Asm -> Delete .am File */
+            if (remove(output_file) != 0) 
+            {
+                perror("Failed to delete file");
+            }
         }
 
         file_index++;
