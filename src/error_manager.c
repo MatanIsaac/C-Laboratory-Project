@@ -15,8 +15,11 @@ static char* get_error_msg(ErrorType error_type)
     case ErrorType_InvalidLineLength:
         strcpy(error_msg,"ErrorType_InvalidLineLength: Assembler only accepts lines with length of 81 (including null terminator)");
         break;
-    case ErrorType_InvalidMacroName:
-        strcpy(error_msg,"ErrorType_InvalidMacroName: Macro's name cannot contain ...");
+    case ErrorType_InvalidMacro_NotFound:
+        strcpy(error_msg,"ErrorType_InvalidMacro_NotFound: The specified macro was not found in the macro table");
+        break;
+    case ErrorType_InvalidMacro_MissingSpace:
+        strcpy(error_msg,"ErrorType_InvalidMacro_MissingSpace: Missing space between 'macro' keyword and the macro name in the definition");
         break;
     case ErrorType_InvalidMacroName_Length:
         strcpy(error_msg,"ErrorType_InvalidMacroName_Length: Macro's name is too long, must be with a length of 31 (including null terminator)");
@@ -25,7 +28,7 @@ static char* get_error_msg(ErrorType error_type)
         strcpy(error_msg,"ErrorType_InvalidMacroName_Instruction: Macro's name cannot be an instruction!");
         break;
     case ErrorType_InvalidMacroName_Directive:
-        strcpy(error_msg,"ErrorType_InvalidMacroName_Directiv: Macro's name cannot be a directive !");
+        strcpy(error_msg,"ErrorType_InvalidMacroName_Directive: Macro's name cannot be a directive !");
         break;
     case ErrorType_InvalidMacroName_Register:
         strcpy(error_msg,"ErrorType_InvalidMacroName_Register: Macro's name cannot be a register!");

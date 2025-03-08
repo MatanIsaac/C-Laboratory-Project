@@ -10,11 +10,11 @@
 
 int parse_macros(FILE* fp, char* filepath, char* output_file, MacroTable* macro_table)
 {
-    int position        = 0;
-    int flag            = 0;
-    int line_count      = 0;
-    char* line          = string_calloc(MAX_LINE, sizeof(char));
-    char* word          = string_calloc(MAX_WORD, sizeof(char));
+    int position        = 0; /* needed for reading word at a time from a line */
+    int flag            = 0; /* tracks errors */
+    int line_count      = 0; /* tracks line-no for error management */
+    char* line          = string_calloc(MAX_LINE, sizeof(char)); /* holds entire lines */
+    char* word          = string_calloc(MAX_WORD, sizeof(char)); /* holds specific word within a line */
     char* current_file  = my_strdup(filepath); 
     FILE* new_fp        = prepare_am_file(current_file,output_file); /* am file is deleted later if we found any errors */
     free(current_file); 
@@ -32,10 +32,12 @@ int parse_macros(FILE* fp, char* filepath, char* output_file, MacroTable* macro_
         position = 0;
         line_count++;
 
+        /* checks line length */
         flag = check_line_length(line);
         if(flag == -1)
             add_error_entry(ErrorType_InvalidLineLength,filepath,line_count);
 
+        /* skip line if empty or line is a comment */
         if(line[0] == SEMICOLON || is_line_empty(line))
         {
             fprintf(new_fp,"%s",line);
@@ -43,35 +45,54 @@ int parse_macros(FILE* fp, char* filepath, char* output_file, MacroTable* macro_
             continue;
         }
 
-        if(strstr(line,"mcro") == NULL)
+        if(strstr(line,"mcro") == NULL) /* if mcro is not within the line */
         {
-            if((position = read_word_from_line(line, word, position)) != -1) 
+            if((position = read_word_from_line(line, word, position)) != -1) /* read the line one word at a time */
             {
+                /* check if its a macro call, */
                 if(!is_instruction(word) && !is_directive(word) && 
                     !is_register(word) && !is_label(word,false))
                 {
-                    const char* temp = macro_table_get(macro_table,word);
+                    /* if its not a register/instruction/directive/label - check if its a macro call */
+                    const char* temp = macro_table_get(macro_table,word); /* try to get the macro */
                     if(temp != NULL) 
                     {
                         fprintf(new_fp,"%s",temp);    
                         continue;
                     }
+                    else /* error: temp == NULL no macro found in macro table */
+                    {
+                        flag = -1;
+                        add_error_entry(ErrorType_InvalidMacro_NotFound,filepath,line_count);
+                        continue;
+                    }
                 }
+                /* if its a register/instruction/directive/label simply add it to the new file */
                 fprintf(new_fp,"%s",line);
                 fputc(NEW_LINE,new_fp);
             }
         }
-        else
+        else /* mcro is within the line */
         {
-            while ((position = read_word_from_line(line, word, position)) != -1) 
+            while ((position = read_word_from_line(line, word, position)) != -1) /* read the line one word at a time */
             {
-                if (strcmp("mcro", word) == 0)
+                char needed_space = word[4]; /* needed space position */
+                if(strncmp("mcro", word,4) == 0 && strcmp("mcroend", word) != 0) /* if the word is starting with 'mcro' and is not 'mcroend' */
                 { 
+                    if(!isspace(needed_space) && needed_space != NULL_TERMINATOR) /* check for that needed space and track an error if not found */
+                    {
+                        flag = -1;
+                        add_error_entry(ErrorType_InvalidMacro_MissingSpace,filepath,line_count);
+                    }
                     position = read_word_from_line(line, word, position);
                 
-                    check_macro_name(word, &flag, filepath, &line_count);
+                    /* 
+                        looks for extra text after an invalid mcro definition and 
+                        in the case of a valid definition checks if macro's name is valid - not a register etc..  
+                    */
+                    check_macro_name(word, &flag, filepath, &line_count); 
                 
-                    if (macro_table_get(macro_table,word) == NULL && flag != -1)
+                    if (macro_table_get(macro_table,word) == NULL && flag != -1) /* get the macro value if everything is valid until now */
                     {
                         char temp[MAX_WORD];
                         if((position = read_word_from_line(line, temp, position)) != -1)
@@ -82,6 +103,7 @@ int parse_macros(FILE* fp, char* filepath, char* output_file, MacroTable* macro_
                         }
                         flag = handle_new_macro(fp,macro_table,word,filepath,&line_count);
                     }
+
                 }
             }
         }
@@ -117,9 +139,6 @@ int handle_new_macro(FILE* fp,MacroTable* macro_table, char* macro_name,char* fi
         (*line_count)++;
         if(strstr(line,"mcroend") == NULL)
         {
-            /*
-                TODO: Check for errors in macro definition ? 
-            */
             strcat(current_macro_value,line);
             strcat(current_macro_value,"\n");
         }

@@ -1,11 +1,11 @@
 ; adding LIST to r3 register 
 MAIN:       add r3,                                                                         LIST 
 LOOP:       prn #48
-            mcro a_mc xyz
+            mcroa_mc xyz
             cmp K , #-6
             bne &END
             mcroend
-            mcro lea 
+            mcro data 
             inc r1
             add r2, r1
             mcroend

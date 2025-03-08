@@ -46,12 +46,12 @@ char* get_root_folder_name(char* file)
     if (i < 0)
     {
         strncpy(root_folder, file, len);
-        root_folder[len] = '\0';
+        root_folder[len] = NULL_TERMINATOR;
         return root_folder;
     }
     
     strncpy(root_folder, file, i);
-    root_folder[i] = '\0';
+    root_folder[i] = NULL_TERMINATOR;
     
 
     strcat(root_folder, "/");
@@ -108,7 +108,7 @@ void remove_last_character(char *s)
     if (!s || len == 0)
         return;
 
-    s[len-1] = '\0';
+    s[len-1] = NULL_TERMINATOR;
 }
 
 void remove_first_character(char* s)
@@ -124,7 +124,7 @@ void remove_first_character(char* s)
         s[i-1] = s[i]; 
         i++;
     }
-    s[len-1] = '\0';
+    s[len-1] = NULL_TERMINATOR;
 }
 
 char* strncpy_from_pos(char* src, unsigned int pos)
@@ -148,7 +148,7 @@ char* strncpy_from_pos(char* src, unsigned int pos)
         str[j++] = src[i++];
     }
     
-    str[j] = '\0'; 
+    str[j] = NULL_TERMINATOR; 
     return str;
 }
 
@@ -178,14 +178,14 @@ bool is_label(const char* word, int ignore_colon)
     bool flag = true;
     if(word == NULL)
     {
-        /*log_error(__FILE__,__LINE__,"Can't check label, word is null\n");*/
+        log_error(__FILE__,__LINE__,"Can't check label, word is null\n");
         return false;
     }
     
     length = strlen(word);
     if((length + 1) > MAX_LABEL_LENGTH) /* + 1 for '\0' */
     {
-        /*log_error(__FILE__,__LINE__,"Invalid label!, too long, must be <= 31\n");*/
+        log_error(__FILE__,__LINE__,"Invalid label!, too long, must be <= 31\n");
         return false;
     }
 
@@ -195,19 +195,19 @@ bool is_label(const char* word, int ignore_colon)
         {
             return true;   
         }
-        /*log_error(__FILE__,__LINE__,"Invalid label!, invalid first letter of label, must be uppercase/lowercase letter.\n");*/
+        log_error(__FILE__,__LINE__,"Invalid label!, invalid first letter of label, must be uppercase/lowercase letter.\n");
         return false;
     }
 
     if (is_register(word))
     {
-        /*log_error(__FILE__,__LINE__,"Invalid label!, can't be a register!\n");*/
+        log_error(__FILE__,__LINE__,"Invalid label!, can't be a register!\n");
         return false;
     }
 
     if(!isalpha(word[0])) /* make sure first letter is legal */
     {
-        /*log_error(__FILE__,__LINE__,"Invalid label!, invalid first letter of label, must be uppercase/lowercase letter.\n");*/
+        log_error(__FILE__,__LINE__,"Invalid label!, invalid first letter of label, must be uppercase/lowercase letter.\n");
         return false;
     }
     
@@ -217,18 +217,18 @@ bool is_label(const char* word, int ignore_colon)
     {
         if(!isalpha(word[i]) && !isdigit(word[i]))
         {
-            /*log_error(__FILE__,__LINE__,"Invalid label!, must consist of uppercase/lowercase letters and/or numbers.\n");*/
+            log_error(__FILE__,__LINE__,"Invalid label!, must consist of uppercase/lowercase letters and/or numbers.\n");
             return false;
         } 
     }
     if(ignore_colon == false && word[i] != COLON)
     {
-        /*log_error(__FILE__,__LINE__,"Invalid label!, missing colon ':' at the end of the label.\n");*/
+        log_error(__FILE__,__LINE__,"Invalid label!, missing colon ':' at the end of the label.\n");
         return false;
     }
     else if(ignore_colon == true && (!isalpha(word[i]) && !isdigit(word[i])))
     {
-        /*log_error(__FILE__,__LINE__,"Invalid label!, must consist of uppercase/lowercase letters and/or numbers.\n");*/
+        log_error(__FILE__,__LINE__,"Invalid label!, must consist of uppercase/lowercase letters and/or numbers.\n");
         return false;
     } 
     return true;
@@ -257,7 +257,7 @@ bool is_instruction(const char* word)
     int i;
     static const char* instructions[MAX_INSTRUCTIONS] = 
     { "mov", "cmp","add", "sub", "lea", "clr", "not", "inc", "dec", "jmp", "bne", "jsr", "red", "prn", "rts", "stop"};
-    for(i = 0; i < 16; i++)
+    for(i = 0; i < MAX_INSTRUCTIONS; i++)
     {   
         if(strcmp(word,instructions[i]) == 0)
         {
@@ -270,9 +270,9 @@ bool is_instruction(const char* word)
 bool is_directive(const char* word)
 {
     int i;
-    static const char* directives[4] = 
-    { ".data", ".string",".extern", ".entry"};
-    for(i = 0; i < 4; i++)
+    static const char* directives[MAX_DIRECTIVES] = 
+    { ".data", ".string",".extern", ".entry", "data", "string", "extern", "entry"};
+    for(i = 0; i < MAX_DIRECTIVES; i++)
     {   
         if(strcmp(word,directives[i]) == 0)
         {
@@ -298,7 +298,7 @@ bool is_line_empty(char* line)
 
 bool is_valid_number(char* word)
 {
-    if (word == NULL || *word == '\0') 
+    if (word == NULL || *word == NULL_TERMINATOR) 
     {
         return false; 
     }
@@ -306,13 +306,13 @@ bool is_valid_number(char* word)
     if (*word == DASH) 
     {
         ++word;
-        if (*word == '\0') 
+        if (*word == NULL_TERMINATOR) 
         {
             return false; 
         }
     }
 
-    for (; *word != '\0'; ++word) 
+    for (; *word != NULL_TERMINATOR; ++word) 
     {
         if (!isdigit((unsigned char)*word)) 
         {
@@ -329,70 +329,70 @@ int get_instruction_index(const char *s)
     switch (s[0])
     {
         case 'a':  /* add */
-            if (s[1]=='d' && s[2]=='d' && s[3]=='\0')
+            if (s[1]=='d' && s[2]=='d' && s[3]==NULL_TERMINATOR)
                 return 2;  /* "add" */
             break;
 
         case 'b':  /* bne */
-            if (s[1]=='n' && s[2]=='e' && s[3]=='\0')
+            if (s[1]=='n' && s[2]=='e' && s[3]==NULL_TERMINATOR)
                 return 10; /* "bne" */
             break;
 
         case 'c':  /* cmp, clr */
-            if (s[1]=='m' && s[2]=='p' && s[3]=='\0')
+            if (s[1]=='m' && s[2]=='p' && s[3]==NULL_TERMINATOR)
                 return 1;  /* "cmp" */
-            if (s[1]=='l' && s[2]=='r' && s[3]=='\0')
+            if (s[1]=='l' && s[2]=='r' && s[3]==NULL_TERMINATOR)
                 return 5;  /* "clr" */
             break;
 
         case 'd':  /* dec */
-            if (s[1]=='e' && s[2]=='c' && s[3]=='\0')
+            if (s[1]=='e' && s[2]=='c' && s[3]==NULL_TERMINATOR)
                 return 8;  /* "dec" */
             break;
 
         case 'i':  /* inc */
-            if (s[1]=='n' && s[2]=='c' && s[3]=='\0')
+            if (s[1]=='n' && s[2]=='c' && s[3]==NULL_TERMINATOR)
                 return 7;  /* "inc" */
             break;
 
         case 'j':  /* jmp, jsr */
-            if (s[1]=='m' && s[2]=='p' && s[3]=='\0')
+            if (s[1]=='m' && s[2]=='p' && s[3]==NULL_TERMINATOR)
                 return 9;  /* "jmp" */
-            if (s[1]=='s' && s[2]=='r' && s[3]=='\0')
+            if (s[1]=='s' && s[2]=='r' && s[3]==NULL_TERMINATOR)
                 return 11; /* "jsr" */
             break;
 
         case 'l':  /* lea */
-            if (s[1]=='e' && s[2]=='a' && s[3]=='\0')
+            if (s[1]=='e' && s[2]=='a' && s[3]==NULL_TERMINATOR)
                 return 4;  /* "lea" */
             break;
 
         case 'm':  /* mov */
-            if (s[1]=='o' && s[2]=='v' && s[3]=='\0')
+            if (s[1]=='o' && s[2]=='v' && s[3]==NULL_TERMINATOR)
                 return 0;  /* "mov" */
             break;
 
         case 'n':  /* not */
-            if (s[1]=='o' && s[2]=='t' && s[3]=='\0')
+            if (s[1]=='o' && s[2]=='t' && s[3]==NULL_TERMINATOR)
                 return 6;  /* "not" */
             break;
 
         case 'p':  /* prn */
-            if (s[1]=='r' && s[2]=='n' && s[3]=='\0')
+            if (s[1]=='r' && s[2]=='n' && s[3]==NULL_TERMINATOR)
                 return 13; /* "prn" */
             break;
 
         case 'r':  /* red, rts */
-            if (s[1]=='e' && s[2]=='d' && s[3]=='\0')
+            if (s[1]=='e' && s[2]=='d' && s[3]==NULL_TERMINATOR)
                 return 12; /* "red" */
-            if (s[1]=='t' && s[2]=='s' && s[3]=='\0')
+            if (s[1]=='t' && s[2]=='s' && s[3]==NULL_TERMINATOR)
                 return 14; /* "rts" */
             break;
 
         case 's':  /* sub, stop */
-            if (s[1]=='u' && s[2]=='b' && s[3]=='\0')
+            if (s[1]=='u' && s[2]=='b' && s[3]==NULL_TERMINATOR)
                 return 3;  /* "sub" */
-            if (s[1]=='t' && s[2]=='o' && s[3]=='p' && s[4]=='\0')
+            if (s[1]=='t' && s[2]=='o' && s[3]=='p' && s[4]==NULL_TERMINATOR)
                 return 15; /* "stop" */
             break;
     }

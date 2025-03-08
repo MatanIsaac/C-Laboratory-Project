@@ -31,4 +31,6 @@
 #define MAX_OPERANDS 2
 #define MAX_REGISTERS 8
 #define MAX_INSTRUCTIONS 16
+#define MAX_DIRECTIVES 8 /* including version of directives without a dot - data/.data, string/.string etc.. */
+#define MAX_24_BIT_NUMBER 16,777,215 /* the max number a 24 bit a "memory cell" can hold */
 #endif 
