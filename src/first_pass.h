@@ -41,7 +41,7 @@ void prepare_first_pass(const char* filepath, MacroTable* macro_table);
  * @param macro_table Pointer to the macro table.
  * @return Non-zero on error, zero on success.
  */
-int execute_first_pass(FILE* fp, LabelTable* label_table, InstructionTable* instruction_table, MacroTable* macro_table);
+int execute_first_pass(FILE* fp, LabelTable* label_table, InstructionTable* instruction_table, MacroTable* macro_table,const char* filepath);
 
 /**
  * @brief Gets the number of operands in a string.
@@ -94,7 +94,7 @@ int handle_labels(LabelTable* label_table, unsigned int TC, char* line, char* wo
  * @return Non-zero on error, zero on success.
  */
 int handle_instruction(BinaryTable* binary_table, LabelTable* label_table, InstructionTable* instruction_table, 
-                       unsigned int* TC, char* line, char* word, int* position);
+                       unsigned int* TC, char* line, char* word, int* position, const char* filepath);
 
 /**
  * @brief Handles a directive line.

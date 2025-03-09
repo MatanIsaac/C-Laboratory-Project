@@ -84,8 +84,14 @@ int parse_macros(FILE* fp, char* filepath, char* output_file, MacroTable* macro_
                         flag = -1;
                         add_error_entry(ErrorType_InvalidMacro_MissingSpace,filepath,line_count);
                     }
+                    
                     position = read_word_from_line(line, word, position);
-                
+                    if(position == -1)
+                    {
+                        flag = -1;
+                        add_error_entry(ErrorType_InvalidMacro_MissingName,filepath,line_count);
+                    }
+
                     /* 
                         looks for extra text after an invalid mcro definition and 
                         in the case of a valid definition checks if macro's name is valid - not a register etc..  
@@ -97,7 +103,6 @@ int parse_macros(FILE* fp, char* filepath, char* output_file, MacroTable* macro_
                         char temp[MAX_WORD];
                         if((position = read_word_from_line(line, temp, position)) != -1)
                         {
-                            log_error(__FILE__,__LINE__, "Found extraneous text after macro definition\n");
                             flag = -1;
                             add_error_entry(ErrorType_ExtraneousText_Macro,filepath,line_count);
                         }
@@ -190,7 +195,6 @@ FILE* prepare_am_file(char* file, char* output_file)
     {
         log_error(__FILE__,__LINE__, "Memory allocation failed for file_path\n");
         add_error_entry(ErrorType_MemoryAllocationFailure,__FILE__,__LINE__);
-        free(filename);
         return NULL;
     }
     
@@ -202,14 +206,12 @@ FILE* prepare_am_file(char* file, char* output_file)
         log_error(__FILE__,__LINE__, "Failed to open [%s] for pre_asm output\n.", file_path);
         add_error_entry(ErrorType_OpenFileFailure,__FILE__,__LINE__);
         free(file_path);
-        free(filename);
         return NULL;
     }
     
     strcpy(output_file,file_path);
     free(file_path);
-    if(filename == NULL)
-        free(filename);
+
     return new_fp;
 }
 

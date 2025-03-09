@@ -5,14 +5,14 @@ MAIN:       sub r2, LIST
             mcroend
             lea STR, r6
             mcro c_mc
-            add K, 3
+            add #3, K
             mcroend
             dec r6
             mov r3, K
             sub r1, r4
             bne END
             b_mc
-            add K
+            inc K
             c_mc
             jmp &LOOP
 END:        stop

@@ -8,6 +8,10 @@
 
 void prepare_first_pass(const char* filepath, MacroTable* macro_table)
 {
+    /* 
+        tables created locally - since the stack frame of this function will remain valid
+        until we return/ fininshed with the first pass. 
+    */
     FILE* fp;
     LabelTable label_table;
     InstructionTable instruction_table;
@@ -40,7 +44,7 @@ void prepare_first_pass(const char* filepath, MacroTable* macro_table)
         add_error_entry(ErrorType_OpenFileFailure,__FILE__,__LINE__);
     }
 
-    if(execute_first_pass(fp,&label_table,&instruction_table, macro_table) >= 0) /* success */
+    if(execute_first_pass(fp,&label_table,&instruction_table, macro_table,filepath) >= 0) /* success */
     {
         log_out(__FILE__,__LINE__, "Done First-Pass for [%s]\n.", filepath);
         if(fp)
@@ -55,7 +59,7 @@ void prepare_first_pass(const char* filepath, MacroTable* macro_table)
 }   
 
 
-int execute_first_pass(FILE* fp, LabelTable* label_table, InstructionTable* instruction_table, MacroTable* macro_table)
+int execute_first_pass(FILE* fp, LabelTable* label_table, InstructionTable* instruction_table, MacroTable* macro_table, const char* filepath)
 {
     int flag                    = 0;    /* flag is used to signal if we encounted errors while executing first pass */
     unsigned int DC             = 0;    /* data counter */
@@ -79,7 +83,7 @@ int execute_first_pass(FILE* fp, LabelTable* label_table, InstructionTable* inst
         {
             if(is_instruction(word))
             {
-                flag = handle_instruction(binary_table,label_table,instruction_table,&TC,line,word,&position);
+                flag = handle_instruction(binary_table,label_table,instruction_table,&TC,line,word,&position,filepath);
             }
             else if(is_directive(word))
             {
@@ -108,6 +112,16 @@ int execute_first_pass(FILE* fp, LabelTable* label_table, InstructionTable* inst
     log_out(__FILE__,__LINE__,"TC: %u\t DC: %u\n",TC,DC);
     log_out(__FILE__,__LINE__,"ICF: %u\t DCF: %u\n",ICF,DCF);
     
+    if(is_errors_array_empty() < 0)
+    {
+        print_errors_array();
+        flag = -1;
+    }
+    else
+    {
+        log_out(__FILE__,__LINE__,"\n\nFIRST-PASS Alright Alright Alright!\n\n");
+    }
+
     return flag;
 }
 
@@ -140,7 +154,12 @@ int get_operands_count(char* str)
 
 OperandType get_operand_type(char* str)
 {
-    if(str[0] == HASHTAG) 
+    if(str == NULL)
+    {
+        log_out(__FILE__,__LINE__,"str is null! can't get operand type!\n");
+        return -1;
+    }
+    if(str[0] == HASHTAG || isdigit(*str)) 
     {
         return OPERAND_TYPE_IMMEDIATE; /* addressing mode: 0 */
     }
@@ -162,6 +181,11 @@ OperandType get_operand_type(char* str)
 
 DirectiveType get_directive_type(char* str)
 {
+    if(str == NULL)
+    {
+        log_out(__FILE__,__LINE__,"str is null! can't get directive type!\n");
+        return -1;
+    }
     if(strcmp(str,".string") == 0) /* .string */
     {
         return DIRECTIVE_TYPE_STRING; 
@@ -231,12 +255,14 @@ int handle_labels(LabelTable* label_table, unsigned int TC, char* line, char* wo
 }
 
 int handle_instruction(BinaryTable* binary_table, LabelTable* label_table,InstructionTable* instruction_table, 
-    unsigned int* TC, char* line, char* word, int* position)
+    unsigned int* TC, char* line, char* word, int* position,const char* filepath)
 {
     int flag            = 0;
     int operands_count  = 0;
     wordfield* wf       = create_wordfield_by_opname(word, instruction_table);
+    int current_line    = (((*TC) - 100) == 0) ? 1 : (*TC) - 100;
     set_wordfield_are(wf,4);
+
 
     operands_count      = get_operands_count(word);
     if(operands_count == -1)
@@ -254,19 +280,33 @@ int handle_instruction(BinaryTable* binary_table, LabelTable* label_table,Instru
     else if (operands_count == 1)
     {
         OperandType operand1_type;
+        int num;
         wordfield* new_wf   = init_wordfield();
         *position           = read_word_from_line(line, word, *position);
         operand1_type       = get_operand_type(word);
         switch (operand1_type)
         {
         case OPERAND_TYPE_IMMEDIATE:
+            (*TC)++;
+            if(word[0] != HASHTAG) /* checks for '#' */
+            {
+                flag = -1;
+                add_error_entry(ErrorType_InvalidValue_MissingHashtag,filepath,current_line);
+                break;
+            }
+            remove_first_character(word); 
+            flag    = is_valid_number(word);
+            num     = atoi(word);
+            if(num > MAX_24_BIT_NUMBER)
+            {
+                flag = -1;
+                add_error_entry(ErrorType_InvalidValue_Exceeding,filepath,current_line);
+                break;
+            }
             binary_node_add(binary_table,*TC,line);
             set_binary_node_wordfield(binary_table,*TC,wf);
             free(wf);
-            (*TC)++;
-            remove_first_character(word);
-            flag    = is_valid_number(word);
-            set_wordfield_are_num(new_wf,atoi(word),4);
+            set_wordfield_are_num(new_wf,num,4);
             binary_node_add(binary_table,*TC,"Immediate value");
             set_binary_node_wordfield(binary_table,*TC,new_wf);
             free(new_wf);
@@ -345,7 +385,8 @@ int handle_instruction(BinaryTable* binary_table, LabelTable* label_table,Instru
         wordfield* new_wf2 = NULL;
         char* operand1; /* NOTE: make sure to free when necessary! */
         char* operand2; /* NOTE: make sure to free when necessary! */
-
+        int num;
+        
         *position = read_word_from_line(line, word, *position); /* get operand1 */
         if(word[strlen(word)-1] == COMMA) /* if last character is a comma remove it */
         {
@@ -360,26 +401,41 @@ int handle_instruction(BinaryTable* binary_table, LabelTable* label_table,Instru
             *position = read_word_from_line(line, word, *position);
             if(COMMA != word[0])
             {
-                log_error(__FILE__,__LINE__,"Missing comma after first operand!.\n");      
+                log_error(__FILE__,__LINE__,"Missing comma after first operand!, found at line: %d\n",current_line);   
+                flag = -1;
+                add_error_entry(ErrorType_InvalidInstruction_MissingComma,filepath,current_line);   
                 /* *position = read_word_from_line(line, word, *position); */
             }
             else
             {
                 remove_first_character(word);  
-                if(word[0] == NULL_TERMINATOR)
-                    *position = read_word_from_line(line, word, *position);
-                operand2 = my_strdup(word);
             }
+            if(word[0] == NULL_TERMINATOR)
+                *position = read_word_from_line(line, word, *position);
+            operand2 = my_strdup(word);
         }  
         
         operand1_type   = get_operand_type(operand1);
         switch (operand1_type)
         {
-        case OPERAND_TYPE_IMMEDIATE:
-            remove_first_character(operand1);
+        case OPERAND_TYPE_IMMEDIATE: 
+            if(operand1[0] != HASHTAG) /* checks for '#' */
+            {
+                flag = -1;
+                add_error_entry(ErrorType_InvalidValue_MissingHashtag,filepath,current_line);
+                break;
+            }    
+            remove_first_character(operand1); /* TODO: check for '#' */
             is_valid_number(operand1);
             new_wf1 = init_wordfield();
-            set_wordfield_are_num(new_wf1,atoi(operand1),4);
+            num     = atoi(operand1);
+            if(num > MAX_24_BIT_NUMBER)
+            {
+                flag = -1;
+                add_error_entry(ErrorType_InvalidValue_Exceeding,filepath,current_line);
+                break;
+            }
+            set_wordfield_are_num(new_wf1,num,4);
             binary_node_add(binary_table,*TC,line);
             (*TC)++;
             break;
@@ -426,22 +482,26 @@ int handle_instruction(BinaryTable* binary_table, LabelTable* label_table,Instru
             break;
         }
 
-        /*
-        *position = read_word_from_line(line, word, *position);
-        if(*position == -1)
-        {
-            free(new_wf2);
-            free(wf);   
-            return flag;    
-        }
-        */
         operand2_type = get_operand_type(operand2);                    
         switch (operand2_type)
         {
-        case OPERAND_TYPE_IMMEDIATE:
-            remove_first_character(operand2); /* removing '#' */
+        case OPERAND_TYPE_IMMEDIATE: /* in the special case of an immediate value if the op is 'cmp' */
+            if(operand2[0] != HASHTAG) /* checks for '#' */
+            {
+                flag = -1;
+                add_error_entry(ErrorType_InvalidValue_MissingHashtag,filepath,current_line);
+                break;
+            }        
+            remove_first_character(operand2); /* TODO: check for '#' before removing '#' */
             is_valid_number(operand2);
             new_wf2 = init_wordfield();
+            num     = atoi(operand2);
+            if(num > MAX_24_BIT_NUMBER)
+            {
+                flag = -1;
+                add_error_entry(ErrorType_InvalidValue_Exceeding,filepath,current_line);
+                break;
+            }
             set_wordfield_are_num(new_wf2,atoi(operand2),4);
             binary_node_add(binary_table,*TC,"Immediate value");
             set_binary_node_wordfield(binary_table,*TC,new_wf2);

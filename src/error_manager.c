@@ -15,8 +15,20 @@ static char* get_error_msg(ErrorType error_type)
     case ErrorType_InvalidLineLength:
         strcpy(error_msg,"ErrorType_InvalidLineLength: Assembler only accepts lines with length of 81 (including null terminator)");
         break;
+    case ErrorType_InvalidValue_MissingHashtag:
+        strcpy(error_msg,"ErrorType_InvalidValue_MissingHashtag: Immediate values must start with '#'");
+        break;
+    case ErrorType_InvalidValue_Exceeding:
+        strcpy(error_msg,"ErrorType_InvalidValue_Exceeding: Assembler only accepts 24-bit numeric values (operand exceeds maximum 24-bit value 16,777,215)");
+        break;
+    case ErrorType_InvalidInstruction_MissingComma:
+        strcpy(error_msg,"ErrorType_InvalidInstruction_MissingComma: Invalid Instruction, Missing Comma!");
+        break;
     case ErrorType_InvalidMacro_NotFound:
         strcpy(error_msg,"ErrorType_InvalidMacro_NotFound: The specified macro was not found in the macro table");
+        break;
+    case ErrorType_InvalidMacro_MissingName:
+        strcpy(error_msg,"ErrorType_InvalidMacro_MissingName: No macro name was found after 'mcro'");
         break;
     case ErrorType_InvalidMacro_MissingSpace:
         strcpy(error_msg,"ErrorType_InvalidMacro_MissingSpace: Missing space between 'macro' keyword and the macro name in the definition");
@@ -86,6 +98,10 @@ int is_errors_array_empty()
 void print_errors_array()
 {
     int i = 0;
+    if(error_index == 0)
+    {
+        printf("No Errors Found\n");
+    }
     putchar('\n');
     for (; i < error_index; i++) 
     {

@@ -7,7 +7,11 @@
 typedef enum
 {
     ErrorType_InvalidLineLength,
+    ErrorType_InvalidValue_MissingHashtag,
+    ErrorType_InvalidValue_Exceeding,
+    ErrorType_InvalidInstruction_MissingComma,
     ErrorType_InvalidMacro_NotFound,
+    ErrorType_InvalidMacro_MissingName,
     ErrorType_InvalidMacro_MissingSpace,
     ErrorType_InvalidMacroName_Length,
     ErrorType_InvalidMacroName_Instruction,

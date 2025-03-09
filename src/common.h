@@ -16,6 +16,7 @@
 #define HASHTAG '#'
 #define AMPERSAND '&'
 #define DASH '-'
+#define UNDERSCORE '_'
 #define PLUS '+'
 #define SEMICOLON ';'
 #define INVALID_CHAR -1
@@ -32,5 +33,5 @@
 #define MAX_REGISTERS 8
 #define MAX_INSTRUCTIONS 16
 #define MAX_DIRECTIVES 8 /* including version of directives without a dot - data/.data, string/.string etc.. */
-#define MAX_24_BIT_NUMBER 16,777,215 /* the max number a 24 bit a "memory cell" can hold */
+#define MAX_24_BIT_NUMBER 16777215 /* the max number a 24 bit a "memory cell" can hold */
 #endif 

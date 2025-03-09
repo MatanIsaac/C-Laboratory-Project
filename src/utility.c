@@ -215,7 +215,7 @@ bool is_label(const char* word, int ignore_colon)
     /* check other letters not including last letter and null terminator */
     for(; i < length-1 && flag != false; i++)
     {
-        if(!isalpha(word[i]) && !isdigit(word[i]))
+        if(!isalpha(word[i]) && !isdigit(word[i]) && word[i] != UNDERSCORE)
         {
             log_error(__FILE__,__LINE__,"Invalid label!, must consist of uppercase/lowercase letters and/or numbers.\n");
             return false;
@@ -226,7 +226,7 @@ bool is_label(const char* word, int ignore_colon)
         log_error(__FILE__,__LINE__,"Invalid label!, missing colon ':' at the end of the label.\n");
         return false;
     }
-    else if(ignore_colon == true && (!isalpha(word[i]) && !isdigit(word[i])))
+    else if(ignore_colon == true && (!isalpha(word[i]) && !isdigit(word[i]) && word[i] != UNDERSCORE))
     {
         log_error(__FILE__,__LINE__,"Invalid label!, must consist of uppercase/lowercase letters and/or numbers.\n");
         return false;
