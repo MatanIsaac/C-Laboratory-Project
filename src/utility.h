@@ -123,7 +123,7 @@ bool is_line_empty(char* line);
  * @param word The word to check.
  * @return `true` if it is a valid numeric representation, otherwise `false`.
  */
-bool is_valid_number(char* word);
+int is_valid_number(char* word);
 
 /**
  * @brief Returns the index of an instruction in the instruction table by name.

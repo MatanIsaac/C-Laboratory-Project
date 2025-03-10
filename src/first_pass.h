@@ -108,6 +108,14 @@ int handle_instruction(BinaryTable* binary_table, LabelTable* label_table, Instr
  * @return Non-zero on error, zero on success.
  */
 int handle_directive(BinaryTable* binary_table, LabelTable* label_table, unsigned int* TC, unsigned int* DC,
-                     char* line, char* word, int* position);
+                    char* line, char* word, int* position);
+
+
+int check_immediate_value(char* operand, const char* filepath, int current_line);                                 
+
+
+void handle_immediate_operand(BinaryTable* binary_table,char* line, char* word,unsigned int* TC,
+                            const char* filepath, int current_line,wordfield* wf_instruction,wordfield* wf_immediate_value);
+
 
 #endif

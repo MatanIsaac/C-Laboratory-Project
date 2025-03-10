@@ -261,8 +261,7 @@ int handle_instruction(BinaryTable* binary_table, LabelTable* label_table,Instru
     int operands_count  = 0;
     wordfield* wf       = create_wordfield_by_opname(word, instruction_table);
     int current_line    = (((*TC) - 100) == 0) ? 1 : (*TC) - 100;
-    set_wordfield_are(wf,4);
-
+    set_wordfield_are(wf,ARE_ABSOLUTE);
 
     operands_count      = get_operands_count(word);
     if(operands_count == -1)
@@ -280,37 +279,17 @@ int handle_instruction(BinaryTable* binary_table, LabelTable* label_table,Instru
     else if (operands_count == 1)
     {
         OperandType operand1_type;
-        int num;
         wordfield* new_wf   = init_wordfield();
         *position           = read_word_from_line(line, word, *position);
         operand1_type       = get_operand_type(word);
         switch (operand1_type)
         {
         case OPERAND_TYPE_IMMEDIATE:
-            (*TC)++;
-            if(word[0] != HASHTAG) /* checks for '#' */
-            {
-                flag = -1;
-                add_error_entry(ErrorType_InvalidValue_MissingHashtag,filepath,current_line);
-                break;
-            }
-            remove_first_character(word); 
-            flag    = is_valid_number(word);
-            num     = atoi(word);
-            if(num > MAX_24_BIT_NUMBER)
-            {
-                flag = -1;
-                add_error_entry(ErrorType_InvalidValue_Exceeding,filepath,current_line);
-                break;
-            }
-            binary_node_add(binary_table,*TC,line);
-            set_binary_node_wordfield(binary_table,*TC,wf);
-            free(wf);
-            set_wordfield_are_num(new_wf,num,4);
-            binary_node_add(binary_table,*TC,"Immediate value");
-            set_binary_node_wordfield(binary_table,*TC,new_wf);
-            free(new_wf);
-            (*TC)++;
+            handle_immediate_operand(binary_table,line,word,TC,filepath,current_line,wf,new_wf);
+            if(wf == NULL)
+                free(wf);        
+            if(new_wf == NULL)
+                free(new_wf);
             break;
         case OPERAND_TYPE_DIRECT:
             /* checks if its a valid label and will print errors accordingly */
@@ -376,7 +355,6 @@ int handle_instruction(BinaryTable* binary_table, LabelTable* label_table,Instru
         default:
             break;
         }
-
     }
     else /* operands count is 2 */
     {
@@ -385,7 +363,6 @@ int handle_instruction(BinaryTable* binary_table, LabelTable* label_table,Instru
         wordfield* new_wf2 = NULL;
         char* operand1; /* NOTE: make sure to free when necessary! */
         char* operand2; /* NOTE: make sure to free when necessary! */
-        int num;
         
         *position = read_word_from_line(line, word, *position); /* get operand1 */
         if(word[strlen(word)-1] == COMMA) /* if last character is a comma remove it */
@@ -419,25 +396,15 @@ int handle_instruction(BinaryTable* binary_table, LabelTable* label_table,Instru
         switch (operand1_type)
         {
         case OPERAND_TYPE_IMMEDIATE: 
-            if(operand1[0] != HASHTAG) /* checks for '#' */
-            {
-                flag = -1;
-                add_error_entry(ErrorType_InvalidValue_MissingHashtag,filepath,current_line);
-                break;
-            }    
-            remove_first_character(operand1); /* TODO: check for '#' */
-            is_valid_number(operand1);
+            set_wordfield_src(wf,OPERAND_TYPE_IMMEDIATE,0);
             new_wf1 = init_wordfield();
-            num     = atoi(operand1);
-            if(num > MAX_24_BIT_NUMBER)
-            {
-                flag = -1;
-                add_error_entry(ErrorType_InvalidValue_Exceeding,filepath,current_line);
-                break;
-            }
-            set_wordfield_are_num(new_wf1,num,4);
-            binary_node_add(binary_table,*TC,line);
-            (*TC)++;
+            handle_immediate_operand(binary_table,line,operand1,TC,filepath,current_line,wf,new_wf1);
+            
+
+            if(wf == NULL)
+                free(wf);        
+            if(new_wf1 == NULL)
+                free(new_wf1);
             break;
         case OPERAND_TYPE_DIRECT:
             is_label(operand1,true); /* checks if its a valid label and will print errors accordingly */
@@ -485,34 +452,25 @@ int handle_instruction(BinaryTable* binary_table, LabelTable* label_table,Instru
         operand2_type = get_operand_type(operand2);                    
         switch (operand2_type)
         {
-        case OPERAND_TYPE_IMMEDIATE: /* in the special case of an immediate value if the op is 'cmp' */
-            if(operand2[0] != HASHTAG) /* checks for '#' */
-            {
-                flag = -1;
-                add_error_entry(ErrorType_InvalidValue_MissingHashtag,filepath,current_line);
-                break;
-            }        
-            remove_first_character(operand2); /* TODO: check for '#' before removing '#' */
-            is_valid_number(operand2);
+        case OPERAND_TYPE_IMMEDIATE: /* only in the special case of an immediate value if the instruction is 'cmp' */
             new_wf2 = init_wordfield();
-            num     = atoi(operand2);
-            if(num > MAX_24_BIT_NUMBER)
-            {
-                flag = -1;
-                add_error_entry(ErrorType_InvalidValue_Exceeding,filepath,current_line);
-                break;
-            }
-            set_wordfield_are_num(new_wf2,atoi(operand2),4);
-            binary_node_add(binary_table,*TC,"Immediate value");
-            set_binary_node_wordfield(binary_table,*TC,new_wf2);
-            free(new_wf2);
-            free(wf);
-            (*TC)++;
+            handle_immediate_operand(binary_table,line,operand2,TC,filepath,current_line,NULL,new_wf2);
+            
+            if(wf == NULL)
+                free(wf);        
+            if(new_wf2 == NULL)
+                free(new_wf2);
             break;
         case OPERAND_TYPE_DIRECT:
             is_label(operand2,true); /* checks if its a valid label and will print errors accordingly */
             set_wordfield_dest(wf,OPERAND_TYPE_DIRECT,0);
-            set_binary_node_wordfield(binary_table,*TC-1,wf);
+            if(operand1_type == OPERAND_TYPE_RELATIVE || operand1_type == OPERAND_TYPE_REGISTER)
+                set_binary_node_wordfield(binary_table,*TC-1,wf);
+            else
+                set_binary_node_wordfield(binary_table,*TC-2,wf);
+
+            
+
             new_wf2 = init_wordfield();
             binary_node_add(binary_table,*TC,"Address of Label");
             set_binary_node_wordfield(binary_table,*TC,new_wf2);
@@ -698,4 +656,49 @@ int handle_directive(BinaryTable* binary_table, LabelTable* label_table,unsigned
     }
 
     return flag;
+}
+
+
+int check_immediate_value(char* operand, const char* filepath, int current_line)
+{
+    int value;
+    if(operand[0] != HASHTAG) /* checks for '#' */
+    {
+        add_error_entry(ErrorType_InvalidValue_MissingHashtag,filepath,current_line);
+        return -1;
+    }    
+    remove_first_character(operand);
+    if(is_valid_number(operand) == -1)
+    {
+        add_error_entry(ErrorType_InvalidValue,filepath,current_line);
+        return -1;
+    }
+    value = atoi(operand);
+    if(value > MAX_24_BIT_NUMBER)
+    {
+        add_error_entry(ErrorType_InvalidValue_Exceeding,filepath,current_line);
+        return -1;
+    }
+    return value;
+}            
+
+void handle_immediate_operand(BinaryTable* binary_table,char* line, char* word,unsigned int* TC,
+    const char* filepath, int current_line,wordfield* wf_instruction,wordfield* wf_immediate_value)
+{
+    int num = check_immediate_value(word,filepath,current_line);
+    
+    if(wf_instruction != NULL)
+    {
+        binary_node_add(binary_table,*TC,line);
+        set_binary_node_wordfield(binary_table,*TC,wf_instruction);
+        (*TC)++;
+    }
+    
+    if(wf_immediate_value != NULL)
+    {
+        set_wordfield_are_num(wf_immediate_value,num,ARE_ABSOLUTE); 
+        binary_node_add(binary_table,*TC,"Immediate value");
+        set_binary_node_wordfield(binary_table,*TC,wf_immediate_value);
+        (*TC)++;
+    }
 }

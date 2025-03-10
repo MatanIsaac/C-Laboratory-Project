@@ -15,8 +15,17 @@ static char* get_error_msg(ErrorType error_type)
     case ErrorType_InvalidLineLength:
         strcpy(error_msg,"ErrorType_InvalidLineLength: Assembler only accepts lines with length of 81 (including null terminator)");
         break;
+    case ErrorType_InvalidInstruction_Missing1stOperand:
+        strcpy(error_msg,"ErrorType_InvalidInstruction_Missing1stOperand: Missing 1st Operand for a 2 operands instruction");
+        break;
+    case ErrorType_InvalidInstruction_Missing2ndOperand:
+        strcpy(error_msg,"ErrorType_InvalidInstruction_Missing2ndOperand: Missing 2nd Operand for a 2 operands instruction");
+        break;
     case ErrorType_InvalidValue_MissingHashtag:
         strcpy(error_msg,"ErrorType_InvalidValue_MissingHashtag: Immediate values must start with '#'");
+        break;
+    case ErrorType_InvalidValue:
+        strcpy(error_msg,"ErrorType_InvalidValue: Immediate values must start with '#' and contain only numeric characters");
         break;
     case ErrorType_InvalidValue_Exceeding:
         strcpy(error_msg,"ErrorType_InvalidValue_Exceeding: Assembler only accepts 24-bit numeric values (operand exceeds maximum 24-bit value 16,777,215)");
@@ -47,6 +56,9 @@ static char* get_error_msg(ErrorType error_type)
         break;
     case ErrorType_ExtraneousText:
         strcpy(error_msg,"ErrorType_ExtraneousText: Found Extraneous Text");
+        break;
+    case ErrorType_ExtraneousText_Operand:
+        strcpy(error_msg,"ErrorType_ExtraneousText: Found Extraneous Text after an operand");
         break;
     case ErrorType_ExtraneousText_Macro:
         strcpy(error_msg,"ErrorType_ExtraneousText_Macro: Found Extraneous Text After Macro Definition");

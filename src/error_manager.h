@@ -7,6 +7,9 @@
 typedef enum
 {
     ErrorType_InvalidLineLength,
+    ErrorType_InvalidInstruction_Missing1stOperand,
+    ErrorType_InvalidInstruction_Missing2ndOperand,
+    ErrorType_InvalidValue,
     ErrorType_InvalidValue_MissingHashtag,
     ErrorType_InvalidValue_Exceeding,
     ErrorType_InvalidInstruction_MissingComma,
@@ -18,6 +21,7 @@ typedef enum
     ErrorType_InvalidMacroName_Directive,
     ErrorType_InvalidMacroName_Register,
     ErrorType_ExtraneousText,
+    ErrorType_ExtraneousText_Operand,
     ErrorType_ExtraneousText_Macro,
     ErrorType_MemoryAllocationFailure,
     ErrorType_OpenFileFailure

@@ -296,11 +296,11 @@ bool is_line_empty(char* line)
     return true;
 }
 
-bool is_valid_number(char* word)
+int is_valid_number(char* word)
 {
     if (word == NULL || *word == NULL_TERMINATOR) 
     {
-        return false; 
+        return -1; 
     }
 
     if (*word == DASH) 
@@ -308,7 +308,7 @@ bool is_valid_number(char* word)
         ++word;
         if (*word == NULL_TERMINATOR) 
         {
-            return false; 
+            return -1; 
         }
     }
 
@@ -317,7 +317,7 @@ bool is_valid_number(char* word)
         if (!isdigit((unsigned char)*word)) 
         {
             log_error(__FILE__,__LINE__,"Error reading immediate value, NAN.\n");
-            return false;
+            return -1;
         }
     }
 

@@ -6,7 +6,7 @@ LOOP:       prn #48
             mcroend
             lea STR ,r6
             inc r6
-            mov r3 , K
+            mov #4 , K
             sub r1 ,r4
             bne END
             a_mc
