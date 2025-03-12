@@ -32,4 +32,7 @@
 #define ARE_RELOCATABLE 2 /* 010 in binary, 'R' bit set */
 #define ARE_EXTERNAL  1  /* 001 in binary, 'E' bit set */
 #define START_ADDRESS 100  /* 001 in binary, 'E' bit set */
+#define NO_OPERANDS_INSTRUCTION 0
+#define ONE_OPERAND_INSTRUCTION 1
+#define TWO_OPERANDS_INSTRUCTION 2
 #endif 

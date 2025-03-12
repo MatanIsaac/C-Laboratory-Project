@@ -124,7 +124,10 @@ void handle_immediate_operand(BinaryTable* binary_table,char* line, char* word,u
 void handle_register_operand(BinaryTable* binary_table, char* line, char* word, OperandType operand1_type,unsigned int* TC,
     const char* filepath, int current_line,wordfield* wf_instruction);
 
-int handle_single_instruction(BinaryTable* binary_table,char* line, char* word,int* position, unsigned int* TC,
+int handle_single_operand_instruction(BinaryTable* binary_table,char* line, char* word,int* position, unsigned int* TC,
+    const char* filepath, int current_line,wordfield* wf_instruction);
+
+int handle_double_operand_instruction(BinaryTable* binary_table,char* line, char* word,int* position, unsigned int* TC,
     const char* filepath, int current_line,wordfield* wf_instruction);
 
 #endif

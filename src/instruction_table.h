@@ -77,4 +77,12 @@ void instruction_table_remove(InstructionTable* table, const char* op_name);
  */
 void instruction_table_print(InstructionTable* table);
 
+
+/**
+ * @brief Returns the index of an instruction in the instruction table by name.
+ * @param op_name A C-string representing the instruction name to search for.
+ * @return An integer index if found, or -1 if the instruction name is not recognized.
+ */
+int get_instruction_index(const char* op_name);
+
 #endif /* INSTRUCTION_TABLE_H */

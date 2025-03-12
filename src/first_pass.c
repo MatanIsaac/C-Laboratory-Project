@@ -147,15 +147,15 @@ int get_operands_count(char* str)
     if(strcmp(str,"stop") == 0 || strcmp(str,"rts") == 0)
     {
         
-        return 0;
+        return NO_OPERANDS_INSTRUCTION;
     }
     if(strcmp(str,"mov") == 0 || strcmp(str,"cmp") == 0 || 
         strcmp(str,"add") == 0 || strcmp(str,"sub") == 0 || 
         strcmp(str,"lea") == 0)
     {
-        return 2;
+        return TWO_OPERANDS_INSTRUCTION;
     }
-    return 1;
+    return ONE_OPERAND_INSTRUCTION;
 }
 
 OperandType get_operand_type(char* str)
@@ -267,33 +267,36 @@ int handle_instruction(BinaryTable* binary_table, LabelTable* label_table,Instru
     int operands_count      = 0;
     wordfield* wf           = create_wordfield_by_opname(word, instruction_table);
     set_wordfield_are(wf,ARE_ABSOLUTE);
-    operands_count      = get_operands_count(word);
+    operands_count          = get_operands_count(word);
     if(operands_count == INVALID_RETURN)
     {
         log_error(__FILE__,__LINE__, "Failed to get operands count!\n");
         free(wf);
     }
-    else if(operands_count == 0)
+    else if(operands_count == NO_OPERANDS_INSTRUCTION)
     {
         binary_node_add(binary_table,*TC,line);
         set_binary_node_wordfield(binary_table,*TC,wf);
         free(wf);
         (*TC)++;
     }
-    else if (operands_count == 1)
+    else if (operands_count == ONE_OPERAND_INSTRUCTION)
     {
-        flag = handle_single_instruction(binary_table,line,word,position,TC,filepath,current_line,wf);
+        flag = handle_single_operand_instruction(binary_table,line,word,position,TC,filepath,current_line,wf);
     }
-    else /* operands count is 2 */
+    else 
     {
+        flag = handle_double_operand_instruction(binary_table,line,word,position,TC,filepath,current_line,wf);
+        /* instruction with 2 operands 
+            
         OperandType operand1_type, operand2_type;
         wordfield* new_wf1 = NULL; 
         wordfield* new_wf2 = NULL;
-        char* operand1; /* NOTE: make sure to free when necessary! */
-        char* operand2; /* NOTE: make sure to free when necessary! */
+        char* operand1;
+        char* operand2;
         
-        *position = read_word_from_line(line, word, *position); /* get operand1 */
-        if(word[strlen(word)-1] == COMMA) /* if last character is a comma remove it */
+        *position = read_word_from_line(line, word, *position); 
+        if(word[strlen(word)-1] == COMMA) 
         {
             remove_last_character(word);  
             operand1 = my_strdup(word);
@@ -308,7 +311,7 @@ int handle_instruction(BinaryTable* binary_table, LabelTable* label_table,Instru
             }
             operand2 = my_strdup(word);
         } 
-        else /* otherwise check for comma to see if missing */
+        else 
         {
             operand1 = my_strdup(word);
             *position = read_word_from_line(line, word, *position);
@@ -317,7 +320,6 @@ int handle_instruction(BinaryTable* binary_table, LabelTable* label_table,Instru
                 log_error(__FILE__,__LINE__,"Missing comma after first operand!, found at line: %d\n",current_line);   
                 flag = INVALID_RETURN;
                 add_error_entry(ErrorType_InvalidInstruction_MissingComma,filepath,current_line);   
-                /* *position = read_word_from_line(line, word, *position); */
             }
             else
             {
@@ -342,7 +344,7 @@ int handle_instruction(BinaryTable* binary_table, LabelTable* label_table,Instru
                 free(new_wf1);
             break;
         case OPERAND_TYPE_DIRECT:
-            is_label(operand1,true); /* checks if its a valid label and will print errors accordingly */
+            is_label(operand1,true);
             set_wordfield_src(wf,OPERAND_TYPE_DIRECT,0);
             binary_node_add(binary_table,*TC,line);
             set_binary_node_wordfield(binary_table,*TC,wf);
@@ -356,14 +358,12 @@ int handle_instruction(BinaryTable* binary_table, LabelTable* label_table,Instru
         case OPERAND_TYPE_RELATIVE:
             (*TC)++;
             
-            /* no use for this if 1st operand is relative - processed in 2nd Pass */
             free(new_wf1);
             free(operand1);
             break;
         case OPERAND_TYPE_REGISTER:
             handle_register_operand(binary_table,line, operand1,OPERAND_TYPE_FIRST,TC,filepath,current_line,wf);
             (*TC)++;
-            /* no use for an extra wordfield if 1st operand is a register */
             
             if(new_wf1)
                 free(new_wf1);
@@ -377,7 +377,7 @@ int handle_instruction(BinaryTable* binary_table, LabelTable* label_table,Instru
         operand2_type = get_operand_type(operand2);                    
         switch (operand2_type)
         {
-        case OPERAND_TYPE_IMMEDIATE: /* only in the special case of an immediate value if the instruction is 'cmp' */
+        case OPERAND_TYPE_IMMEDIATE:
             new_wf2 = init_wordfield();
             handle_immediate_operand(binary_table,line,operand2,TC,filepath,current_line,NULL,new_wf2);
             
@@ -387,7 +387,7 @@ int handle_instruction(BinaryTable* binary_table, LabelTable* label_table,Instru
                 free(new_wf2);
             break;
         case OPERAND_TYPE_DIRECT:
-            is_label(operand2,true); /* checks if its a valid label and will print errors accordingly */
+            is_label(operand2,true);
             set_wordfield_dest(wf,OPERAND_TYPE_DIRECT,0);
             if(operand1_type == OPERAND_TYPE_RELATIVE || operand1_type == OPERAND_TYPE_REGISTER)
                 set_binary_node_wordfield(binary_table,*TC-1,wf);
@@ -404,14 +404,13 @@ int handle_instruction(BinaryTable* binary_table, LabelTable* label_table,Instru
         case OPERAND_TYPE_RELATIVE:
             (*TC)++;
             
-            /* no use for this if 2nd operand if its relative - processed in 2nd Pass */
             free(new_wf2);
             free(wf);
             free(operand2);
             break;
         case OPERAND_TYPE_REGISTER:
             handle_register_operand(binary_table,line,operand2,operand1_type,TC,filepath,current_line,wf);
-            /* no use for this if 2nd operand is a register */
+            
             if(new_wf2)
                 free(new_wf2);
             if(operand2)
@@ -421,6 +420,7 @@ int handle_instruction(BinaryTable* binary_table, LabelTable* label_table,Instru
             free(wf);
             break;
         }
+        */
     } 
 
     return flag;
@@ -661,7 +661,7 @@ void handle_register_operand(BinaryTable* binary_table, char* line, char* word, 
 
 }
 
-int handle_single_instruction(BinaryTable* binary_table,char* line, char* word,int* position, unsigned int* TC,
+int handle_single_operand_instruction(BinaryTable* binary_table,char* line, char* word,int* position, unsigned int* TC,
     const char* filepath, int current_line,wordfield* wf_instruction)
 {
     OperandType operand1_type;
@@ -737,5 +737,152 @@ int handle_single_instruction(BinaryTable* binary_table,char* line, char* word,i
         break;
     }
 
+    return flag;
+}
+
+int handle_double_operand_instruction(BinaryTable* binary_table,char* line, char* word,int* position, unsigned int* TC,
+    const char* filepath, int current_line,wordfield* wf_instruction)
+{
+    OperandType operand1_type, operand2_type;
+    char* operand1; /* NOTE: make sure to free when necessary! */
+    char* operand2; /* NOTE: make sure to free when necessary! */
+    wordfield* new_wf1  = NULL; 
+    wordfield* new_wf2  = NULL;
+    int flag            = 0;
+    
+    *position = read_word_from_line(line, word, *position); /* get operand1 */
+    if(word[strlen(word)-1] == COMMA) /* if last character is a comma remove it */
+    {
+        remove_last_character(word);  
+        operand1 = my_strdup(word);
+        *position = read_word_from_line(line, word, *position);
+        if(*position == INVALID_RETURN) 
+        {
+            flag = INVALID_RETURN;
+            add_error_entry(ErrorType_InvalidInstruction_Missing2ndOperand,filepath,current_line);
+            if(operand1)
+                free(operand1);
+            return flag;
+        }
+        operand2 = my_strdup(word);
+    } 
+    else /* otherwise check for comma to see if missing */
+    {
+        operand1 = my_strdup(word);
+        *position = read_word_from_line(line, word, *position);
+        if(COMMA != word[0])
+        {
+            log_error(__FILE__,__LINE__,"Missing comma after first operand!, found at line: %d\n",current_line);   
+            flag = INVALID_RETURN;
+            add_error_entry(ErrorType_InvalidInstruction_MissingComma,filepath,current_line);   
+            /* *position = read_word_from_line(line, word, *position); */
+        }
+        else
+        {
+            remove_first_character(word);  
+        }
+        if(word[0] == NULL_TERMINATOR)
+            *position = read_word_from_line(line, word, *position);
+        operand2 = my_strdup(word);
+    }  
+    
+    operand1_type   = get_operand_type(operand1);
+    switch (operand1_type)
+    {
+    case OPERAND_TYPE_IMMEDIATE: 
+        set_wordfield_src(wf_instruction,OPERAND_TYPE_IMMEDIATE,0);
+        new_wf1 = init_wordfield();
+        handle_immediate_operand(binary_table,line,operand1,TC,filepath,current_line,wf_instruction,new_wf1);
+        
+        if(wf_instruction == NULL)
+            free(wf_instruction);        
+        if(new_wf1 == NULL)
+            free(new_wf1);
+        break;
+    case OPERAND_TYPE_DIRECT:
+        is_label(operand1,true); /* checks if its a valid label and will print errors accordingly */
+        set_wordfield_src(wf_instruction,OPERAND_TYPE_DIRECT,0);
+        binary_node_add(binary_table,*TC,line);
+        set_binary_node_wordfield(binary_table,*TC,wf_instruction);
+        (*TC)++;
+        new_wf1 = init_wordfield();
+        binary_node_add(binary_table,*TC,"Address of Label");
+        set_binary_node_wordfield(binary_table,*TC,new_wf1);
+        free(new_wf1);
+        (*TC)++;
+        break;
+    case OPERAND_TYPE_RELATIVE:
+        (*TC)++;
+        
+        /* no use for this if 1st operand is relative - processed in 2nd Pass */
+        free(new_wf1);
+        free(operand1);
+        break;
+    case OPERAND_TYPE_REGISTER:
+        handle_register_operand(binary_table,line, operand1,OPERAND_TYPE_FIRST,TC,filepath,current_line,wf_instruction);
+        (*TC)++;
+        /* no use for an extra wordfield if 1st operand is a register */
+        
+        if(new_wf1)
+            free(new_wf1);
+        if(operand1)
+            free(operand1);
+        break;
+    default:
+        break;
+    }
+
+    operand2_type = get_operand_type(operand2);                    
+    switch (operand2_type)
+    {
+    case OPERAND_TYPE_IMMEDIATE: /* only in the special case of an immediate value if the instruction is 'cmp' */
+        new_wf2 = init_wordfield();
+        handle_immediate_operand(binary_table,line,operand2,TC,filepath,current_line,NULL,new_wf2);
+        
+        if(wf_instruction == NULL)
+            free(wf_instruction);        
+        if(new_wf2 == NULL)
+            free(new_wf2);
+        break;
+    case OPERAND_TYPE_DIRECT:
+        is_label(operand2,true); /* checks if its a valid label and will print errors accordingly */
+        set_wordfield_dest(wf_instruction,OPERAND_TYPE_DIRECT,0);
+        if(operand1_type == OPERAND_TYPE_RELATIVE || operand1_type == OPERAND_TYPE_REGISTER)
+            set_binary_node_wordfield(binary_table,*TC-1,wf_instruction);
+        else
+            set_binary_node_wordfield(binary_table,*TC-2,wf_instruction);
+
+        new_wf2 = init_wordfield();
+        binary_node_add(binary_table,*TC,"Address of Label");
+        set_binary_node_wordfield(binary_table,*TC,new_wf2);
+        if(wf_instruction == NULL)
+            free(wf_instruction);        
+        if(new_wf2 == NULL)
+            free(new_wf2);
+        (*TC)++;
+        break;
+    case OPERAND_TYPE_RELATIVE:
+        (*TC)++;
+        
+        /* no use for this if 2nd operand if its relative - processed in 2nd Pass */
+        if(wf_instruction == NULL)
+            free(wf_instruction);        
+        if(new_wf2 == NULL)
+            free(new_wf2);
+        if(operand2 == NULL)
+            free(operand2);
+        break;
+    case OPERAND_TYPE_REGISTER:
+        handle_register_operand(binary_table,line,operand2,operand1_type,TC,filepath,current_line,wf_instruction);
+        /* no use for this if 2nd operand is a register */
+        if(new_wf2)
+            free(new_wf2);
+        if(operand2)
+            free(operand2);
+        break;
+    default:
+        free(wf_instruction);
+        break;
+    }
     return flag;
 }
