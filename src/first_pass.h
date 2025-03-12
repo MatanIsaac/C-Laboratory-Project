@@ -11,6 +11,10 @@
 /** @brief Types of operands. */
 typedef enum
 {
+    /* the types below tells us what operand are we "operating" on */
+    OPERAND_TYPE_SINGLE = -2, /* for single operands instructions like inc r6, prn r2, etc.. */
+    OPERAND_TYPE_FIRST = -1, /* we are "operating" on the first operand out of 2 in total for: mov, cmp, etc.. */
+    /* the types below represent the type of the operands */
     OPERAND_TYPE_IMMEDIATE,
     OPERAND_TYPE_DIRECT,
     OPERAND_TYPE_RELATIVE,
@@ -117,5 +121,6 @@ int check_immediate_value(char* operand, const char* filepath, int current_line)
 void handle_immediate_operand(BinaryTable* binary_table,char* line, char* word,unsigned int* TC,
                             const char* filepath, int current_line,wordfield* wf_instruction,wordfield* wf_immediate_value);
 
-
+void handle_register_operand(BinaryTable* binary_table, char* line, char* word, OperandType operand1_type,unsigned int* TC,
+    const char* filepath, int current_line,wordfield* wf_instruction);
 #endif

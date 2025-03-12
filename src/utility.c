@@ -321,7 +321,7 @@ int is_valid_number(char* word)
         }
     }
 
-    return true;
+    return 1;
 }
 
 int get_instruction_index(const char *s)

@@ -337,20 +337,14 @@ int handle_instruction(BinaryTable* binary_table, LabelTable* label_table,Instru
             */
             break;
         case OPERAND_TYPE_REGISTER:
-            /* checks if its a valid register */
-            if(!is_register(word)) 
-            {
-                log_error(__FILE__,__LINE__,"Register name invalid!\n");
-                free(wf);
-                return -1;
-            }
-            remove_first_character(word);
-            set_wordfield_dest(wf,OPERAND_TYPE_REGISTER,atoi(word));
-            binary_node_add(binary_table,*TC,line);
-            set_binary_node_wordfield(binary_table,*TC,wf);
-            free(wf);
+            handle_register_operand(binary_table,line, word,OPERAND_TYPE_SINGLE,TC,filepath,current_line,wf);
             (*TC)++;
-            free(new_wf);
+            
+            /* no use for an extra wordfield if 1st operand is a register */
+            if(wf)
+                free(wf);
+            if(new_wf)
+                free(new_wf);
             break;
         default:
             break;
@@ -400,7 +394,6 @@ int handle_instruction(BinaryTable* binary_table, LabelTable* label_table,Instru
             new_wf1 = init_wordfield();
             handle_immediate_operand(binary_table,line,operand1,TC,filepath,current_line,wf,new_wf1);
             
-
             if(wf == NULL)
                 free(wf);        
             if(new_wf1 == NULL)
@@ -426,24 +419,14 @@ int handle_instruction(BinaryTable* binary_table, LabelTable* label_table,Instru
             free(operand1);
             break;
         case OPERAND_TYPE_REGISTER:
-            /* checks if its a valid register */
-            if(!is_register(operand1)) 
-            {
-                log_error(__FILE__,__LINE__,"Register name invalid!\n");
-                free(new_wf2);
-                free(wf);
-                free(operand1);
-                return -1;
-            }
-            remove_first_character(operand1);
-            set_wordfield_src(wf,OPERAND_TYPE_REGISTER,atoi(operand1));
-            binary_node_add(binary_table,*TC,line);
-            set_binary_node_wordfield(binary_table,*TC,wf);
+            handle_register_operand(binary_table,line, operand1,OPERAND_TYPE_FIRST,TC,filepath,current_line,wf);
             (*TC)++;
-
-            /* no use for this if 1st operand is a register */
-            free(new_wf1);
-            free(operand1);
+            /* no use for an extra wordfield if 1st operand is a register */
+            
+            if(new_wf1)
+                free(new_wf1);
+            if(operand1)
+                free(operand1);
             break;
         default:
             break;
@@ -469,8 +452,6 @@ int handle_instruction(BinaryTable* binary_table, LabelTable* label_table,Instru
             else
                 set_binary_node_wordfield(binary_table,*TC-2,wf);
 
-            
-
             new_wf2 = init_wordfield();
             binary_node_add(binary_table,*TC,"Address of Label");
             set_binary_node_wordfield(binary_table,*TC,new_wf2);
@@ -487,30 +468,12 @@ int handle_instruction(BinaryTable* binary_table, LabelTable* label_table,Instru
             free(operand2);
             break;
         case OPERAND_TYPE_REGISTER:
-            /* checks if its a valid register */
-            if(!is_register(operand2)) 
-            {
-                log_error(__FILE__,__LINE__,"Register name invalid!\n");
-                free(wf);
-                free(operand2);
-                return -1;
-            }
-            remove_first_character(operand2);
-            set_wordfield_dest(wf,OPERAND_TYPE_REGISTER,atoi(operand2));
-            if(operand1_type != OPERAND_TYPE_REGISTER)
-            {
-                set_binary_node_wordfield(binary_table,*TC-2,wf);
-                free(wf);
-            }
-            else /* we did not update *TC if operand1 is register, reset node wordfield to updated one */
-            {
-                set_binary_node_wordfield(binary_table,*TC-1,wf); 
-                free(wf);
-            }
-            
+            handle_register_operand(binary_table,line,operand2,operand1_type,TC,filepath,current_line,wf);
             /* no use for this if 2nd operand is a register */
-            free(new_wf2);
-            free(operand2);
+            if(new_wf2)
+                free(new_wf2);
+            if(operand2)
+                free(operand2);
             break;
         default:
             free(wf);
@@ -701,4 +664,57 @@ void handle_immediate_operand(BinaryTable* binary_table,char* line, char* word,u
         set_binary_node_wordfield(binary_table,*TC,wf_immediate_value);
         (*TC)++;
     }
+}
+
+
+void handle_register_operand(BinaryTable* binary_table, char* line, char* word, OperandType operand1_type,unsigned int* TC,
+    const char* filepath, int current_line,wordfield* wf_instruction)
+{
+    int num = 0;
+    if(!is_register(word)) /* TODO: Add an error entry if register is invalid. */
+    {
+        log_error(__FILE__,__LINE__,"Register invalid! Not Valid Register Name.\n");
+        free(wf_instruction);
+        free(word);
+        return;
+    }
+    remove_first_character(word);
+    num = atoi(word);
+    if(num > MAX_REGISTERS)
+    {
+        add_error_entry(ErrorType_InvalidRegister_ExceedingRegisterIndex,filepath,current_line);
+        return;
+    }
+    
+    if(operand1_type == OPERAND_TYPE_SINGLE)
+    {
+        set_wordfield_dest(wf_instruction,OPERAND_TYPE_REGISTER,num);
+        binary_node_add(binary_table,*TC,line);
+        set_binary_node_wordfield(binary_table,*TC,wf_instruction);
+        return;
+    }
+
+    if(operand1_type == OPERAND_TYPE_FIRST)
+    {
+        /* we have oeprand1_type as -1 - we are in the first operand of 2 in total */
+        set_wordfield_src(wf_instruction,OPERAND_TYPE_REGISTER,num);
+        binary_node_add(binary_table,*TC,line);
+        set_binary_node_wordfield(binary_table,*TC,wf_instruction);
+        return;
+    }
+
+    set_wordfield_dest(wf_instruction,OPERAND_TYPE_REGISTER,num);
+    /* first operand has an extra wordfield, the instruction wordfield is 2 addresses back */
+    if(operand1_type != OPERAND_TYPE_REGISTER && operand1_type != OPERAND_TYPE_FIRST)
+    {
+        set_binary_node_wordfield(binary_table,*TC-2,wf_instruction);
+        free(wf_instruction);
+    }
+    else 
+    {
+        /* we are in the second operand - 1st operand was not a register - has an extra wordfield */
+        set_binary_node_wordfield(binary_table,*TC-1,wf_instruction); 
+        free(wf_instruction);
+    }
+
 }

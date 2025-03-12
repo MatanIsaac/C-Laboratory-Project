@@ -7,6 +7,7 @@
 typedef enum
 {
     ErrorType_InvalidLineLength,
+    ErrorType_InvalidRegister_ExceedingRegisterIndex,
     ErrorType_InvalidInstruction_Missing1stOperand,
     ErrorType_InvalidInstruction_Missing2ndOperand,
     ErrorType_InvalidValue,

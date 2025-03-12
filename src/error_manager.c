@@ -15,6 +15,9 @@ static char* get_error_msg(ErrorType error_type)
     case ErrorType_InvalidLineLength:
         strcpy(error_msg,"ErrorType_InvalidLineLength: Assembler only accepts lines with length of 81 (including null terminator)");
         break;
+    case ErrorType_InvalidRegister_ExceedingRegisterIndex:
+        strcpy(error_msg,"ErrorType_InvalidRegister_ExceedingRegisterIndex: Register index out of range. The assembler only accepts register numbers from 0 to 7 (inclusive)");
+        break;
     case ErrorType_InvalidInstruction_Missing1stOperand:
         strcpy(error_msg,"ErrorType_InvalidInstruction_Missing1stOperand: Missing 1st Operand for a 2 operands instruction");
         break;
