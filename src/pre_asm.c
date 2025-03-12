@@ -24,17 +24,17 @@ int parse_macros(FILE* fp, char* filepath, char* output_file, MacroTable* macro_
         free(word);
         free(line);
         add_error_entry(ErrorType_OpenFileFailure,filepath,line_count);
-        return -1;
+        return INVALID_RETURN;
     }
 
-    while(read_line(fp,line) != -1)
+    while(read_line(fp,line) != INVALID_RETURN)
     {
         position = 0;
         line_count++;
 
         /* checks line length */
         flag = check_line_length(line);
-        if(flag == -1)
+        if(flag == INVALID_RETURN)
             add_error_entry(ErrorType_InvalidLineLength,filepath,line_count);
 
         /* skip line if empty or line is a comment */
@@ -47,7 +47,7 @@ int parse_macros(FILE* fp, char* filepath, char* output_file, MacroTable* macro_
 
         if(strstr(line,"mcro") == NULL) /* if mcro is not within the line */
         {
-            if((position = read_word_from_line(line, word, position)) != -1) /* read the line one word at a time */
+            if((position = read_word_from_line(line, word, position)) != INVALID_RETURN) /* read the line one word at a time */
             {
                 /* check if its a macro call, */
                 if(!is_instruction(word) && !is_directive(word) && 
@@ -62,7 +62,7 @@ int parse_macros(FILE* fp, char* filepath, char* output_file, MacroTable* macro_
                     }
                     else /* error: temp == NULL no macro found in macro table */
                     {
-                        flag = -1;
+                        flag = INVALID_RETURN;
                         add_error_entry(ErrorType_InvalidMacro_NotFound,filepath,line_count);
                         continue;
                     }
@@ -74,21 +74,21 @@ int parse_macros(FILE* fp, char* filepath, char* output_file, MacroTable* macro_
         }
         else /* mcro is within the line */
         {
-            while ((position = read_word_from_line(line, word, position)) != -1) /* read the line one word at a time */
+            while ((position = read_word_from_line(line, word, position)) != INVALID_RETURN) /* read the line one word at a time */
             {
                 char needed_space = word[4]; /* needed space position */
                 if(strncmp("mcro", word,4) == 0 && strcmp("mcroend", word) != 0) /* if the word is starting with 'mcro' and is not 'mcroend' */
                 { 
                     if(!isspace(needed_space) && needed_space != NULL_TERMINATOR) /* check for that needed space and track an error if not found */
                     {
-                        flag = -1;
+                        flag = INVALID_RETURN;
                         add_error_entry(ErrorType_InvalidMacro_MissingSpace,filepath,line_count);
                     }
                     
                     position = read_word_from_line(line, word, position);
-                    if(position == -1)
+                    if(position == INVALID_RETURN)
                     {
-                        flag = -1;
+                        flag = INVALID_RETURN;
                         add_error_entry(ErrorType_InvalidMacro_MissingName,filepath,line_count);
                     }
 
@@ -96,14 +96,14 @@ int parse_macros(FILE* fp, char* filepath, char* output_file, MacroTable* macro_
                         looks for extra text after an invalid mcro definition and 
                         in the case of a valid definition checks if macro's name is valid - not a register etc..  
                     */
-                    check_macro_name(word, &flag, filepath, &line_count); 
+                    flag = check_macro_name(word, filepath, &line_count); 
                 
-                    if (macro_table_get(macro_table,word) == NULL && flag != -1) /* get the macro value if everything is valid until now */
+                    if (macro_table_get(macro_table,word) == NULL && flag != INVALID_RETURN) /* get the macro value if everything is valid until now */
                     {
                         char temp[MAX_WORD];
-                        if((position = read_word_from_line(line, temp, position)) != -1)
+                        if((position = read_word_from_line(line, temp, position)) != INVALID_RETURN)
                         {
-                            flag = -1;
+                            flag = INVALID_RETURN;
                             add_error_entry(ErrorType_ExtraneousText_Macro,filepath,line_count);
                         }
                         flag = handle_new_macro(fp,macro_table,word,filepath,&line_count);
@@ -121,7 +121,7 @@ int parse_macros(FILE* fp, char* filepath, char* output_file, MacroTable* macro_
     if(is_errors_array_empty() < 0)
     {
         print_errors_array();
-        flag = -1;
+        flag = INVALID_RETURN;
     }
     else
     {
@@ -139,7 +139,7 @@ int handle_new_macro(FILE* fp,MacroTable* macro_table, char* macro_name,char* fi
     char* word                  = string_calloc(MAX_WORD, sizeof(char));
     char* current_macro_value   = string_calloc(MAX_LINE, sizeof(char));
 
-    while(read_line(fp, line) != -1)
+    while(read_line(fp, line) != INVALID_RETURN)
     {
         (*line_count)++;
         if(strstr(line,"mcroend") == NULL)
@@ -165,7 +165,7 @@ int handle_new_macro(FILE* fp,MacroTable* macro_table, char* macro_name,char* fi
             if(line[i] != NULL_TERMINATOR && !isspace(line[i]))
             {
                 log_error(__FILE__,__LINE__, "Found extraneous text after macro definition\n");
-                flag = -1;
+                flag = INVALID_RETURN;
                 add_error_entry(ErrorType_ExtraneousText_Macro,filepath,*line_count);
             }
             break;
@@ -217,32 +217,32 @@ FILE* prepare_am_file(char* file, char* output_file)
 
 int check_line_length(char* line)
 {
-    return (strlen(line) < MAX_LINE) ? 0 : -1;
+    return (strlen(line) < MAX_LINE) ? VALID_RETURN : INVALID_RETURN;
 }
 
-void check_macro_name(const char* word, int* flag, char* filepath, int* line_count)
+int check_macro_name(const char* word, char* filepath, int* line_count)
 {
     int macro_length = strlen(word);
     if(macro_length > MAX_MACRO_LENGTH)
     {
-        *flag = -1;
         add_error_entry(ErrorType_InvalidMacroName_Length,filepath,*line_count);
+        return INVALID_RETURN;
     }
 
     if(is_instruction(word))
     {
-        *flag = -1;
         add_error_entry(ErrorType_InvalidMacroName_Instruction,filepath,*line_count);
+        return INVALID_RETURN;
     }
     if(is_directive(word))
     {
-        *flag = -1;
         add_error_entry(ErrorType_InvalidMacroName_Directive,filepath,*line_count);
+        return INVALID_RETURN;
     }
     if(is_register(word))
     {
-        *flag = -1;
         add_error_entry(ErrorType_InvalidMacroName_Register,filepath,*line_count);
+        return INVALID_RETURN;
     }
-
+    return VALID_RETURN;
 }

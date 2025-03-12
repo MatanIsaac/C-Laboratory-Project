@@ -48,7 +48,7 @@ int instruction_table_insert(InstructionTable* table, const char* op_name, unsig
     size_t index;
 
     if (!table || !op_name || op_name[0] == NULL_TERMINATOR)
-        return -1;
+        return INVALID_RETURN;
 
     
     index = get_instruction_index(op_name);
@@ -69,10 +69,10 @@ int instruction_table_insert(InstructionTable* table, const char* op_name, unsig
         
         table->instructions[index].op_code = op_code;
         table->instructions[index].funct   = funct;
-        return 0;
+        return VALID_RETURN;
     }
 
-    return -1;
+    return INVALID_RETURN;
 }
 
 /* Retrieve an instruction by name */

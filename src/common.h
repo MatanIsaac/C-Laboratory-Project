@@ -8,28 +8,22 @@
 #define false 0
 
 #define NEW_LINE '\n'
-#define TAB '\t'
 #define DOUBLE_QUOTE '\"'
-#define DOT '.'
-#define COLON ':'
 #define COMMA ','
 #define HASHTAG '#'
 #define AMPERSAND '&'
+#define COLON ':'
+#define SEMICOLON ';'
 #define DASH '-'
 #define UNDERSCORE '_'
-#define PLUS '+'
-#define SEMICOLON ';'
-#define INVALID_CHAR -1
 #define NULL_TERMINATOR '\0'
+#define VALID_RETURN 0 
+#define INVALID_RETURN -1 
 #define MAX_LINE 81 /* max line is 80 not including '\n'*/
 #define MAX_WORD 100
 #define MAX_FILENAME 200
 #define MAX_LABEL_LENGTH 31 /* max length for a label */
 #define MAX_MACRO_LENGTH 31 /* max length for a macro name */
-#define MAX_BITS_PER_WORD 24 /* 24 bits per memory cell AKA word */
-#define MAX_WORDS 3
-#define MAX_MEMORY 2097152 /* memory size 2^21 */
-#define MAX_OPERANDS 2
 #define MAX_REGISTERS 8
 #define MAX_INSTRUCTIONS 16
 #define MAX_DIRECTIVES 8 /* including version of directives without a dot - data/.data, string/.string etc.. */
@@ -37,4 +31,5 @@
 #define ARE_ABSOLUTE  4  /* 100 in binary, 'A' bit set */
 #define ARE_RELOCATABLE 2 /* 010 in binary, 'R' bit set */
 #define ARE_EXTERNAL  1  /* 001 in binary, 'E' bit set */
+#define START_ADDRESS 100  /* 001 in binary, 'E' bit set */
 #endif 

@@ -23,7 +23,7 @@ int main(int argc,char* argv[])
     if(argc < 2)
     {
         log_error(__FILE__,__LINE__,"Usage: build/assembler <filename1> <filename2> ...");
-        return -1;
+        return INVALID_RETURN;
     }
 
     macro_table = macro_table_create(10);
@@ -40,7 +40,7 @@ int main(int argc,char* argv[])
             file_index++;
         }
 
-        if(parse_macros(fp, current_file,output_file,macro_table) != -1)
+        if(parse_macros(fp, current_file,output_file,macro_table) != INVALID_RETURN)
         {
             macro_table_print(macro_table);
             log_out(__FILE__,__LINE__,"Done Parsing Macros for - %s\n", current_file);
@@ -67,5 +67,5 @@ int main(int argc,char* argv[])
     }
 
     macro_table_destroy(macro_table);
-    return 0;
+    return VALID_RETURN;
 }

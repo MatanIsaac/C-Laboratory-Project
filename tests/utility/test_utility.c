@@ -18,8 +18,7 @@ int main()
     test_instruction_functions();
     test_directive_functions();
     test_string_functions();
-    
-    return 0;
+
 }
 
 /* =======================

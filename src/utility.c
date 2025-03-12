@@ -300,7 +300,7 @@ int is_valid_number(char* word)
 {
     if (word == NULL || *word == NULL_TERMINATOR) 
     {
-        return -1; 
+        return INVALID_RETURN; 
     }
 
     if (*word == DASH) 
@@ -308,7 +308,7 @@ int is_valid_number(char* word)
         ++word;
         if (*word == NULL_TERMINATOR) 
         {
-            return -1; 
+            return INVALID_RETURN; 
         }
     }
 
@@ -317,7 +317,7 @@ int is_valid_number(char* word)
         if (!isdigit((unsigned char)*word)) 
         {
             log_error(__FILE__,__LINE__,"Error reading immediate value, NAN.\n");
-            return -1;
+            return INVALID_RETURN;
         }
     }
 
@@ -397,5 +397,5 @@ int get_instruction_index(const char *s)
             break;
     }
 
-    return -1;
+    return INVALID_RETURN;
 }

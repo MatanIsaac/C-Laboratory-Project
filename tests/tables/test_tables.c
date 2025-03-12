@@ -18,7 +18,6 @@ int main()
     test_macro_table_advanced();
     test_instruction_table();
     test_label_table();
-    return 0;
 }
 
 /* =======================

@@ -98,7 +98,7 @@ int handle_labels(LabelTable* label_table, unsigned int TC, char* line, char* wo
  * @return Non-zero on error, zero on success.
  */
 int handle_instruction(BinaryTable* binary_table, LabelTable* label_table, InstructionTable* instruction_table, 
-    unsigned int* TC, char* line, char* word, int* position, const char* filepath);
+    unsigned int* TC,unsigned int current_line, char* line, char* word, int* position, const char* filepath);
 
 /**
  * @brief Handles a directive line.

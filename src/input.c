@@ -35,9 +35,9 @@ int read_word_from_line(const char* line, char* word, int start_pos)
 {
     int i = start_pos;
     int j = 0;
-    if (i == -1)
+    if (i < 0)
     {
-        return -1;
+        return INVALID_RETURN;
     }
     
     while (line[i] != NULL_TERMINATOR && isspace(line[i])) 
@@ -57,7 +57,7 @@ int read_word_from_line(const char* line, char* word, int start_pos)
     word[j] = NULL_TERMINATOR;
     if (j == 0) 
     {
-        return -1;
+        return INVALID_RETURN;
     }
 
     return i; 
@@ -78,10 +78,10 @@ int read_line(FILE* fp, char *line)
 
     line[i] = '\0';
     
-    /* if no characters were read and EOF is reached, return 0 */
+    /* if no characters were read and EOF is reached */
     if (i == 0 && ch == EOF)
     {
-        return -1; 
+        return INVALID_RETURN; 
     }    
 
     return 1;

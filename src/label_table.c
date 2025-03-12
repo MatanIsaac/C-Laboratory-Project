@@ -1,5 +1,6 @@
 #include "label_table.h"
 #include "logger.h"
+#include "common.h"
 
 const char* labeltype_to_string(enum LabelType type) 
 {
@@ -108,7 +109,7 @@ int label_table_search(LabelTable* table, char* name)
             return i;
         }
     }
-    return -1;
+    return INVALID_RETURN;
 }
 
 int label_table_search_by_address(LabelTable* table, unsigned int address)
@@ -121,7 +122,7 @@ int label_table_search_by_address(LabelTable* table, unsigned int address)
             return i;
         }
     }
-    return -1;
+    return INVALID_RETURN;
 }
 
 int label_table_set_node_by_name(LabelTable* table, char* name, unsigned int address, enum LabelType type)
@@ -130,7 +131,7 @@ int label_table_set_node_by_name(LabelTable* table, char* name, unsigned int add
     if(table == NULL || name == NULL)
     {
         log_out(__FILE__,__LINE__, "Error setting label node.\n");    
-        return -1;
+        return INVALID_RETURN;
     }
     if((node_index = label_table_search(table,name)) > 1)
     {
@@ -138,7 +139,7 @@ int label_table_set_node_by_name(LabelTable* table, char* name, unsigned int add
         table->labels[node_index].address   = address;
         return 1;
     }   
-    return -1; 
+    return INVALID_RETURN; 
 }
 
 int label_table_set_label_type(LabelTable* table,unsigned int address, enum LabelType type)
@@ -149,5 +150,5 @@ int label_table_set_label_type(LabelTable* table,unsigned int address, enum Labe
         table->labels[node_index].type      = type;
         return 1;
     }
-    return -1; 
+    return INVALID_RETURN; 
 }

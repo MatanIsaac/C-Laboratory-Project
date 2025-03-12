@@ -121,7 +121,7 @@ void set_binary_node_wordfield(BinaryTable* table, unsigned int address, wordfie
 {
     int node_index = binary_table_search(table, address);
 
-    if (node_index == -1 || !table || !table->data || !word) 
+    if (node_index == INVALID_RETURN || !table || !table->data || !word) 
         return;
 
     if (!table->data[node_index]->word)  /* If not already allocated, allocate memory */
@@ -155,7 +155,7 @@ int binary_table_search(BinaryTable* table, unsigned int address)
     size_t i;
 
     if (!table || !table->data) 
-        return -1;
+        return INVALID_RETURN;
 
     for (i = 0; i < table->size; i++) 
     {
@@ -164,5 +164,5 @@ int binary_table_search(BinaryTable* table, unsigned int address)
             return i;
         }
     }
-    return -1;
+    return INVALID_RETURN;
 }

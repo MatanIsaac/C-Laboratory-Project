@@ -63,27 +63,33 @@ int execute_first_pass(FILE* fp, LabelTable* label_table, InstructionTable* inst
 {
     int flag                    = 0;    /* flag is used to signal if we encounted errors while executing first pass */
     unsigned int DC             = 0;    /* data counter */
-    unsigned int TC             = 100;  /* total counter */
+    /* 
+        total counter - we start from 100 (START_ADDRESS) and start counting instructions and directives 
+        we calculate the instruction counter final at the end
+    */
+    unsigned int TC             = START_ADDRESS;  
     unsigned int DCF            = -1;   /* final data counter */
     unsigned int ICF            = -1;   /* final instruction counter */
     char* line                  = string_calloc(MAX_LINE, sizeof(char)); 
     char* word                  = string_calloc(MAX_WORD, sizeof(char));
     BinaryTable* binary_table   = binary_table_create(5);
 
-    while(read_line(fp,line) != -1)
+    while(read_line(fp,line) != INVALID_RETURN)
     {
+        static int current_line = 0;
         int position = 0;
+        current_line++;
         if(line[0] == SEMICOLON || is_line_empty(line))
         {
             /* ignore comments and empty lines */
             continue;
         }
-
-        while ((position = read_word_from_line(line, word, position)) != -1) 
+        
+        while ((position = read_word_from_line(line, word, position)) != INVALID_RETURN) 
         {
             if(is_instruction(word))
             {
-                flag = handle_instruction(binary_table,label_table,instruction_table,&TC,line,word,&position,filepath);
+                flag = handle_instruction(binary_table,label_table,instruction_table,&TC, current_line,line,word,&position,filepath);
             }
             else if(is_directive(word))
             {
@@ -96,7 +102,7 @@ int execute_first_pass(FILE* fp, LabelTable* label_table, InstructionTable* inst
         }
     }
 
-    ICF = TC - 100 - DC;
+    ICF = TC - START_ADDRESS - DC;
     DCF = DC;
 
     printf("\n\n");
@@ -115,7 +121,7 @@ int execute_first_pass(FILE* fp, LabelTable* label_table, InstructionTable* inst
     if(is_errors_array_empty() < 0)
     {
         print_errors_array();
-        flag = -1;
+        flag = INVALID_RETURN;
     }
     else
     {
@@ -130,12 +136,12 @@ int get_operands_count(char* str)
     if(str == NULL)
     {
         log_error(__FILE__,__LINE__,"Can't get wordfield count, str is NULL!.\n");
-        return -1;
+        return INVALID_RETURN;
     }
 
     if(!is_instruction(str))
     {
-        return -1;
+        return INVALID_RETURN;
     }
 
     if(strcmp(str,"stop") == 0 || strcmp(str,"rts") == 0)
@@ -157,7 +163,7 @@ OperandType get_operand_type(char* str)
     if(str == NULL)
     {
         log_out(__FILE__,__LINE__,"str is null! can't get operand type!\n");
-        return -1;
+        return INVALID_RETURN;
     }
     if(str[0] == HASHTAG || isdigit(*str)) 
     {
@@ -176,7 +182,7 @@ OperandType get_operand_type(char* str)
         return OPERAND_TYPE_DIRECT;
     }
     
-    return -1;
+    return INVALID_RETURN;
 }
 
 DirectiveType get_directive_type(char* str)
@@ -184,7 +190,7 @@ DirectiveType get_directive_type(char* str)
     if(str == NULL)
     {
         log_out(__FILE__,__LINE__,"str is null! can't get directive type!\n");
-        return -1;
+        return INVALID_RETURN;
     }
     if(strcmp(str,".string") == 0) /* .string */
     {
@@ -203,7 +209,7 @@ DirectiveType get_directive_type(char* str)
         return DIRECTIVE_TYPE_ENTRY;
     }
     
-    return -1;
+    return INVALID_RETURN;
 }
 
 wordfield* get_char_wordfield(char* character)
@@ -229,16 +235,16 @@ int handle_labels(LabelTable* label_table, unsigned int TC, char* line, char* wo
     strcpy(label_name,word);
     remove_last_character(label_name);
     
-    if(label_table_search(label_table,label_name) != -1)
+    if(label_table_search(label_table,label_name) != INVALID_RETURN)
     {
         log_error(__FILE__,__LINE__,"Label Redefinition - the label [%s] already exists in the label tabel.\n",label_name);
-        flag = -1;
+        flag = INVALID_RETURN;
     }
 
     else if(is_instruction(label_name) || is_directive(label_name) || is_register(label_name))
     {
         log_error(__FILE__,__LINE__,"Invalid label name - the label [%s] can't be an instruction or a directive or a register\n",label_name);
-        flag = -1;
+        flag = INVALID_RETURN;
     }
 
     /* add the valid label to the label table and set its type as CODE */
@@ -255,16 +261,14 @@ int handle_labels(LabelTable* label_table, unsigned int TC, char* line, char* wo
 }
 
 int handle_instruction(BinaryTable* binary_table, LabelTable* label_table,InstructionTable* instruction_table, 
-    unsigned int* TC, char* line, char* word, int* position,const char* filepath)
+    unsigned int* TC, unsigned int current_line, char* line, char* word, int* position,const char* filepath)
 {
-    int flag            = 0;
-    int operands_count  = 0;
-    wordfield* wf       = create_wordfield_by_opname(word, instruction_table);
-    int current_line    = (((*TC) - 100) == 0) ? 1 : (*TC) - 100;
+    int flag                = 0;
+    int operands_count      = 0;
+    wordfield* wf           = create_wordfield_by_opname(word, instruction_table);
     set_wordfield_are(wf,ARE_ABSOLUTE);
-
     operands_count      = get_operands_count(word);
-    if(operands_count == -1)
+    if(operands_count == INVALID_RETURN)
     {
         log_error(__FILE__,__LINE__, "Failed to get operands count!\n");
         free(wf);
@@ -294,6 +298,14 @@ int handle_instruction(BinaryTable* binary_table, LabelTable* label_table,Instru
             remove_last_character(word);  
             operand1 = my_strdup(word);
             *position = read_word_from_line(line, word, *position);
+            if(*position == INVALID_RETURN) 
+            {
+                flag = INVALID_RETURN;
+                add_error_entry(ErrorType_InvalidInstruction_MissingComma,filepath,current_line);
+                if(operand1)
+                    free(operand1);
+                return flag;
+            }
             operand2 = my_strdup(word);
         } 
         else /* otherwise check for comma to see if missing */
@@ -303,7 +315,7 @@ int handle_instruction(BinaryTable* binary_table, LabelTable* label_table,Instru
             if(COMMA != word[0])
             {
                 log_error(__FILE__,__LINE__,"Missing comma after first operand!, found at line: %d\n",current_line);   
-                flag = -1;
+                flag = INVALID_RETURN;
                 add_error_entry(ErrorType_InvalidInstruction_MissingComma,filepath,current_line);   
                 /* *position = read_word_from_line(line, word, *position); */
             }
@@ -438,7 +450,7 @@ int handle_directive(BinaryTable* binary_table, LabelTable* label_table,unsigned
         if((word[0] != DOUBLE_QUOTE || word[str_length] != DOUBLE_QUOTE) && (word[0] != DOUBLE_QUOTE && word[str_length] != DOUBLE_QUOTE))
         {
             log_error(__FILE__,__LINE__,"Error reading string data, missing quotes.\n");
-            flag = -1;
+            flag = INVALID_RETURN;
         }
         remove_first_character(word);
         remove_last_character(word);
@@ -485,7 +497,7 @@ int handle_directive(BinaryTable* binary_table, LabelTable* label_table,unsigned
         (*TC)++;
         break;
     case DIRECTIVE_TYPE_DATA:
-        while ((*position = read_word_from_line(line, word, *position)) != -1 && word[strlen(word)-1] == COMMA)
+        while ((*position = read_word_from_line(line, word, *position)) != INVALID_RETURN && word[strlen(word)-1] == COMMA)
         {
             char final_str[MAX_WORD] = "Integer ";
             wordfield num_wf = {0};
@@ -530,10 +542,10 @@ int handle_directive(BinaryTable* binary_table, LabelTable* label_table,unsigned
     case DIRECTIVE_TYPE_EXTERN:
         *position = read_word_from_line(line, word, *position);
         is_label(word,true);        
-        if(label_table_search(label_table,word) != -1)
+        if(label_table_search(label_table,word) != INVALID_RETURN)
         {
             log_error(__FILE__,__LINE__,"Label Redefinition - the label [%s] already exists in the label tabel.\n",word);
-            flag = -1;
+            flag = INVALID_RETURN;
             break;
         }
         /* add the valid label to the label table and set its type as CODE */
@@ -541,7 +553,7 @@ int handle_directive(BinaryTable* binary_table, LabelTable* label_table,unsigned
         free(last_wf);
         break;
     case DIRECTIVE_TYPE_ENTRY:
-        while((*position = read_word_from_line(line, word, *position)) != -1);
+        while((*position = read_word_from_line(line, word, *position)) != INVALID_RETURN);
         free(last_wf);
         break;
     default:
@@ -558,19 +570,19 @@ int check_immediate_value(char* operand, const char* filepath, int current_line)
     if(operand[0] != HASHTAG) /* checks for '#' */
     {
         add_error_entry(ErrorType_InvalidValue_MissingHashtag,filepath,current_line);
-        return -1;
+        return INVALID_RETURN;
     }    
     remove_first_character(operand);
-    if(is_valid_number(operand) == -1)
+    if(is_valid_number(operand) == INVALID_RETURN)
     {
         add_error_entry(ErrorType_InvalidValue,filepath,current_line);
-        return -1;
+        return INVALID_RETURN;
     }
     value = atoi(operand);
     if(value > MAX_24_BIT_NUMBER)
     {
         add_error_entry(ErrorType_InvalidValue_Exceeding,filepath,current_line);
-        return -1;
+        return INVALID_RETURN;
     }
     return value;
 }            
@@ -683,7 +695,7 @@ int handle_single_instruction(BinaryTable* binary_table,char* line, char* word,i
         if(word[0] != AMPERSAND)
         {
             log_error(__FILE__,__LINE__, "Error missing '&' before label for relative type addressing!.\n");
-            flag = -1;    
+            flag = INVALID_RETURN;    
         }
         set_wordfield_dest(wf_instruction,OPERAND_TYPE_RELATIVE,0);
         binary_node_add(binary_table,*TC,line);

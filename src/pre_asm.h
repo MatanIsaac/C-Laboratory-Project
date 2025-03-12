@@ -35,6 +35,6 @@ FILE* prepare_am_file(char* file, char* output_file);
  */
 int check_line_length(char* line);
 
-void check_macro_name(const char* word, int* flag, char* filepath, int* line_count);
+int check_macro_name(const char* word, char* filepath, int* line_count);
 
 #endif
