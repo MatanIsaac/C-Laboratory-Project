@@ -278,77 +278,7 @@ int handle_instruction(BinaryTable* binary_table, LabelTable* label_table,Instru
     }
     else if (operands_count == 1)
     {
-        OperandType operand1_type;
-        wordfield* new_wf   = init_wordfield();
-        *position           = read_word_from_line(line, word, *position);
-        operand1_type       = get_operand_type(word);
-        switch (operand1_type)
-        {
-        case OPERAND_TYPE_IMMEDIATE:
-            handle_immediate_operand(binary_table,line,word,TC,filepath,current_line,wf,new_wf);
-            if(wf == NULL)
-                free(wf);        
-            if(new_wf == NULL)
-                free(new_wf);
-            break;
-        case OPERAND_TYPE_DIRECT:
-            /* checks if its a valid label and will print errors accordingly */
-            flag = is_label(word,true);
-            set_wordfield_dest(wf,OPERAND_TYPE_DIRECT,0);
-            binary_node_add(binary_table,*TC,line);
-            set_binary_node_wordfield(binary_table,*TC,wf);
-            free(wf);
-            (*TC)++;
-            binary_node_add(binary_table,*TC,"Address of Label");
-            set_binary_node_wordfield(binary_table,*TC,new_wf);
-            free(new_wf);
-            (*TC)++;
-            break;
-        case OPERAND_TYPE_RELATIVE:
-            if(word[0] != AMPERSAND)
-            {
-                log_error(__FILE__,__LINE__, "Error missing '&' before label for relative type addressing!.\n");
-                flag = -1;    
-            }
-            set_wordfield_dest(wf,OPERAND_TYPE_RELATIVE,0);
-            binary_node_add(binary_table,*TC,line);
-            set_binary_node_wordfield(binary_table,*TC,wf);
-            free(wf);
-            (*TC)++;
-            binary_node_add(binary_table,*TC,"Distance to Label");
-            set_binary_node_wordfield(binary_table,*TC,new_wf);
-            free(new_wf);
-            (*TC)++;
-            
-            /* 
-                IMPORTANT: this is relevant only for: jmp, jsr, bne
-                TODO:
-                1. check if label already exists in label table and declared before
-                2. if not - 
-                add an empty extra line with *TC to the binary table 
-                for the unknown label we've encountered, will be handled in the 2nd pass.
-                3. if exists - already declared - calculate distance from current address to label's address :
-                if label is in 300 and jmp is 500: jumping distance is -200
-                    LABEL_ADDRESS - CURRENT_OP_ADDRESS = DIFF
-                set jump instruction wf dest mode to 02 (decimal) relative addressing, dest register 0.
-                add a new wordfield, set are field to 100 'A=1,R=0,E=0',
-                add DIFF to the new wordfield at the bit 23-3.
-                add both new and instruction wordfield to the binary table.                            
-            */
-            break;
-        case OPERAND_TYPE_REGISTER:
-            handle_register_operand(binary_table,line, word,OPERAND_TYPE_SINGLE,TC,filepath,current_line,wf);
-            (*TC)++;
-            
-            /* no use for an extra wordfield if 1st operand is a register */
-            if(wf)
-                free(wf);
-            if(new_wf)
-                free(new_wf);
-            break;
-        default:
-            break;
-        }
+        flag = handle_single_instruction(binary_table,line,word,position,TC,filepath,current_line,wf);
     }
     else /* operands count is 2 */
     {
@@ -717,4 +647,83 @@ void handle_register_operand(BinaryTable* binary_table, char* line, char* word, 
         free(wf_instruction);
     }
 
+}
+
+int handle_single_instruction(BinaryTable* binary_table,char* line, char* word,int* position, unsigned int* TC,
+    const char* filepath, int current_line,wordfield* wf_instruction)
+{
+    OperandType operand1_type;
+    int flag            = 0;
+    wordfield* new_wf   = init_wordfield();
+    *position           = read_word_from_line(line, word, *position);
+    operand1_type       = get_operand_type(word);
+    switch (operand1_type)
+    {
+    case OPERAND_TYPE_IMMEDIATE:
+        handle_immediate_operand(binary_table,line,word,TC,filepath,current_line,wf_instruction,new_wf);
+        if(wf_instruction == NULL)
+            free(wf_instruction);        
+        if(new_wf == NULL)
+            free(new_wf);
+        break;
+    case OPERAND_TYPE_DIRECT:
+        /* checks if its a valid label and will print errors accordingly */
+        flag = is_label(word,true);
+        set_wordfield_dest(wf_instruction,OPERAND_TYPE_DIRECT,0);
+        binary_node_add(binary_table,*TC,line);
+        set_binary_node_wordfield(binary_table,*TC,wf_instruction);
+        free(wf_instruction);
+        (*TC)++;
+        binary_node_add(binary_table,*TC,"Address of Label");
+        set_binary_node_wordfield(binary_table,*TC,new_wf);
+        free(new_wf);
+        (*TC)++;
+        break;
+    case OPERAND_TYPE_RELATIVE:
+        if(word[0] != AMPERSAND)
+        {
+            log_error(__FILE__,__LINE__, "Error missing '&' before label for relative type addressing!.\n");
+            flag = -1;    
+        }
+        set_wordfield_dest(wf_instruction,OPERAND_TYPE_RELATIVE,0);
+        binary_node_add(binary_table,*TC,line);
+        set_binary_node_wordfield(binary_table,*TC,wf_instruction);
+        free(wf_instruction);
+        (*TC)++;
+        binary_node_add(binary_table,*TC,"Distance to Label");
+        set_binary_node_wordfield(binary_table,*TC,new_wf);
+        free(new_wf);
+        (*TC)++;
+        
+        /* 
+            IMPORTANT: this is relevant only for: jmp, jsr, bne
+            TODO:
+            1. check if label already exists in label table and declared before
+            2. if not - 
+            add an empty extra line with *TC to the binary table 
+            for the unknown label we've encountered, will be handled in the 2nd pass.
+            3. if exists - already declared - calculate distance from current address to label's address :
+            if label is in 300 and jmp is 500: jumping distance is -200
+                LABEL_ADDRESS - CURRENT_OP_ADDRESS = DIFF
+            set jump instruction wf dest mode to 02 (decimal) relative addressing, dest register 0.
+            add a new wordfield, set are field to 100 'A=1,R=0,E=0',
+            add DIFF to the new wordfield at the bit 23-3.
+            add both new and instruction wordfield to the binary table.                            
+        */
+        break;
+    case OPERAND_TYPE_REGISTER:
+        handle_register_operand(binary_table,line, word,OPERAND_TYPE_SINGLE,TC,filepath,current_line,wf_instruction);
+        (*TC)++;
+        
+        /* no use for an extra wordfield if 1st operand is a register */
+        if(wf_instruction)
+            free(wf_instruction);
+        if(new_wf)
+            free(new_wf);
+        break;
+    default:
+        break;
+    }
+
+    return flag;
 }

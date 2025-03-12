@@ -98,7 +98,7 @@ int handle_labels(LabelTable* label_table, unsigned int TC, char* line, char* wo
  * @return Non-zero on error, zero on success.
  */
 int handle_instruction(BinaryTable* binary_table, LabelTable* label_table, InstructionTable* instruction_table, 
-                       unsigned int* TC, char* line, char* word, int* position, const char* filepath);
+    unsigned int* TC, char* line, char* word, int* position, const char* filepath);
 
 /**
  * @brief Handles a directive line.
@@ -112,7 +112,7 @@ int handle_instruction(BinaryTable* binary_table, LabelTable* label_table, Instr
  * @return Non-zero on error, zero on success.
  */
 int handle_directive(BinaryTable* binary_table, LabelTable* label_table, unsigned int* TC, unsigned int* DC,
-                    char* line, char* word, int* position);
+    char* line, char* word, int* position);
 
 
 int check_immediate_value(char* operand, const char* filepath, int current_line);                                 
@@ -123,4 +123,8 @@ void handle_immediate_operand(BinaryTable* binary_table,char* line, char* word,u
 
 void handle_register_operand(BinaryTable* binary_table, char* line, char* word, OperandType operand1_type,unsigned int* TC,
     const char* filepath, int current_line,wordfield* wf_instruction);
+
+int handle_single_instruction(BinaryTable* binary_table,char* line, char* word,int* position, unsigned int* TC,
+    const char* filepath, int current_line,wordfield* wf_instruction);
+
 #endif
