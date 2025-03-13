@@ -86,42 +86,42 @@ char* int_to_hex(int number);
  * optionally ignoring a trailing colon if @p ignore_colon is non-zero.
  * @param word         The word to check.
  * @param ignore_colon Whether to ignore a trailing colon (non-zero for yes, 0 for no).
- * @return `true` if it is recognized as a label, otherwise `false`.
+ * @return `VALID_RETURN` if it is recognized as a label, otherwise `INVALID_RETURN`.
  */
 int is_label(const char* word, int ignore_colon);
 
 /**
  * @brief Determines if a given word represents a register.
  * @param word The word to check.
- * @return `true` if it is a register, otherwise `false`.
+ * @return `VALID_RETURN` if it is a register, otherwise `INVALID_RETURN`.
  */
 int is_register(const char* word);
 
 /**
  * @brief Determines if a given word is a valid instruction.
  * @param word The word to check.
- * @return `true` if it is an instruction, otherwise `false`.
+ * @return `VALID_RETURN` if it is an instruction, otherwise `INVALID_RETURN`.
  */
-bool is_instruction(const char* word);
+int is_instruction(const char* word);
 
 /**
  * @brief Determines if a given word represents a directive (e.g., data declaration).
  * @param word The word to check.
- * @return `true` if it is a directive, otherwise `false`.
+ * @return `VALID_RETURN` if it is a directive, otherwise `INVALID_RETURN`.
  */
-bool is_directive(const char* word);
+int is_directive(const char* word);
 
 /**
  * @brief Checks if the provided line is empty or contains only whitespace.
  * @param line A C-string representing the line to check.
- * @return `true` if the line is considered empty, otherwise `false`.
+ * @return `VALID_RETURN` if the line is considered empty, otherwise `INVALID_RETURN`.
  */
-bool is_line_empty(char* line);
+int is_line_empty(char* line);
 
 /**
  * @brief Determines if the given word can be parsed as a valid integer number (decimal or otherwise).
  * @param word The word to check.
- * @return `true` if it is a valid numeric representation, otherwise `false`.
+ * @return `VALID_RETURN` if it is a valid numeric representation, otherwise `INVALID_RETURN`.
  */
 int is_valid_number(char* word);
 

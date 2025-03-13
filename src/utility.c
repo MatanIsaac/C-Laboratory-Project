@@ -191,7 +191,7 @@ int is_label(const char* word, int ignore_colon)
         return INVALID_RETURN;
     }
 
-    if(ignore_colon == true && length == 1)
+    if(ignore_colon != 0 && length == 1)
     {
         if(isalpha(word[0]) && word[0] != UNDERSCORE)
         {
@@ -231,20 +231,14 @@ int is_label(const char* word, int ignore_colon)
             return INVALID_RETURN;
         } 
     }
-    if(ignore_colon == false && word[i] != COLON)
+    if(ignore_colon == 0 && word[i] != COLON)
     {
         /*
         log_error(__FILE__,__LINE__,"Invalid label!, missing colon ':' at the end of the label.\n");
         */
         return INVALID_RETURN;
     }
-    /*
-    else if(ignore_colon == true && (!isalpha(word[i]) && !isdigit(word[i]) && 
-    word[i] != UNDERSCORE && word[i] != COLON))
-    {
-        return INVALID_RETURN;
-    } 
-    */
+
     return VALID_RETURN;
 }
 
@@ -266,7 +260,7 @@ int is_register(const char* word)
     return INVALID_RETURN;
 }
 
-bool is_instruction(const char* word)
+int is_instruction(const char* word)
 {
     int i;
     static const char* instructions[MAX_INSTRUCTIONS] = 
@@ -275,13 +269,13 @@ bool is_instruction(const char* word)
     {   
         if(strcmp(word,instructions[i]) == 0)
         {
-            return true;
+            return VALID_RETURN;
         }   
     }
-    return false;
+    return INVALID_RETURN;
 }
 
-bool is_directive(const char* word)
+int is_directive(const char* word)
 {
     int i;
     static const char* directives[MAX_DIRECTIVES] = 
@@ -290,24 +284,24 @@ bool is_directive(const char* word)
     {   
         if(strcmp(word,directives[i]) == 0)
         {
-            return true;
+            return VALID_RETURN;
         }   
     }
-    return false;
+    return INVALID_RETURN;
 }
 
-bool is_line_empty(char* line) 
+int is_line_empty(char* line) 
 {
     int i = 0;
     while (line[i] != NULL_TERMINATOR) 
     { 
         if (!isspace((unsigned char)line[i])) 
         {
-            return false;
+            return INVALID_RETURN;
         }
         i++;
     }
-    return true;
+    return VALID_RETURN;
 }
 
 int is_valid_number(char* word)

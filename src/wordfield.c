@@ -147,7 +147,7 @@ wordfield* create_wordfield_by_opname(char* str, InstructionTable* instruction_t
     wf = init_wordfield();
     node = instruction_table_get(instruction_table,str);
     
-    if(node && is_instruction(str))
+    if(node && (is_instruction(str) == VALID_RETURN))
     {
         set_wordfield_op_funct(wf,node->op_code,node->funct);
         return wf;

@@ -1,11 +1,7 @@
 #ifndef COMMNET_H
 #define COMMNET_H
 
-/* This header defines basic constants, macros, and a simple 'bool' type for use across the project. */
-
-#define bool int
-#define true 1
-#define false 0
+/* This header defines basic macros for use across the project. */
 
 #define NEW_LINE '\n'
 #define DOUBLE_QUOTE '\"'

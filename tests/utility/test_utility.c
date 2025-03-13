@@ -132,32 +132,6 @@ void test_string_functions()
     {
         log_test("Test_my_strdup", TEST_FAIL, "String duplication failed.");
     }
-
-
-    /*
-    strcpy(temp1,"MAIN:");
-    remove_last_character(temp1);
-    if (strcmp(temp1, "MAIN") == 0)
-    {
-        log_test("Test_remove_last_character", TEST_PASS, "Removing string's last character correctly.");   
-    }
-    else
-    {
-        log_test("Test_remove_last_character", TEST_FAIL, "Removing string's last character failed.");
-    } 
-
-    strcpy(temp2,"r3,");
-    remove_last_character(temp2);
-    if (strcmp(temp2, "r3") == 0)
-    {
-        log_test("Test_remove_last_character", TEST_PASS, "Removing string's last character correctly.");
-        
-    }
-    else
-    {
-        log_test("Test_remove_last_character", TEST_FAIL, "Removing string's last character failed.");
-    } 
-    */
      
     remove_first_character(first_char_test1);
     if (strcmp(first_char_test1, "3562") == 0)
@@ -202,12 +176,12 @@ void test_instruction_functions()
 {
     log_out(__FILE__,__LINE__, "Starting Test - is_instruction function in utility.h\n");
 
-    if (is_instruction("mov"))
+    if (is_instruction("mov") == VALID_RETURN)
         log_test("Test_is_instruction_valid", TEST_PASS, "Recognized valid instruction.");
     else
         log_test("Test_is_instruction_valid", TEST_FAIL, "Failed to recognize instruction.");
 
-    if (!is_instruction("invalid_op"))
+    if (is_instruction("invalid_op") == INVALID_RETURN)
         log_test("Test_is_instruction_invalid", TEST_PASS, "Correctly rejected invalid instruction.");
     else
         log_test("Test_is_instruction_invalid", TEST_FAIL, "Incorrectly recognized invalid instruction.");
@@ -222,12 +196,12 @@ void test_directive_functions()
 {
     log_out(__FILE__,__LINE__, "Starting Test - is_directive function in utility.h\n");
 
-    if (is_directive(".data"))
+    if (is_directive(".data") == VALID_RETURN)
         log_test("Test_is_directive_valid", TEST_PASS, "Recognized valid directive.");
     else
         log_test("Test_is_directive_valid", TEST_FAIL, "Failed to recognize directive.");
 
-    if (!is_directive(".unknown"))
+    if (is_directive(".unknown") == INVALID_RETURN)
         log_test("Test_is_directive_invalid", TEST_PASS, "Correctly rejected invalid directive.");
     else
         log_test("Test_is_directive_invalid", TEST_FAIL, "Incorrectly recognized invalid directive.");

@@ -38,7 +38,7 @@ int parse_macros(FILE* fp, char* filepath, char* output_file, MacroTable* macro_
             add_error_entry(ErrorType_InvalidLineLength,filepath,line_count);
 
         /* skip line if empty or line is a comment */
-        if(line[0] == SEMICOLON || is_line_empty(line))
+        if(line[0] == SEMICOLON || (is_line_empty(line) == VALID_RETURN))
         {
             fprintf(new_fp,"%s",line);
             fputc(NEW_LINE,new_fp);
@@ -50,8 +50,8 @@ int parse_macros(FILE* fp, char* filepath, char* output_file, MacroTable* macro_
             if((position = read_word_from_line(line, word, position)) != INVALID_RETURN) /* read the line one word at a time */
             {
                 /* check if its a macro call, */
-                if(!is_instruction(word) && !is_directive(word) && 
-                    (is_register(word) == INVALID_RETURN) && (is_label(word,true) != INVALID_RETURN))
+                if((is_instruction(word) == INVALID_RETURN) && (is_directive(word) == INVALID_RETURN) && 
+                    (is_register(word) == INVALID_RETURN) && (is_label(word,1) != INVALID_RETURN))
                 {
                     /* if its not a register/instruction/directive/label - check if its a macro call */
                     const char* temp = macro_table_get(macro_table,word); /* try to get the macro */
@@ -223,12 +223,12 @@ int check_macro_name(const char* word, char* filepath, int* line_count)
         return INVALID_RETURN;
     }
 
-    if(is_instruction(word))
+    if(is_instruction(word) == VALID_RETURN)
     {
         add_error_entry(ErrorType_InvalidMacroName_Instruction,filepath,*line_count);
         return INVALID_RETURN;
     }
-    if(is_directive(word))
+    if(is_directive(word) == VALID_RETURN)
     {
         add_error_entry(ErrorType_InvalidMacroName_Directive,filepath,*line_count);
         return INVALID_RETURN;
