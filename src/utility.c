@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "logger.h"
+#include "error_manager.h"
 
 char* get_filename(char* file)
 {
@@ -171,85 +172,98 @@ char* int_to_hex(int number)
 }
 
 
-bool is_label(const char* word, int ignore_colon)
+int is_label(const char* word, int ignore_colon)
 {
     int length;
     int i = 0;
-    bool flag = true;
     if(word == NULL)
     {
         log_error(__FILE__,__LINE__,"Can't check label, word is null\n");
-        return false;
+        return INVALID_RETURN;
     }
     
     length = strlen(word);
     if((length + 1) > MAX_LABEL_LENGTH) /* + 1 for '\0' */
     {
+        /*
         log_error(__FILE__,__LINE__,"Invalid label!, too long, must be <= 31\n");
-        return false;
+        */
+        return INVALID_RETURN;
     }
 
     if(ignore_colon == true && length == 1)
     {
-        if(isalpha(word[0]))
+        if(isalpha(word[0]) && word[0] != UNDERSCORE)
         {
-            return true;   
+            return VALID_RETURN;   
         }
+        /*
         log_error(__FILE__,__LINE__,"Invalid label!, invalid first letter of label, must be uppercase/lowercase letter.\n");
-        return false;
+        */
+        return INVALID_RETURN;
     }
 
-    if (is_register(word))
+    if (is_register(word) != INVALID_RETURN)
     {
+        /*
         log_error(__FILE__,__LINE__,"Invalid label!, can't be a register!\n");
-        return false;
+        */
+        return INVALID_RETURN;
     }
 
-    if(!isalpha(word[0])) /* make sure first letter is legal */
+    if(!isalpha(word[0]) && word[0] != UNDERSCORE) /* make sure first letter is legal */
     {
+        /*
         log_error(__FILE__,__LINE__,"Invalid label!, invalid first letter of label, must be uppercase/lowercase letter.\n");
-        return false;
+        */
+        return INVALID_RETURN;
     }
     
     i++; /* skip first letter of label */
     /* check other letters not including last letter and null terminator */
-    for(; i < length-1 && flag != false; i++)
+    for(; i < length-1; i++)
     {
         if(!isalpha(word[i]) && !isdigit(word[i]) && word[i] != UNDERSCORE)
         {
-            log_error(__FILE__,__LINE__,"Invalid label!, must consist of uppercase/lowercase letters and/or numbers.\n");
-            return false;
+            /*
+            log_error(__FILE__,__LINE__,"Invalid label!, must consist of uppercase/lowercase letters and/or numbers/underscore.\n");
+            */
+            return INVALID_RETURN;
         } 
     }
     if(ignore_colon == false && word[i] != COLON)
     {
+        /*
         log_error(__FILE__,__LINE__,"Invalid label!, missing colon ':' at the end of the label.\n");
-        return false;
+        */
+        return INVALID_RETURN;
     }
-    else if(ignore_colon == true && (!isalpha(word[i]) && !isdigit(word[i]) && word[i] != UNDERSCORE))
+    /*
+    else if(ignore_colon == true && (!isalpha(word[i]) && !isdigit(word[i]) && 
+    word[i] != UNDERSCORE && word[i] != COLON))
     {
-        log_error(__FILE__,__LINE__,"Invalid label!, must consist of uppercase/lowercase letters and/or numbers.\n");
-        return false;
+        return INVALID_RETURN;
     } 
-    return true;
+    */
+    return VALID_RETURN;
 }
 
-bool is_register(const char* word)
+int is_register(const char* word)
 {
     int i;
     static char* registers[MAX_REGISTERS] = { "r0", "r1","r2", "r3", "r4", "r5", "r6", "r7"};
 
     if(word == NULL)
-        return false;
+        return INVALID_RETURN;
     
     for(i = 0; i < MAX_REGISTERS; i++)
     {   
         if(strcmp(word,registers[i]) == 0)
         {
-            return true;
+            return VALID_RETURN;
         }   
     }
-    return false;
+    return INVALID_RETURN;
 }
 
 bool is_instruction(const char* word)

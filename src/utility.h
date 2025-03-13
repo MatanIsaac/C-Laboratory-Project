@@ -85,17 +85,17 @@ char* int_to_hex(int number);
  * @brief Checks if a given word is a label.
  * optionally ignoring a trailing colon if @p ignore_colon is non-zero.
  * @param word         The word to check.
- * @param ignore_colon Whether to ignore a trailing colon (1 for yes, 0 for no).
+ * @param ignore_colon Whether to ignore a trailing colon (non-zero for yes, 0 for no).
  * @return `true` if it is recognized as a label, otherwise `false`.
  */
-bool is_label(const char* word, int ignore_colon);
+int is_label(const char* word, int ignore_colon);
 
 /**
  * @brief Determines if a given word represents a register.
  * @param word The word to check.
  * @return `true` if it is a register, otherwise `false`.
  */
-bool is_register(const char* word);
+int is_register(const char* word);
 
 /**
  * @brief Determines if a given word is a valid instruction.

@@ -47,8 +47,8 @@ int main(int argc,char* argv[])
             fclose(fp);           
             /* 
                 preprares first pass and executes it, 
-                if theres no errors, it continues to the 2nd pass     
-            */
+                and continues to the 2nd pass     
+                */
            prepare_first_pass(output_file,macro_table);
         }
         else

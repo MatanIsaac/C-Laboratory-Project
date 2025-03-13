@@ -15,14 +15,29 @@ static char* get_error_msg(ErrorType error_type)
     case ErrorType_InvalidLineLength:
         strcpy(error_msg,"ErrorType_InvalidLineLength: Assembler only accepts lines with length of 81 (including null terminator)");
         break;
+    case ErrorType_InvalidLabel_Name:
+        strcpy(error_msg,"ErrorType_InvalidLabel_Name: Invalid label name, must contain only uppercase/lowercase letters and/or numbers/underscore");
+        break;
+    case ErrorType_InvalidLabel_RelativeAddress:
+        strcpy(error_msg,"ErrorType_InvalidLabel_RelativeAddress: Missing '&' prefix before label for relative addressing, ensure that relative labels start with '&'");
+        break;
+    case ErrorType_InvalidLabel_EmptyLabel:
+        strcpy(error_msg,"ErrorType_InvalidLabel_EmptyLabel: Found an empty label, provide a valid label");
+        break;
+    case ErrorType_InvalidLabel_NameTooLong:
+        strcpy(error_msg,"ErrorType_InvalidLabel_NameTooLong: Assembler only accepts label name with length of 31 (including null terminator)");
+        break;
+    case ErrorType_InvalidLabel_MissingColon:
+        strcpy(error_msg,"ErrorType_InvalidLabel_MissingColon: A label must end with a colon. I.E: STR:, MAIN:, etc");
+        break;
     case ErrorType_InvalidRegister_ExceedingRegisterIndex:
         strcpy(error_msg,"ErrorType_InvalidRegister_ExceedingRegisterIndex: Register index out of range. The assembler only accepts register numbers from 0 to 7 (inclusive)");
         break;
-    case ErrorType_InvalidInstruction_Missing1stOperand:
-        strcpy(error_msg,"ErrorType_InvalidInstruction_Missing1stOperand: Missing 1st Operand for a 2 operands instruction");
+    case ErrorType_InvalidInstruction_MissingSrcOperand:
+        strcpy(error_msg,"ErrorType_InvalidInstruction_MissingSrcOperand: Missing source operand for an instruction");
         break;
-    case ErrorType_InvalidInstruction_Missing2ndOperand:
-        strcpy(error_msg,"ErrorType_InvalidInstruction_Missing2ndOperand: Missing 2nd Operand for a 2 operands instruction");
+    case ErrorType_InvalidInstruction_MissingTargetOperand:
+        strcpy(error_msg,"ErrorType_InvalidInstruction_MissingTargetOperand: Missing target operand for an instruction");
         break;
     case ErrorType_InvalidValue_MissingHashtag:
         strcpy(error_msg,"ErrorType_InvalidValue_MissingHashtag: Immediate values must start with '#'");

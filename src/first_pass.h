@@ -84,7 +84,8 @@ wordfield* get_char_wordfield(char* character);
  * @param position Current position in the line.
  * @return Non-zero on error, zero on success.
  */
-int handle_labels(LabelTable* label_table, unsigned int TC, char* line, char* word, int position);
+int handle_labels(LabelTable* label_table, unsigned int TC, char* line, char* word, int position,
+    const char* filepath, int current_line);
 
 /**
  * @brief Handles an instruction line.

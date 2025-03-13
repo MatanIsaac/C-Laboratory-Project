@@ -51,19 +51,13 @@ int parse_macros(FILE* fp, char* filepath, char* output_file, MacroTable* macro_
             {
                 /* check if its a macro call, */
                 if(!is_instruction(word) && !is_directive(word) && 
-                    !is_register(word) && !is_label(word,false))
+                    (is_register(word) == INVALID_RETURN) && (is_label(word,true) != INVALID_RETURN))
                 {
                     /* if its not a register/instruction/directive/label - check if its a macro call */
                     const char* temp = macro_table_get(macro_table,word); /* try to get the macro */
                     if(temp != NULL) 
                     {
                         fprintf(new_fp,"%s",temp);    
-                        continue;
-                    }
-                    else /* error: temp == NULL no macro found in macro table */
-                    {
-                        flag = INVALID_RETURN;
-                        add_error_entry(ErrorType_InvalidMacro_NotFound,filepath,line_count);
                         continue;
                     }
                 }
@@ -239,7 +233,7 @@ int check_macro_name(const char* word, char* filepath, int* line_count)
         add_error_entry(ErrorType_InvalidMacroName_Directive,filepath,*line_count);
         return INVALID_RETURN;
     }
-    if(is_register(word))
+    if(is_register(word) != INVALID_RETURN)
     {
         add_error_entry(ErrorType_InvalidMacroName_Register,filepath,*line_count);
         return INVALID_RETURN;
