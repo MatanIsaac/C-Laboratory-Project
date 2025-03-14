@@ -51,7 +51,7 @@ int parse_macros(FILE* fp, char* filepath, char* output_file, MacroTable* macro_
             {
                 /* check if its a macro call, */
                 if((is_instruction(word) == INVALID_RETURN) && (is_directive(word) == INVALID_RETURN) && 
-                    (is_register(word) == INVALID_RETURN) && (is_label(word,1) != INVALID_RETURN))
+                    (is_register(word) == INVALID_RETURN))
                 {
                     /* if its not a register/instruction/directive/label - check if its a macro call */
                     const char* temp = macro_table_get(macro_table,word); /* try to get the macro */

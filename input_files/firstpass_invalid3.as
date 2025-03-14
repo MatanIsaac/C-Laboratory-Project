@@ -4,7 +4,8 @@ NAME:
             cmp K  #-7
             bne &END
             mcroend
-            lea STR, r6
+            lea STR, 
+            r6
             dec
             mov r3, K
             sub r1, r4

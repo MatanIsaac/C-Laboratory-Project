@@ -7,7 +7,11 @@
 typedef enum
 {
     ErrorType_InvalidLineLength,
+    ErrorType_InvalidInstruction_WrongSrcOperand,
+    ErrorType_InvalidInstruction_WrongTargetOperand,
+    ErrorType_UnrecognizedToken,
     ErrorType_InvalidLabel_Name,
+    ErrorType_InvalidLabel_MissingSpace,
     ErrorType_InvalidLabel_RelativeAddress,
     ErrorType_InvalidLabel_EmptyLabel,
     ErrorType_InvalidLabel_NameTooLong,
@@ -27,7 +31,7 @@ typedef enum
     ErrorType_InvalidMacroName_Directive,
     ErrorType_InvalidMacroName_Register,
     ErrorType_ExtraneousText,
-    ErrorType_ExtraneousText_Operand,
+    ErrorType_ExtraneousText_Instruction,
     ErrorType_ExtraneousText_Macro,
     ErrorType_MemoryAllocationFailure,
     ErrorType_OpenFileFailure

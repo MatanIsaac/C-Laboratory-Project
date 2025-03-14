@@ -15,8 +15,20 @@ static char* get_error_msg(ErrorType error_type)
     case ErrorType_InvalidLineLength:
         strcpy(error_msg,"ErrorType_InvalidLineLength: Assembler only accepts lines with length of 81 (including null terminator)");
         break;
+    case ErrorType_InvalidInstruction_WrongTargetOperand:
+        strcpy(error_msg,"ErrorType_InvalidInstruction_WrongTargetOperand: The target operand is invalid or not allowed for this instruction");
+        break;
+    case ErrorType_InvalidInstruction_WrongSrcOperand:
+        strcpy(error_msg,"ErrorType_InvalidInstruction_WrongSrcOperand: The source operand is invalid or not allowed for this instruction");
+        break;
+    case ErrorType_UnrecognizedToken:
+        strcpy(error_msg,"ErrorType_UnrecognizedToken:  Unrecognized token, Expected an instruction, directive, or label.");
+        break;
     case ErrorType_InvalidLabel_Name:
         strcpy(error_msg,"ErrorType_InvalidLabel_Name: Invalid label name, must contain only uppercase/lowercase letters and/or numbers/underscore");
+        break;
+    case ErrorType_InvalidLabel_MissingSpace:
+        strcpy(error_msg,"ErrorType_InvalidLabel_MissingSpace: Label definition is invalid—must include at least one space immediately after ':'");
         break;
     case ErrorType_InvalidLabel_RelativeAddress:
         strcpy(error_msg,"ErrorType_InvalidLabel_RelativeAddress: Missing '&' prefix before label for relative addressing, ensure that relative labels start with '&'");
@@ -75,8 +87,8 @@ static char* get_error_msg(ErrorType error_type)
     case ErrorType_ExtraneousText:
         strcpy(error_msg,"ErrorType_ExtraneousText: Found Extraneous Text");
         break;
-    case ErrorType_ExtraneousText_Operand:
-        strcpy(error_msg,"ErrorType_ExtraneousText: Found Extraneous Text after an operand");
+    case ErrorType_ExtraneousText_Instruction:
+        strcpy(error_msg,"ErrorType_ExtraneousText: Found Extraneous Text after an instruction");
         break;
     case ErrorType_ExtraneousText_Macro:
         strcpy(error_msg,"ErrorType_ExtraneousText_Macro: Found Extraneous Text After Macro Definition");

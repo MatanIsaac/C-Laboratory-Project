@@ -172,7 +172,7 @@ char* int_to_hex(int number)
 }
 
 
-int is_label(const char* word, int ignore_colon)
+int is_label(const char* word)
 {
     int length;
     int i = 0;
@@ -191,7 +191,7 @@ int is_label(const char* word, int ignore_colon)
         return INVALID_RETURN;
     }
 
-    if(ignore_colon != 0 && length == 1)
+    if(length == 1)
     {
         if(isalpha(word[0]) && word[0] != UNDERSCORE)
         {
@@ -230,13 +230,6 @@ int is_label(const char* word, int ignore_colon)
             */
             return INVALID_RETURN;
         } 
-    }
-    if(ignore_colon == 0 && word[i] != COLON)
-    {
-        /*
-        log_error(__FILE__,__LINE__,"Invalid label!, missing colon ':' at the end of the label.\n");
-        */
-        return INVALID_RETURN;
     }
 
     return VALID_RETURN;

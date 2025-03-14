@@ -94,17 +94,15 @@ int execute_first_pass(FILE* fp, LabelTable* label_table, InstructionTable* inst
             {
                 flag = handle_directive(binary_table,label_table,&TC,&DC,line,word,&position);
             }
+            else if(is_label(word) != INVALID_RETURN)
+            {
+                flag = handle_labels(label_table,TC,line,word,position,filepath,current_line);
+            }      
             else
             {
-                flag = is_label(word,0);
-                if(flag == INVALID_RETURN)
-                {
-                    add_error_entry(ErrorType_InvalidLabel_MissingColon,filepath,current_line);
-                }
-                else
-                    flag = handle_labels(label_table,TC,line,word,position,filepath,current_line);
+                add_error_entry(ErrorType_UnrecognizedToken,filepath,current_line);    
+                break;
             }
-            
         }
     }
 
@@ -183,7 +181,7 @@ OperandType get_operand_type(char* str)
     {
         return OPERAND_TYPE_REGISTER; /* addressing mode: 3 */
     }
-    else if(is_label(str,1) != INVALID_RETURN)
+    else if(is_label(str) != INVALID_RETURN)
     {
         return OPERAND_TYPE_DIRECT;
     }
@@ -247,6 +245,13 @@ int handle_labels(LabelTable* label_table, unsigned int TC, char* line, char* wo
         return INVALID_RETURN;
     }
     
+    if(!isspace(line[temp_position+1]))
+    {
+        free(label_name);
+        add_error_entry(ErrorType_InvalidLabel_MissingSpace,filepath,current_line);
+        return INVALID_RETURN;
+    }
+
     strcpy(label_name,word);
     remove_last_character(label_name);
     
@@ -305,6 +310,13 @@ int handle_instruction(BinaryTable* binary_table, LabelTable* label_table,Instru
         set_binary_node_wordfield(binary_table,*TC,wf);
         free(wf);
         (*TC)++;
+
+        /* try to get the next word in line, if we recieve a valid position in line, extraneous text found */
+        if((*position = read_word_from_line(line, word, *position)) != INVALID_RETURN)
+        {
+            add_error_entry(ErrorType_ExtraneousText_Instruction,filepath,current_line);
+            return INVALID_RETURN;
+        } 
     }
     else if (operands_count == ONE_OPERAND_INSTRUCTION)
     {
@@ -433,7 +445,7 @@ int handle_directive(BinaryTable* binary_table, LabelTable* label_table,unsigned
         break;
     case DIRECTIVE_TYPE_EXTERN:
         *position = read_word_from_line(line, word, *position);
-        is_label(word,1);        
+        is_label(word);        
         if(label_table_search(label_table,word) != INVALID_RETURN)
         {
             log_error(__FILE__,__LINE__,"Label Redefinition - the label [%s] already exists in the label tabel.\n",word);
@@ -556,11 +568,19 @@ void handle_register_operand(BinaryTable* binary_table, char* line, char* word, 
 int handle_single_operand_instruction(BinaryTable* binary_table,char* line, char* word,int* position, unsigned int* TC,
     const char* filepath, int current_line,wordfield* wf_instruction)
 {
-    OperandType operand1_type;
+    char* single_operand;
+    OperandType single_operand_type;
     int flag            = 0;
     wordfield* new_wf   = init_wordfield();
     *position           = read_word_from_line(line, word, *position);
-    operand1_type       = get_operand_type(word);
+    single_operand_type = get_operand_type(word);
+
+    if(check_target_operand(wf_instruction->opcode,single_operand_type) == INVALID_RETURN)
+    {
+        free(new_wf);
+        add_error_entry(ErrorType_InvalidInstruction_WrongTargetOperand,filepath,current_line);
+        return INVALID_RETURN;
+    }
 
     if(*position == INVALID_RETURN)
     {
@@ -568,19 +588,27 @@ int handle_single_operand_instruction(BinaryTable* binary_table,char* line, char
         add_error_entry(ErrorType_InvalidInstruction_MissingTargetOperand,filepath,current_line);
         return INVALID_RETURN;
     }
+    single_operand = my_strdup(word);
+    /* try to get the next word in line, if we recieve a valid position in line, extraneous text found */
+    if((*position = read_word_from_line(line, word, *position)) != INVALID_RETURN)
+    {
+        free(new_wf);
+        free(single_operand);
+        add_error_entry(ErrorType_ExtraneousText_Instruction,filepath,current_line);
+        return INVALID_RETURN;
+    } 
 
-    switch (operand1_type)
+    switch (single_operand_type)
     {
     case OPERAND_TYPE_IMMEDIATE:
-        handle_immediate_operand(binary_table,line,word,TC,filepath,current_line,wf_instruction,new_wf);
+        handle_immediate_operand(binary_table,line,single_operand,TC,filepath,current_line,wf_instruction,new_wf);
         if(wf_instruction == NULL)
             free(wf_instruction);        
         if(new_wf == NULL)
             free(new_wf);
         break;
     case OPERAND_TYPE_DIRECT:
-        /* checks if its a valid label and will print errors accordingly */
-        flag = is_label(word,1);
+        flag = is_label(single_operand);
         if(flag == INVALID_RETURN)
         {
             add_error_entry(ErrorType_InvalidLabel_Name,filepath,current_line);
@@ -629,7 +657,7 @@ int handle_single_operand_instruction(BinaryTable* binary_table,char* line, char
         */
         break;
     case OPERAND_TYPE_REGISTER:
-        handle_register_operand(binary_table,line, word,OPERAND_TYPE_SINGLE,TC,filepath,current_line,wf_instruction);
+        handle_register_operand(binary_table,line,single_operand,OPERAND_TYPE_SINGLE,TC,filepath,current_line,wf_instruction);
         (*TC)++;
         
         /* no use for an extra wordfield if 1st operand is a register */
@@ -655,39 +683,36 @@ int handle_double_operand_instruction(BinaryTable* binary_table,char* line, char
     wordfield* new_wf2  = NULL;
     int flag            = 0;
     
-    *position = read_word_from_line(line, word, *position); /* get operand1 */
-    if(word[strlen(word)-1] == COMMA) /* if last character of src operand is a comma remove it */
-    {
-        remove_last_character(word);  
-        operand1 = my_strdup(word);
-        *position = read_word_from_line(line, word, *position);
-        if(*position == INVALID_RETURN) 
-        {
-            flag = INVALID_RETURN;
-            add_error_entry(ErrorType_InvalidInstruction_MissingTargetOperand,filepath,current_line);
-            if(operand1)
-                free(operand1);
-            return flag;
-        }
-        operand2 = my_strdup(word);
-    } 
-    else /* otherwise check for comma to see if missing */
-    {
-        operand1 = my_strdup(word);
-        *position = read_word_from_line(line, word, *position);
-        if(COMMA != word[0])
-        {
-            log_error(__FILE__,__LINE__,"Missing comma after first operand!, found at line: %d\n",current_line);   
-            flag = INVALID_RETURN;
-            add_error_entry(ErrorType_InvalidInstruction_MissingComma,filepath,current_line);   
-            /* *position = read_word_from_line(line, word, *position); */
-        }
-        if(word[0] == NULL_TERMINATOR || strlen(word) == 1) 
-            *position = read_word_from_line(line, word, *position);
-        operand2 = my_strdup(word);
-    }  
+
+    get_double_operands(line,word,position,filepath,current_line,&operand1,&operand2);
     
-    operand1_type   = get_operand_type(operand1);
+    /* try to get the next word in line, in order to find extraneous text */
+    if((*position = read_word_from_line(line, word, *position)) != INVALID_RETURN)
+    {
+        free(operand1);
+        free(operand2);
+        add_error_entry(ErrorType_ExtraneousText_Instruction,filepath,current_line);
+        return INVALID_RETURN;
+    } 
+
+    operand1_type = get_operand_type(operand1);
+    operand2_type = get_operand_type(operand2);
+    
+    if(check_src_operand(wf_instruction->opcode,operand1_type) == INVALID_RETURN)
+    {
+        free(operand1);
+        free(operand2);
+        add_error_entry(ErrorType_InvalidInstruction_WrongSrcOperand,filepath,current_line);
+        return INVALID_RETURN;
+    }
+    if(check_target_operand(wf_instruction->opcode,operand2_type) == INVALID_RETURN)
+    {
+        free(operand1);
+        free(operand2);
+        add_error_entry(ErrorType_InvalidInstruction_WrongTargetOperand,filepath,current_line);
+        return INVALID_RETURN;
+    }
+
     switch (operand1_type)
     {
     case OPERAND_TYPE_IMMEDIATE: 
@@ -701,7 +726,7 @@ int handle_double_operand_instruction(BinaryTable* binary_table,char* line, char
             free(new_wf1);
         break;
     case OPERAND_TYPE_DIRECT:
-        flag = is_label(operand1,1);
+        flag = is_label(operand1);
         if(flag == INVALID_RETURN)
         {
             add_error_entry(ErrorType_InvalidLabel_Name,filepath,current_line);
@@ -742,7 +767,7 @@ int handle_double_operand_instruction(BinaryTable* binary_table,char* line, char
         break;
     }
 
-    operand2_type = get_operand_type(operand2);                    
+    
     switch (operand2_type)
     {
     case OPERAND_TYPE_IMMEDIATE: /* only in the special case of an immediate value if the instruction is 'cmp' */
@@ -755,7 +780,7 @@ int handle_double_operand_instruction(BinaryTable* binary_table,char* line, char
             free(new_wf2);
         break;
     case OPERAND_TYPE_DIRECT:
-        flag = is_label(operand2,1);
+        flag = is_label(operand2);
         if(flag == INVALID_RETURN)
         {
             add_error_entry(ErrorType_InvalidLabel_Name,filepath,current_line);
@@ -803,4 +828,126 @@ int handle_double_operand_instruction(BinaryTable* binary_table,char* line, char
         break;
     }
     return flag;
+}
+
+void get_double_operands(char* line, char* word, int* position, const char* filepath, int current_line,
+    char** operand1, char** operand2)
+{
+    *position = read_word_from_line(line, word, *position); /* get operand1 */
+    if(word[strlen(word)-1] == COMMA) /* if last character of src operand is a comma remove it */
+    {
+        remove_last_character(word);  
+        *operand1 = my_strdup(word);
+        *position = read_word_from_line(line, word, *position);
+        if(*position == INVALID_RETURN) 
+        {
+            add_error_entry(ErrorType_InvalidInstruction_MissingTargetOperand,filepath,current_line);
+            if(*operand1)
+                free(*operand1);
+            return;
+        }
+        *operand2 = my_strdup(word);
+    } 
+    else /* otherwise check for comma to see if missing */
+    {
+        *operand1 = my_strdup(word);
+        *position = read_word_from_line(line, word, *position);
+        if(COMMA != word[0])
+        {
+            add_error_entry(ErrorType_InvalidInstruction_MissingComma,filepath,current_line);      
+            return;
+        }
+        if(word[0] == NULL_TERMINATOR || strlen(word) == 1) 
+        {
+            *position = read_word_from_line(line, word, *position);
+        }    
+        else if(word[0] == COMMA)
+            remove_first_character(word);
+        *operand2 = my_strdup(word);
+    }  
+}
+
+static int valid_src[16][4] = 
+{
+    /* 
+        NOTE: 
+        some entried are unused but most be defined.
+        the order is as in the mmn's table of valid addressing modes:
+        { IMMEDIATE, DIRECT, RELATIVE, REGISTER }     
+    */
+
+    { 1, 1, 0, 1 }, /* opcode 0: mov */    
+    { 1, 1, 0, 1 }, /* opcode 1: cmp */
+    { 1, 1, 0, 1 }, /* opcode 2: add/sub */
+    { 0, 0, 0, 0 }, /* opcode 3 (UNUSED) */
+    { 0, 1, 0, 0 }, /* opcode 4: lea */
+    { 0, 0, 0, 0 }, /* opcode 5: clr/not/inc/dec */
+    { 0, 0, 0, 0 }, /* opcode 6 (UNUSED) */
+    { 0, 0, 0, 0 }, /* opcode 7 (UNUSED) */
+    { 0, 0, 0, 0 }, /* opcode 8 (UNUSED) */
+    { 0, 0, 0, 0 }, /* opcode 9: jmp/bne/jsr */
+    { 0, 0, 0, 0 }, /* opcode 10 (UNUSED) */
+    { 0, 0, 0, 0 }, /* opcode 11 (UNUSED) */
+    { 0, 0, 0, 0 }, /* opcode 12: red */
+    { 0, 0, 0, 0 }, /* opcode 13: prn */
+    { 0, 0, 0, 0 }, /* opcode 14: rts */
+    { 0, 0, 0, 0 }, /* opcode 15: stop */
+};
+
+static int valid_dest[16][4] =
+{
+    /* 
+        NOTE: 
+        some entried are unused but most be defined.
+        the order is as in the mmn's table of valid addressing modes:
+        { IMMEDIATE, DIRECT, RELATIVE, REGISTER }     
+    */
+
+    { 0, 1, 0, 1 }, /* opcode 0: mov */
+    { 1, 1, 0, 1 }, /* opcode 1: cmp */
+    { 0, 1, 0, 1 }, /* opcode 2: add/sub */
+    { 0, 0, 0, 0 }, /* opcode 3 (UNUSED) */
+    { 0, 1, 0, 1 }, /* opcode 4: lea */
+    { 0, 1, 0, 1 }, /* opcode 5: clr/not/inc/dec */
+    { 0, 0, 0, 0 }, /* opcode 6 (UNUSED) */
+    { 0, 0, 0, 0 }, /* opcode 7 (UNUSED) */
+    { 0, 0, 0, 0 }, /* opcode 8 (UNUSED) */
+    { 0, 1, 1, 0 }, /* opcode 9: jmp/bne/jsr */
+    { 0, 0, 0, 0 }, /* opcode 10 (UNUSED) */
+    { 0, 0, 0, 0 }, /* opcode 11 (UNUSED) */
+    { 0, 1, 0, 1 }, /* opcode 12: red */
+    { 1, 1, 0, 1 }, /* opcode 13: prn */
+    { 0, 0, 0, 0 }, /* opcode 14: rts */
+    { 0, 0, 0, 0 }  /* opcode 15: stop */
+
+};
+
+int check_src_operand(int opcode, OperandType operand_type) 
+{
+    int flag = -1;
+    if (opcode < 0 || opcode > 15) 
+        return INVALID_RETURN;
+    if (operand_type < 0 || operand_type > 3) 
+        return INVALID_RETURN;
+
+    flag = valid_src[opcode][operand_type];
+    if(flag == 1)
+        return VALID_RETURN;
+    
+    return INVALID_RETURN;
+}
+
+int check_target_operand(int opcode, OperandType operand_type) 
+{
+    int flag = -1;
+    if (opcode < 0 || opcode > 15) 
+        return INVALID_RETURN;
+    if (operand_type < 0 || operand_type > 3) 
+        return INVALID_RETURN;
+
+    flag = valid_dest[opcode][operand_type];
+    if(flag == 1)
+        return VALID_RETURN;
+    
+    return INVALID_RETURN;
 }

@@ -1,11 +1,11 @@
-MAIN:       add r3   LIST 
+MAIN:add r3 ,  LIST 
 LOOP:       prn #16777216
             mov #21000100 , r6 
             mcro a_mc
             cmp K , #-6
             bne &END
             mcroend
-            lea STR ,r6
+            lea STR r6
             inc r6
             prn 64
             mov r3, K

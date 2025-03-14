@@ -15,10 +15,10 @@ typedef enum
     OPERAND_TYPE_SINGLE = -2, /* for single operands instructions like inc r6, prn r2, etc.. */
     OPERAND_TYPE_FIRST = -1, /* we are "operating" on the first operand out of 2 in total for: mov, cmp, etc.. */
     /* the types below represent the type of the operands */
-    OPERAND_TYPE_IMMEDIATE,
-    OPERAND_TYPE_DIRECT,
-    OPERAND_TYPE_RELATIVE,
-    OPERAND_TYPE_REGISTER
+    OPERAND_TYPE_IMMEDIATE = 0,
+    OPERAND_TYPE_DIRECT = 1,
+    OPERAND_TYPE_RELATIVE = 2,
+    OPERAND_TYPE_REGISTER = 3
 } OperandType;
 
 /** @brief Types of directives. */
@@ -29,6 +29,8 @@ typedef enum
     DIRECTIVE_TYPE_EXTERN,
     DIRECTIVE_TYPE_ENTRY
 } DirectiveType;
+
+
 
 /**
  * @brief Prepares data for the first pass.
@@ -120,10 +122,10 @@ int check_immediate_value(char* operand, const char* filepath, int current_line)
 
 
 void handle_immediate_operand(BinaryTable* binary_table,char* line, char* word,unsigned int* TC,
-                            const char* filepath, int current_line,wordfield* wf_instruction,wordfield* wf_immediate_value);
+    const char* filepath, int current_line,wordfield* wf_instruction,wordfield* wf_immediate_value);
 
-void handle_register_operand(BinaryTable* binary_table, char* line, char* word, OperandType operand1_type,unsigned int* TC,
-    const char* filepath, int current_line,wordfield* wf_instruction);
+void handle_register_operand(BinaryTable* binary_table, char* line, char* word, OperandType operand1_type,
+    unsigned int* TC,const char* filepath, int current_line,wordfield* wf_instruction);
 
 int handle_single_operand_instruction(BinaryTable* binary_table,char* line, char* word,int* position, unsigned int* TC,
     const char* filepath, int current_line,wordfield* wf_instruction);
@@ -131,4 +133,10 @@ int handle_single_operand_instruction(BinaryTable* binary_table,char* line, char
 int handle_double_operand_instruction(BinaryTable* binary_table,char* line, char* word,int* position, unsigned int* TC,
     const char* filepath, int current_line,wordfield* wf_instruction);
 
+/* NOTE: we use a double pointer in order to avoid uninitialized use of char* */
+void get_double_operands(char* line, char* word, int* position, const char* filepath, int current_line,
+    char** operand1, char** operand2);
+
+int check_src_operand(int opcode,OperandType operand_type);
+int check_target_operand(int opcode,OperandType operand_type);
 #endif

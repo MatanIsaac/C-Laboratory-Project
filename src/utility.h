@@ -85,10 +85,9 @@ char* int_to_hex(int number);
  * @brief Checks if a given word is a label.
  * optionally ignoring a trailing colon if @p ignore_colon is non-zero.
  * @param word         The word to check.
- * @param ignore_colon Whether to ignore a trailing colon (non-zero for yes, 0 for no).
  * @return `VALID_RETURN` if it is recognized as a label, otherwise `INVALID_RETURN`.
  */
-int is_label(const char* word, int ignore_colon);
+int is_label(const char* word);
 
 /**
  * @brief Determines if a given word represents a register.
