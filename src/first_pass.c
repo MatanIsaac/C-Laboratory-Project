@@ -4,6 +4,7 @@
 #include "utility.h"
 #include "logger.h"
 #include "error_manager.h"
+#include "second_pass.h"
 #include <ctype.h>
 
 void prepare_first_pass(const char* filepath, MacroTable* macro_table)
@@ -88,7 +89,7 @@ int execute_first_pass(FILE* fp, LabelTable* label_table, InstructionTable* inst
         {
             if(is_instruction(word) != INVALID_RETURN)
             {
-                flag = handle_instruction(binary_table,label_table,instruction_table,&TC, current_line,line,word,&position,filepath);
+                flag = handle_instruction(binary_table,instruction_table,&TC, current_line,line,word,&position,filepath);
             }
             else if(is_directive(word) != INVALID_RETURN)
             {
@@ -117,10 +118,8 @@ int execute_first_pass(FILE* fp, LabelTable* label_table, InstructionTable* inst
     binary_table_print(binary_table);
     printf("\n\n");
     label_table_print(label_table);
-    label_table_destroy(label_table);
     free(word);
     free(line);
-    binary_table_free(binary_table);
 
     log_out(__FILE__,__LINE__,"TC: %u\t DC: %u\n",TC,DC);
     log_out(__FILE__,__LINE__,"ICF: %u\t DCF: %u\n",ICF,DCF);
@@ -134,6 +133,8 @@ int execute_first_pass(FILE* fp, LabelTable* label_table, InstructionTable* inst
     {
         log_out(__FILE__,__LINE__,"\n\nFIRST-PASS Alright Alright Alright!\n\n");
     }
+
+    prepare_second_pass(filepath,binary_table,label_table,ICF,DCF);
 
     return flag;
 }
@@ -318,7 +319,7 @@ int handle_labels(LabelTable* label_table, unsigned int TC, char* line, char* wo
     return flag;
 }
 
-int handle_instruction(BinaryTable* binary_table, LabelTable* label_table,InstructionTable* instruction_table, 
+int handle_instruction(BinaryTable* binary_table,InstructionTable* instruction_table, 
     unsigned int* TC, unsigned int current_line, char* line, char* word, int* position,const char* filepath)
 {
     int flag                = 0;
@@ -333,7 +334,7 @@ int handle_instruction(BinaryTable* binary_table, LabelTable* label_table,Instru
     }
     else if(operands_count == NO_OPERANDS_INSTRUCTION)
     {
-        binary_node_add(binary_table,*TC,line);
+        binary_node_add(binary_table,*TC,line,NULL); /* no operands, no need for the unresolved label */
         set_binary_node_wordfield(binary_table,*TC,wf);
         free(wf);
         (*TC)++;
@@ -381,8 +382,9 @@ int handle_directive(BinaryTable* binary_table, LabelTable* label_table, unsigne
         label_table_add(label_table,my_strdup(word),0,LABELTYPE_EXTERN);
         break;
     case DIRECTIVE_TYPE_ENTRY:
-        flag = check_directive_label(label_table,line,word,position,filepath,current_line);
         /* NOTE: Entry directive is handled in the 2nd-Pass. */
+        /* flag = check_directive_label(label_table,line,word,position,filepath,current_line);*/
+        flag = INVALID_RETURN; /* in order to 'skip' the whole line, we set it to invalid */
         break;
     default:
         break;
@@ -422,7 +424,7 @@ void handle_immediate_operand(BinaryTable* binary_table,char* line, char* word,u
     
     if(wf_instruction != NULL)
     {
-        binary_node_add(binary_table,*TC,line);
+        binary_node_add(binary_table,*TC,line,NULL);
         set_binary_node_wordfield(binary_table,*TC,wf_instruction);
         (*TC)++;
     }
@@ -430,7 +432,7 @@ void handle_immediate_operand(BinaryTable* binary_table,char* line, char* word,u
     if(wf_immediate_value != NULL)
     {
         set_wordfield_are_num(wf_immediate_value,num,ARE_ABSOLUTE); 
-        binary_node_add(binary_table,*TC,"Immediate value");
+        binary_node_add(binary_table,*TC,"Immediate value",NULL);
         set_binary_node_wordfield(binary_table,*TC,wf_immediate_value);
         (*TC)++;
     }
@@ -459,7 +461,7 @@ void handle_register_operand(BinaryTable* binary_table, char* line, char* word, 
     if(operand1_type == OPERAND_TYPE_SINGLE)
     {
         set_wordfield_dest(wf_instruction,OPERAND_TYPE_REGISTER,num);
-        binary_node_add(binary_table,*TC,line);
+        binary_node_add(binary_table,*TC,line,NULL);
         set_binary_node_wordfield(binary_table,*TC,wf_instruction);
         return;
     }
@@ -468,7 +470,7 @@ void handle_register_operand(BinaryTable* binary_table, char* line, char* word, 
     {
         /* we have oeprand1_type as -1 - we are in the first operand of 2 in total */
         set_wordfield_src(wf_instruction,OPERAND_TYPE_REGISTER,num);
-        binary_node_add(binary_table,*TC,line);
+        binary_node_add(binary_table,*TC,line,NULL);
         set_binary_node_wordfield(binary_table,*TC,wf_instruction);
         return;
     }
@@ -538,11 +540,11 @@ int handle_single_operand_instruction(BinaryTable* binary_table,char* line, char
             add_error_entry(ErrorType_InvalidLabel_Name,filepath,current_line);
         }
         set_wordfield_dest(wf_instruction,OPERAND_TYPE_DIRECT,0);
-        binary_node_add(binary_table,*TC,line);
+        binary_node_add(binary_table,*TC,line,NULL);
         set_binary_node_wordfield(binary_table,*TC,wf_instruction);
         free(wf_instruction);
         (*TC)++;
-        binary_node_add(binary_table,*TC,"Address of Label");
+        binary_node_add(binary_table,*TC,"Address of Label",single_operand);
         set_binary_node_wordfield(binary_table,*TC,new_wf);
         free(new_wf);
         (*TC)++;
@@ -555,11 +557,11 @@ int handle_single_operand_instruction(BinaryTable* binary_table,char* line, char
         */
 
         set_wordfield_dest(wf_instruction,OPERAND_TYPE_RELATIVE,0);
-        binary_node_add(binary_table,*TC,line);
+        binary_node_add(binary_table,*TC,line,NULL);
         set_binary_node_wordfield(binary_table,*TC,wf_instruction);
         free(wf_instruction);
         (*TC)++;
-        binary_node_add(binary_table,*TC,"Distance to Label");
+        binary_node_add(binary_table,*TC,"Distance to Label",single_operand);
         set_binary_node_wordfield(binary_table,*TC,new_wf);
         free(new_wf);
         (*TC)++;
@@ -656,11 +658,11 @@ int handle_double_operand_instruction(BinaryTable* binary_table,char* line, char
             add_error_entry(ErrorType_InvalidLabel_Name,filepath,current_line);
         }        
         set_wordfield_src(wf_instruction,OPERAND_TYPE_DIRECT,0);
-        binary_node_add(binary_table,*TC,line);
+        binary_node_add(binary_table,*TC,line,NULL);
         set_binary_node_wordfield(binary_table,*TC,wf_instruction);
         (*TC)++;
         new_wf1 = init_wordfield();
-        binary_node_add(binary_table,*TC,"Address of Label");
+        binary_node_add(binary_table,*TC,"Address of Label",operand1);
         set_binary_node_wordfield(binary_table,*TC,new_wf1);
         free(new_wf1);
         (*TC)++;
@@ -716,7 +718,7 @@ int handle_double_operand_instruction(BinaryTable* binary_table,char* line, char
             set_binary_node_wordfield(binary_table,*TC-2,wf_instruction);
 
         new_wf2 = init_wordfield();
-        binary_node_add(binary_table,*TC,"Address of Label");
+        binary_node_add(binary_table,*TC,"Address of Label",operand2);
         set_binary_node_wordfield(binary_table,*TC,new_wf2);
         if(wf_instruction == NULL)
             free(wf_instruction);        
@@ -751,6 +753,10 @@ int handle_double_operand_instruction(BinaryTable* binary_table,char* line, char
         free(wf_instruction);
         break;
     }
+
+    if(new_wf2)
+        free(new_wf2);
+
     return flag;
 }
 
@@ -891,7 +897,7 @@ int handle_data_directive(BinaryTable* binary_table,unsigned int* TC, unsigned i
         set_wordfield_by_num(&num_wf,(unsigned int)atoi(word));
         if(numbers_count == 0)
         {
-            binary_node_add(binary_table,*TC,line);
+            binary_node_add(binary_table,*TC,line, NULL);
             set_binary_node_wordfield(binary_table,*TC,&num_wf);
             numbers_count++;
             (*TC)++;
@@ -899,7 +905,7 @@ int handle_data_directive(BinaryTable* binary_table,unsigned int* TC, unsigned i
         }
         
         strcat(final_str, word);
-        binary_node_add(binary_table,*TC, final_str);
+        binary_node_add(binary_table,*TC, final_str, NULL);
         set_binary_node_wordfield(binary_table,*TC,&num_wf);
         (*TC)++;
         numbers_count++;
@@ -914,7 +920,7 @@ int handle_data_directive(BinaryTable* binary_table,unsigned int* TC, unsigned i
     if(numbers_count == 0) /* single number I.E: .data 100 */
     {
         set_wordfield_by_num(last_wf,(unsigned int)atoi(word));
-        binary_node_add(binary_table,*TC,line);
+        binary_node_add(binary_table,*TC,line, NULL);
         set_binary_node_wordfield(binary_table,*TC,last_wf);
         if(last_wf)
             free(last_wf);
@@ -925,7 +931,7 @@ int handle_data_directive(BinaryTable* binary_table,unsigned int* TC, unsigned i
     }
     set_wordfield_by_num(last_wf,(unsigned int)atoi(word));
     strcat(last_num_str, word);
-    binary_node_add(binary_table,*TC, last_num_str);
+    binary_node_add(binary_table,*TC, last_num_str, NULL);
     set_binary_node_wordfield(binary_table,*TC,last_wf);
     if(last_wf)
         free(last_wf);
@@ -982,19 +988,19 @@ int handle_string_directive(BinaryTable* binary_table, unsigned int* TC, unsigne
         
         if(char_count == 0)
         {
-            binary_node_add(binary_table,*TC,line);
+            binary_node_add(binary_table,*TC,line, NULL);
             set_binary_node_wordfield(binary_table,*TC,&char_wf);
             (*TC)++;
             char_count++;
             continue;
         }
         strncat(ascii_str, character,1);
-        binary_node_add(binary_table,*TC,ascii_str);
+        binary_node_add(binary_table,*TC,ascii_str, NULL);
         set_binary_node_wordfield(binary_table,*TC,&char_wf);
         (*TC)++;
         char_count++;
     }
-    binary_node_add(binary_table,*TC,"Ascii code \'\\0\'");
+    binary_node_add(binary_table,*TC,"Ascii code \'\\0\'", NULL);
     set_binary_node_wordfield(binary_table,*TC,last_wf);
     if(last_wf)
         free(last_wf);

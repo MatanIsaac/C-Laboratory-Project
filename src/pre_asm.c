@@ -179,7 +179,7 @@ FILE* prepare_am_file(char* file, char* output_file)
     size_t total_length;
     char* file_path;
     char* filename              = get_filename(file);
-    char* output_path           = "build/output_files/";
+    char* output_path           = OUTPUT_PATH;
     size_t filename_len         = strlen(filename);
     filename[filename_len - 1]  = 'm';
     total_length                = strlen(output_path) + filename_len + 1;

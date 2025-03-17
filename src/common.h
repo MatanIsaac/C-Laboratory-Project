@@ -3,6 +3,7 @@
 
 /* This header defines basic macros for use across the project. */
 
+#define OUTPUT_PATH "build/output_files/"
 #define NEW_LINE '\n'
 #define DOUBLE_QUOTE '\"'
 #define COMMA ','

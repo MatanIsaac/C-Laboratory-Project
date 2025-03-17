@@ -16,6 +16,9 @@ typedef struct BinaryNode
     unsigned int address; /* Memory address. */
     char* line;           /* Original line text. */
     wordfield* word;      /* Pointer to the wordfield. */
+    /* store a label if we need to fix it in the 2nd-Pass. 
+       NULL if there's no unresolved label. */
+    char* unresolved_label;
 } BinaryNode;
 
 /**
@@ -58,8 +61,9 @@ void binary_table_free(BinaryTable* table);
  * @param table Pointer to the BinaryTable.
  * @param address The address for the new node.
  * @param line The line to associate with the node.
+ * @param unresolved_label The unresolved label to be set in 2nd-Pass
  */
-void binary_node_add(BinaryTable* table, unsigned int address, char* line);
+void binary_node_add(BinaryTable* table, unsigned int address, char* line,char* unresolved_label);
 
 /**
  * @brief Sets the wordfield of a BinaryNode by its address.

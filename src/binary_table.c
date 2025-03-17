@@ -21,7 +21,8 @@ void print_binary_node(BinaryNode* node)
         /* Found a valid entry */
         fprintf(stdout,  "[address: %u] - [line: %s] - \t\t", node->address, (node->line) ? node->line : "NULL");
         print_wordfield(node->word);
-
+        if(node->unresolved_label)
+            fprintf(stdout,  "[unresolved label: %s]\n", node->unresolved_label);
     }
     else
     {
@@ -67,6 +68,7 @@ void binary_table_free(BinaryTable* table)
         {
             free(table->data[i]->line); 
             free(table->data[i]->word);
+            free(table->data[i]->unresolved_label);
             free(table->data[i]);
         }
     }
@@ -77,7 +79,7 @@ void binary_table_free(BinaryTable* table)
     free(table);
 }
 
-void binary_node_add(BinaryTable* table, unsigned int address, char* line) 
+void binary_node_add(BinaryTable* table, unsigned int address, char* line,char* unresolved_label) 
 {
     if (!table || !table->data) 
         return;
@@ -113,7 +115,7 @@ void binary_node_add(BinaryTable* table, unsigned int address, char* line)
 
     table->data[table->size]->address = address;
     table->data[table->size]->line = my_strdup(line);
-    /*    table->data[table->size]->word = *word; */
+    table->data[table->size]->unresolved_label = my_strdup(unresolved_label); 
     table->size++;
 }
 

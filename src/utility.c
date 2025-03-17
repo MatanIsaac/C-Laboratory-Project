@@ -228,9 +228,7 @@ int is_label(const char* word)
 
     if(!isalpha(word[0]) && word[0] != UNDERSCORE) /* make sure first letter is legal */
     {
-        /*
-        log_error(__FILE__,__LINE__,"Invalid label!, invalid first letter of label, must be uppercase/lowercase letter.\n");
-        */
+        /* Invalid label!, invalid first letter of label, must be uppercase/lowercase letter */
         return INVALID_RETURN;
     }
     
@@ -240,9 +238,7 @@ int is_label(const char* word)
     {
         if(!isalpha(word[i]) && !isdigit(word[i]) && word[i] != UNDERSCORE)
         {
-            /*
-            log_error(__FILE__,__LINE__,"Invalid label!, must consist of uppercase/lowercase letters and/or numbers/underscore.\n");
-            */
+            /* Invalid label!, must consist of uppercase/lowercase letters and/or numbers/underscore */
             return INVALID_RETURN;
         } 
     }
