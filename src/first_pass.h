@@ -115,7 +115,7 @@ int handle_instruction(BinaryTable* binary_table, LabelTable* label_table, Instr
  * @return Non-zero on error, zero on success.
  */
 int handle_directive(BinaryTable* binary_table, LabelTable* label_table, unsigned int* TC, unsigned int* DC,
-    char* line, char* word, int* position);
+    char* line, char* word, int* position,const char* filepath, int current_line);
 
 
 int check_immediate_value(char* operand, const char* filepath, int current_line);                                 
@@ -138,5 +138,16 @@ void get_double_operands(char* line, char* word, int* position, const char* file
     char** operand1, char** operand2);
 
 int check_src_operand(int opcode,OperandType operand_type);
+
 int check_target_operand(int opcode,OperandType operand_type);
+
+int handle_data_directive(BinaryTable* binary_table,unsigned int* TC, unsigned int* DC, char* line, 
+    char* word, int* position,const char* filepath, int current_line);
+
+int handle_string_directive(BinaryTable* binary_table, unsigned int* TC, unsigned int* DC, char* line, 
+    char* word, int* position,const char* filepath, int current_line);
+
+int check_directive_label(LabelTable* label_table, char* line, char* word, int* position,
+    const char* filepath, int current_line);
+
 #endif

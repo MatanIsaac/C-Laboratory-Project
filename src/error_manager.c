@@ -15,6 +15,12 @@ static char* get_error_msg(ErrorType error_type)
     case ErrorType_InvalidLineLength:
         strcpy(error_msg,"ErrorType_InvalidLineLength: Assembler only accepts lines with length of 81 (including null terminator)");
         break;
+    case ErrorType_InvalidDirective_Empty:
+        strcpy(error_msg,"ErrorType_InvalidDirective_Empty: The directive contains no valid data and appears empty");
+        break;
+    case ErrorType_InvalidDirective_MissingQuotes:
+        strcpy(error_msg,"ErrorType_InvalidDirective_MissingQuotes: ErrorType_InvalidDirective_MissingQuotes: String directive is missing its enclosing quotation marks (\"\")");
+        break;
     case ErrorType_InvalidInstruction_WrongTargetOperand:
         strcpy(error_msg,"ErrorType_InvalidInstruction_WrongTargetOperand: The target operand is invalid or not allowed for this instruction");
         break;
@@ -22,13 +28,22 @@ static char* get_error_msg(ErrorType error_type)
         strcpy(error_msg,"ErrorType_InvalidInstruction_WrongSrcOperand: The source operand is invalid or not allowed for this instruction");
         break;
     case ErrorType_UnrecognizedToken:
-        strcpy(error_msg,"ErrorType_UnrecognizedToken:  Unrecognized token, Expected an instruction, directive, or label.");
+        strcpy(error_msg,"ErrorType_UnrecognizedToken:  Unrecognized token, Expected an instruction, directive, or label");
+        break;
+    case ErrorType_InvalidLabel_InvalidColon:
+        strcpy(error_msg,"ErrorType_InvalidLabel_InvalidColon: Label definition is invalid — must have a ':' immediately after the label name (no spaces in between)");
+        break;
+    case ErrorType_InvalidLabel_Redefinition:
+        strcpy(error_msg,"Label Redefinition - the label defined already exists in the label tabel");
+        break;
+    case ErrorType_InvalidLabel_Reserved:
+        strcpy(error_msg,"ErrorType_InvalidLabel_Reserved: Invalid label name — the label defined conflicts with a reserved word (instruction, directive, or register)");
         break;
     case ErrorType_InvalidLabel_Name:
         strcpy(error_msg,"ErrorType_InvalidLabel_Name: Invalid label name, must contain only uppercase/lowercase letters and/or numbers/underscore");
         break;
     case ErrorType_InvalidLabel_MissingSpace:
-        strcpy(error_msg,"ErrorType_InvalidLabel_MissingSpace: Label definition is invalid—must include at least one space immediately after ':'");
+        strcpy(error_msg,"ErrorType_InvalidLabel_MissingSpace: Label definition is invalid — must include at least one space immediately after ':'");
         break;
     case ErrorType_InvalidLabel_RelativeAddress:
         strcpy(error_msg,"ErrorType_InvalidLabel_RelativeAddress: Missing '&' prefix before label for relative addressing, ensure that relative labels start with '&'");
@@ -79,7 +94,7 @@ static char* get_error_msg(ErrorType error_type)
         strcpy(error_msg,"ErrorType_InvalidMacroName_Instruction: Macro's name cannot be an instruction!");
         break;
     case ErrorType_InvalidMacroName_Directive:
-        strcpy(error_msg,"ErrorType_InvalidMacroName_Directive: Macro's name cannot be a directive !");
+        strcpy(error_msg,"ErrorType_InvalidMacroName_Directive: Macro's name cannot be a directive!");
         break;
     case ErrorType_InvalidMacroName_Register:
         strcpy(error_msg,"ErrorType_InvalidMacroName_Register: Macro's name cannot be a register!");

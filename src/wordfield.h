@@ -43,7 +43,7 @@ wordfield* init_wordfield();
 /**
  * @brief Creates and initializes a new wordfield based on an instruction name using the given instruction table.
  * @param[in] str               A C-string representing the name of the instruction (e.g., "mov", "add").
- * @param[in] instruction_table A pointer to an `InstructionTable` that contains instruction definitions.
+ * @param[in] instruction_table A pointer to an 'InstructionTable' that contains instruction definitions.
  * @return Pointer to a newly allocated and initialized wordfield, or NULL on failure.
  */
 wordfield* create_wordfield_by_opname(char* str, InstructionTable* instruction_table);

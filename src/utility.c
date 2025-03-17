@@ -171,6 +171,21 @@ char* int_to_hex(int number)
     return hex_str;
 }
 
+void str_to_lower(char* str)
+{
+    int i = 0;
+    int length = strlen(str);
+    for (; i < length; i++)
+    {
+        /* We cast to unsigned char in order to avoid issues if char is signed */
+        unsigned char ch = (unsigned char)str[i];
+        if (isupper(ch)) 
+        {
+            /* tolower() returns an int, so we cast it back to char */
+            str[i] = (char)tolower(ch);
+        }
+    }
+}
 
 int is_label(const char* word)
 {
@@ -238,48 +253,76 @@ int is_label(const char* word)
 int is_register(const char* word)
 {
     int i;
+    char* str = my_strdup(word);
     static char* registers[MAX_REGISTERS] = { "r0", "r1","r2", "r3", "r4", "r5", "r6", "r7"};
 
     if(word == NULL)
+    {
+        free(str);
         return INVALID_RETURN;
+    }
     
     for(i = 0; i < MAX_REGISTERS; i++)
     {   
+        str_to_lower(str);
         if(strcmp(word,registers[i]) == 0)
         {
+            free(str);
             return VALID_RETURN;
         }   
     }
+    free(str);
     return INVALID_RETURN;
 }
 
 int is_instruction(const char* word)
 {
     int i;
+    char* str = my_strdup(word);
     static const char* instructions[MAX_INSTRUCTIONS] = 
     { "mov", "cmp","add", "sub", "lea", "clr", "not", "inc", "dec", "jmp", "bne", "jsr", "red", "prn", "rts", "stop"};
+    
+    if(word == NULL)
+    {
+        free(str);
+        return INVALID_RETURN;
+    }
+
     for(i = 0; i < MAX_INSTRUCTIONS; i++)
     {   
-        if(strcmp(word,instructions[i]) == 0)
+        str_to_lower(str);
+        if(strcmp(str,instructions[i]) == 0)
         {
+            free(str);
             return VALID_RETURN;
         }   
     }
+    free(str);
     return INVALID_RETURN;
 }
 
 int is_directive(const char* word)
 {
     int i;
+    char* str = my_strdup(word);
     static const char* directives[MAX_DIRECTIVES] = 
     { ".data", ".string",".extern", ".entry", "data", "string", "extern", "entry"};
+    
+    if(word == NULL)
+    {
+        free(str);
+        return INVALID_RETURN;
+    }
+
     for(i = 0; i < MAX_DIRECTIVES; i++)
     {   
         if(strcmp(word,directives[i]) == 0)
         {
+            free(str);
             return VALID_RETURN;
         }   
     }
+    free(str);
     return INVALID_RETURN;
 }
 

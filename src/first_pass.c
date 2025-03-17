@@ -92,7 +92,7 @@ int execute_first_pass(FILE* fp, LabelTable* label_table, InstructionTable* inst
             }
             else if(is_directive(word) != INVALID_RETURN)
             {
-                flag = handle_directive(binary_table,label_table,&TC,&DC,line,word,&position);
+                flag = handle_directive(binary_table,label_table,&TC,&DC,line,word,&position,filepath,current_line);
             }
             else if(is_label(word) != INVALID_RETURN)
             {
@@ -103,6 +103,9 @@ int execute_first_pass(FILE* fp, LabelTable* label_table, InstructionTable* inst
                 add_error_entry(ErrorType_UnrecognizedToken,filepath,current_line);    
                 break;
             }
+
+            if(flag == INVALID_RETURN)
+                break;
         }
     }
 
@@ -239,16 +242,35 @@ int handle_labels(LabelTable* label_table, unsigned int TC, char* line, char* wo
     int temp_position       = position;
     
     if(word[strlen(word) - 1] != COLON)
-    {
-        free(label_name);
-        add_error_entry(ErrorType_InvalidLabel_MissingColon,filepath,current_line);
+    {    
+        /* 
+            get the next word - if its an instruction or a directive or just a single ':'
+            we are missing a ':' for the label
+            otherwise we have an unrecognized token
+        */
+        temp_position = read_word_from_line(line, temp, temp_position);
+        if(temp[strlen(temp) - 1] == COLON)
+        {
+            add_error_entry(ErrorType_InvalidLabel_InvalidColon,filepath,current_line);
+        }
+        else if(is_instruction(temp) != INVALID_RETURN || is_directive(temp) != INVALID_RETURN)
+        {
+            add_error_entry(ErrorType_InvalidLabel_MissingColon,filepath,current_line);
+        }
+        else
+        {
+            add_error_entry(ErrorType_UnrecognizedToken,filepath,current_line);
+        }
+        if(label_name)
+            free(label_name);
         return INVALID_RETURN;
     }
     
     if(!isspace(line[temp_position+1]))
     {
-        free(label_name);
         add_error_entry(ErrorType_InvalidLabel_MissingSpace,filepath,current_line);
+        if(label_name)
+            free(label_name);
         return INVALID_RETURN;
     }
 
@@ -257,14 +279,18 @@ int handle_labels(LabelTable* label_table, unsigned int TC, char* line, char* wo
     
     if(label_table_search(label_table,label_name) != INVALID_RETURN)
     {
-        log_error(__FILE__,__LINE__,"Label Redefinition - the label [%s] already exists in the label tabel.\n",label_name);
-        flag = INVALID_RETURN;
+        add_error_entry(ErrorType_InvalidLabel_Redefinition,filepath,current_line);
+        if(label_name)
+            free(label_name);
+        return INVALID_RETURN;
     }
 
     else if(is_instruction(label_name) != INVALID_RETURN || is_directive(label_name) != INVALID_RETURN  || is_register(label_name) != INVALID_RETURN)
     {
-        log_error(__FILE__,__LINE__,"Invalid label name - the label [%s] can't be an instruction or a directive or a register\n",label_name);
-        flag = INVALID_RETURN;
+        add_error_entry(ErrorType_InvalidLabel_Reserved,filepath,current_line);
+        if(label_name)
+            free(label_name);
+        return INVALID_RETURN;
     }
 
     /*TODO: Add a remove for label table label_table_remove(...) */
@@ -273,7 +299,8 @@ int handle_labels(LabelTable* label_table, unsigned int TC, char* line, char* wo
     if(temp_position == INVALID_RETURN)
     {
         add_error_entry(ErrorType_InvalidLabel_EmptyLabel,filepath,current_line);
-        free(label_name);
+        if(label_name)
+            free(label_name);
         flag = INVALID_RETURN;
     }
 
@@ -330,16 +357,11 @@ int handle_instruction(BinaryTable* binary_table, LabelTable* label_table,Instru
     return flag;
 }
 
-int handle_directive(BinaryTable* binary_table, LabelTable* label_table,unsigned int* TC,unsigned int* DC,char* line, char* word,int* position)
+int handle_directive(BinaryTable* binary_table, LabelTable* label_table, unsigned int* TC, unsigned int* DC,
+    char* line, char* word, int* position,const char* filepath, int current_line)
 {
     DirectiveType directive_type;
     int flag                    = 0;
-    int str_length              = -1;
-    int i                       = 0; 
-    int numbers_count           = 0;
-    int char_count              = 0;
-    char last_num_str[MAX_WORD] = "Integer "; 
-    wordfield* last_wf          = init_wordfield(); 
     
     /*
         IMPORTANT: .entry is handled in the 2nd pass. 
@@ -348,117 +370,19 @@ int handle_directive(BinaryTable* binary_table, LabelTable* label_table,unsigned
     switch (directive_type)
     {
     case DIRECTIVE_TYPE_STRING:
-        *position = read_word_from_line(line, word, *position);
-    
-        str_length = strlen(word);
-        if((word[0] != DOUBLE_QUOTE || word[str_length] != DOUBLE_QUOTE) && (word[0] != DOUBLE_QUOTE && word[str_length] != DOUBLE_QUOTE))
-        {
-            log_error(__FILE__,__LINE__,"Error reading string data, missing quotes.\n");
-            flag = INVALID_RETURN;
-        }
-        remove_first_character(word);
-        remove_last_character(word);
-        str_length -= 2; /* not including 2 double quotes */
-
-        /* 
-            NOTE:
-            adding to DC the current length, I.E: "abcd" == 4
-            + 1 for the null terminator - '\0'
-        */
-        *DC += str_length + 1;
-        
-        for( ; i < str_length; i++)
-        {
-            wordfield* tmp;
-            wordfield char_wf = {0};
-            char character[2];
-            char ascii_str[MAX_WORD] = "Ascii code ";
-            strncpy(character,&word[i],1);
-            tmp = get_char_wordfield(character);
-            if (tmp != NULL) 
-            {
-                char_wf = *tmp; 
-                free(tmp);       
-            }
-            
-            if(char_count == 0)
-            {
-                binary_node_add(binary_table,*TC,line);
-                set_binary_node_wordfield(binary_table,*TC,&char_wf);
-                (*TC)++;
-                char_count++;
-                continue;
-            }
-            strncat(ascii_str, character,1);
-            binary_node_add(binary_table,*TC,ascii_str);
-            set_binary_node_wordfield(binary_table,*TC,&char_wf);
-            (*TC)++;
-            char_count++;
-        }
-        binary_node_add(binary_table,*TC,"Ascii code \'\\0\'");
-        set_binary_node_wordfield(binary_table,*TC,last_wf);
-        free(last_wf);
-        (*TC)++;
+        flag = handle_string_directive(binary_table,TC,DC,line,word,position,filepath,current_line);
         break;
     case DIRECTIVE_TYPE_DATA:
-        while ((*position = read_word_from_line(line, word, *position)) != INVALID_RETURN && word[strlen(word)-1] == COMMA)
-        {
-            char final_str[MAX_WORD] = "Integer ";
-            wordfield num_wf = {0};
-            remove_last_character(word);
-            set_wordfield_by_num(&num_wf,(unsigned int)atoi(word));
-            if(numbers_count == 0)
-            {
-                binary_node_add(binary_table,*TC,line);
-                set_binary_node_wordfield(binary_table,*TC,&num_wf);
-                numbers_count++;
-                (*TC)++;
-                continue;
-            }
-            
-            strcat(final_str, word);
-            binary_node_add(binary_table,*TC, final_str);
-            set_binary_node_wordfield(binary_table,*TC,&num_wf);
-            (*TC)++;
-            numbers_count++;
-        }
-        if(numbers_count == 0) /* single number I.E: .data 100 */
-        {
-            set_wordfield_by_num(last_wf,(unsigned int)atoi(word));
-            binary_node_add(binary_table,*TC,line);
-            set_binary_node_wordfield(binary_table,*TC,last_wf);
-            free(last_wf);
-            (*TC)++;
-            numbers_count++; 
-            *DC += numbers_count;
-            break;
-        }
-        set_wordfield_by_num(last_wf,(unsigned int)atoi(word));
-        strcat(last_num_str, word);
-        binary_node_add(binary_table,*TC, last_num_str);
-        set_binary_node_wordfield(binary_table,*TC,last_wf);
-        free(last_wf);
-        (*TC)++;
-        numbers_count++; 
-        /* NOTE: numbers count should be valid here */
-        *DC += numbers_count;
+        flag = handle_data_directive(binary_table,TC,DC,line,word,position,filepath,current_line);
         break;
     case DIRECTIVE_TYPE_EXTERN:
-        *position = read_word_from_line(line, word, *position);
-        is_label(word);        
-        if(label_table_search(label_table,word) != INVALID_RETURN)
-        {
-            log_error(__FILE__,__LINE__,"Label Redefinition - the label [%s] already exists in the label tabel.\n",word);
-            flag = INVALID_RETURN;
-            break;
-        }
+        flag = check_directive_label(label_table,line,word,position,filepath,current_line);
         /* add the valid label to the label table and set its type as CODE */
         label_table_add(label_table,my_strdup(word),0,LABELTYPE_EXTERN);
-        free(last_wf);
         break;
     case DIRECTIVE_TYPE_ENTRY:
-        while((*position = read_word_from_line(line, word, *position)) != INVALID_RETURN);
-        free(last_wf);
+        flag = check_directive_label(label_table,line,word,position,filepath,current_line);
+        /* NOTE: Entry directive is handled in the 2nd-Pass. */
         break;
     default:
         break;
@@ -950,4 +874,149 @@ int check_target_operand(int opcode, OperandType operand_type)
         return VALID_RETURN;
     
     return INVALID_RETURN;
+}
+
+int handle_data_directive(BinaryTable* binary_table,unsigned int* TC, unsigned int* DC, char* line, 
+    char* word, int* position,const char* filepath, int current_line)
+{
+    char last_num_str[MAX_WORD] = "Integer "; 
+    wordfield* last_wf          = init_wordfield(); 
+    int numbers_count           = 0;
+
+    while ((*position = read_word_from_line(line, word, *position)) != INVALID_RETURN && word[strlen(word)-1] == COMMA)
+    {
+        char final_str[MAX_WORD] = "Integer ";
+        wordfield num_wf = {0};
+        remove_last_character(word);
+        set_wordfield_by_num(&num_wf,(unsigned int)atoi(word));
+        if(numbers_count == 0)
+        {
+            binary_node_add(binary_table,*TC,line);
+            set_binary_node_wordfield(binary_table,*TC,&num_wf);
+            numbers_count++;
+            (*TC)++;
+            continue;
+        }
+        
+        strcat(final_str, word);
+        binary_node_add(binary_table,*TC, final_str);
+        set_binary_node_wordfield(binary_table,*TC,&num_wf);
+        (*TC)++;
+        numbers_count++;
+    }
+    if(*position == -1)
+    {
+        if(last_wf)
+            free(last_wf);
+        add_error_entry(ErrorType_InvalidDirective_Empty,filepath,current_line);
+        return INVALID_RETURN;
+    }
+    if(numbers_count == 0) /* single number I.E: .data 100 */
+    {
+        set_wordfield_by_num(last_wf,(unsigned int)atoi(word));
+        binary_node_add(binary_table,*TC,line);
+        set_binary_node_wordfield(binary_table,*TC,last_wf);
+        if(last_wf)
+            free(last_wf);
+        (*TC)++;
+        numbers_count++; 
+        *DC += numbers_count;
+        return VALID_RETURN;
+    }
+    set_wordfield_by_num(last_wf,(unsigned int)atoi(word));
+    strcat(last_num_str, word);
+    binary_node_add(binary_table,*TC, last_num_str);
+    set_binary_node_wordfield(binary_table,*TC,last_wf);
+    if(last_wf)
+        free(last_wf);
+    (*TC)++;
+    numbers_count++; 
+    /* NOTE: numbers count should be valid here */
+    *DC += numbers_count;
+
+    return VALID_RETURN; 
+}
+
+int handle_string_directive(BinaryTable* binary_table, unsigned int* TC, unsigned int* DC, char* line, 
+    char* word, int* position,const char* filepath, int current_line)
+{
+    int i               = 0; 
+    int str_length      = -1;
+    int char_count      = 0;
+    wordfield* last_wf  = init_wordfield(); 
+
+    *position = read_word_from_line(line, word, *position);
+    str_length = strlen(word);
+    if((*position == -1 || word[0] != DOUBLE_QUOTE || word[str_length] != DOUBLE_QUOTE) && 
+        (word[0] != DOUBLE_QUOTE && word[str_length] != DOUBLE_QUOTE))
+    {
+        if(last_wf)
+            free(last_wf);
+        add_error_entry(ErrorType_InvalidDirective_MissingQuotes,filepath,current_line);
+        return INVALID_RETURN;
+    }
+    remove_first_character(word);
+    remove_last_character(word);
+    str_length -= 2; /* not including 2 double quotes */
+
+    /* 
+        NOTE:
+        adding to DC the current length, I.E: "abcd" == 4
+        + 1 for the null terminator - '\0'
+    */
+    *DC += str_length + 1;
+    
+    for( ; i < str_length; i++)
+    {
+        wordfield* tmp;
+        wordfield char_wf = {0};
+        char character[2];
+        char ascii_str[MAX_WORD] = "Ascii code ";
+        strncpy(character,&word[i],1);
+        tmp = get_char_wordfield(character);
+        if (tmp != NULL) 
+        {
+            char_wf = *tmp; 
+            free(tmp);       
+        }
+        
+        if(char_count == 0)
+        {
+            binary_node_add(binary_table,*TC,line);
+            set_binary_node_wordfield(binary_table,*TC,&char_wf);
+            (*TC)++;
+            char_count++;
+            continue;
+        }
+        strncat(ascii_str, character,1);
+        binary_node_add(binary_table,*TC,ascii_str);
+        set_binary_node_wordfield(binary_table,*TC,&char_wf);
+        (*TC)++;
+        char_count++;
+    }
+    binary_node_add(binary_table,*TC,"Ascii code \'\\0\'");
+    set_binary_node_wordfield(binary_table,*TC,last_wf);
+    if(last_wf)
+        free(last_wf);
+    (*TC)++;
+
+    return VALID_RETURN;
+}
+
+int check_directive_label(LabelTable* label_table,char* line, char* word, int* position,
+    const char* filepath, int current_line)
+{
+    *position = read_word_from_line(line, word, *position);
+    is_label(word);        
+    if(label_table_search(label_table,word) != INVALID_RETURN)
+    {
+        add_error_entry(ErrorType_InvalidLabel_Redefinition,filepath,current_line);
+        return INVALID_RETURN;
+    }
+    if(*position == -1)
+    {
+        add_error_entry(ErrorType_InvalidDirective_Empty,filepath,current_line);
+        return INVALID_RETURN;
+    }
+    return VALID_RETURN;
 }

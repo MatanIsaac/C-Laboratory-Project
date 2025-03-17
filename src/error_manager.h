@@ -7,9 +7,14 @@
 typedef enum
 {
     ErrorType_InvalidLineLength,
+    ErrorType_InvalidDirective_Empty,
+    ErrorType_InvalidDirective_MissingQuotes,
     ErrorType_InvalidInstruction_WrongSrcOperand,
     ErrorType_InvalidInstruction_WrongTargetOperand,
     ErrorType_UnrecognizedToken,
+    ErrorType_InvalidLabel_InvalidColon,
+    ErrorType_InvalidLabel_Redefinition,
+    ErrorType_InvalidLabel_Reserved,
     ErrorType_InvalidLabel_Name,
     ErrorType_InvalidLabel_MissingSpace,
     ErrorType_InvalidLabel_RelativeAddress,
