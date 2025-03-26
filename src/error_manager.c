@@ -28,7 +28,10 @@ static char* get_error_msg(ErrorType error_type)
         strcpy(error_msg,"ErrorType_InvalidInstruction_WrongSrcOperand: The source operand is invalid or not allowed for this instruction");
         break;
     case ErrorType_UnrecognizedToken:
-        strcpy(error_msg,"ErrorType_UnrecognizedToken:  Unrecognized token, Expected an instruction, directive, or label");
+        strcpy(error_msg,"ErrorType_UnrecognizedToken: Unrecognized token, Expected an instruction, directive, or label");
+        break;
+    case ErrorType_InvalidLabel_UndefinedLabel:
+        strcpy(error_msg,"ErrorType_InvalidLabel_UndefinedLabel: Label not found — it does not exist in the label table");
         break;
     case ErrorType_InvalidLabel_InvalidColon:
         strcpy(error_msg,"ErrorType_InvalidLabel_InvalidColon: Label definition is invalid — must have a ':' immediately after the label name (no spaces in between)");

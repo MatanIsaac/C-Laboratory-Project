@@ -17,4 +17,6 @@ int execute_second_pass(BinaryTable* binary_table,LabelTable* label_table, int I
 
 void prepare_output_files(const char* filepath, FILE** fp_ob, FILE** fp_ent, FILE** fp_ext);
 
+void handle_distance_to_label(BinaryNode* binary_node, LabelNode* node);
+
 #endif

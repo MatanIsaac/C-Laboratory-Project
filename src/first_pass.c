@@ -363,6 +363,7 @@ int handle_directive(BinaryTable* binary_table, LabelTable* label_table, unsigne
 {
     DirectiveType directive_type;
     int flag                    = 0;
+    int index;
     
     /*
         IMPORTANT: .entry is handled in the 2nd pass. 
@@ -383,7 +384,14 @@ int handle_directive(BinaryTable* binary_table, LabelTable* label_table, unsigne
         break;
     case DIRECTIVE_TYPE_ENTRY:
         /* NOTE: Entry directive is handled in the 2nd-Pass. */
-        /* flag = check_directive_label(label_table,line,word,position,filepath,current_line);*/
+        *position = read_word_from_line(line, word, *position);
+        if((index = label_table_search(label_table,word)) != INVALID_RETURN)
+        {
+            if(label_table->labels[index].type == LABELTYPE_CODE)
+                label_table->labels[index].type = LABELTYPE_CODE_ENTRY;
+            else if(label_table->labels[index].type == LABELTYPE_CODE)
+                label_table->labels[index].type = LABELTYPE_DATA_ENTRY;
+        }
         flag = INVALID_RETURN; /* in order to 'skip' the whole line, we set it to invalid */
         break;
     default:
@@ -561,6 +569,10 @@ int handle_single_operand_instruction(BinaryTable* binary_table,char* line, char
         set_binary_node_wordfield(binary_table,*TC,wf_instruction);
         free(wf_instruction);
         (*TC)++;
+        /*
+        if(single_operand[0] == AMPERSAND)
+            remove_first_character(single_operand);
+        */
         binary_node_add(binary_table,*TC,"Distance to Label",single_operand);
         set_binary_node_wordfield(binary_table,*TC,new_wf);
         free(new_wf);

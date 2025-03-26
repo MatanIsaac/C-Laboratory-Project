@@ -52,12 +52,85 @@ void prepare_second_pass(const char* filepath,BinaryTable* binary_table, LabelTa
 */
 int execute_second_pass(BinaryTable* binary_table,LabelTable* label_table, int ICF, int DCF,const char* filepath)
 {
+    size_t i;
     FILE* ob;
     FILE* ent;
     FILE* ext;
-    
     prepare_output_files(filepath,&ob,&ent,&ext);
 
+    for (i = 0; i < binary_table->size; i++) 
+    {
+        BinaryNode* binary_node = binary_table->data[i];
+        if(binary_node->unresolved_label != NULL)
+        {
+            char* temp_unresolved_label = my_strdup(binary_node->unresolved_label);
+            int index;
+            /* 
+                NOTE: 
+                1. don't forget to free this when necessary!
+                2. this check is only for relative addressing            
+           */
+            if(binary_node->unresolved_label[0] == AMPERSAND)
+            {
+                strcpy(temp_unresolved_label,binary_node->unresolved_label);
+                remove_first_character(binary_node->unresolved_label);
+            }
+            else
+                free(temp_unresolved_label);
+
+            print_binary_node(binary_node);
+
+            if((index = label_table_search(label_table,binary_node->unresolved_label)) != INVALID_RETURN)
+            {
+                LabelNode label_node = label_table->labels[index];
+
+                if(temp_unresolved_label[0] == AMPERSAND)
+                {
+                    handle_distance_to_label(binary_node,&label_node);
+                    
+                    if(temp_unresolved_label)
+                        free(temp_unresolved_label);
+                    continue;
+                }
+
+                switch (label_node.type)
+                {
+                case LABELTYPE_CODE:
+                    set_wordfield_are_num(binary_node->word,label_node.address,ARE_RELOCATABLE);
+                    print_binary_node(binary_node);
+                    break;
+                case LABELTYPE_DATA:
+                    set_wordfield_are_num(binary_node->word,label_node.address,ARE_RELOCATABLE);
+                    print_binary_node(binary_node);
+                    break;
+                case LABELTYPE_EXTERN:
+                    set_wordfield_are(binary_node->word,ARE_EXTERNAL);
+                    print_binary_node(binary_node);
+                    break;
+                case LABELTYPE_CODE_ENTRY:
+                    break;
+                case LABELTYPE_DATA_ENTRY:
+                    break;
+                default:
+                    break;
+                }
+            }
+            else
+            {
+                add_error_entry(ErrorType_InvalidLabel_UndefinedLabel,NULL,binary_node->address);
+            }
+        }
+    }
+
+    if(is_errors_array_empty() < 0)
+    {
+        print_errors_array();
+        return INVALID_RETURN;
+    }
+    else
+    {
+        log_out(__FILE__,__LINE__,"\n\nSECOND-PASS Alright Alright Alright!\n\n");
+    }
 
     return VALID_RETURN;
 }
@@ -124,4 +197,12 @@ void prepare_output_files(const char* filepath, FILE** fp_ob, FILE** fp_ent, FIL
         free(ent_file);   
     if(ext_file)
         free(ext_file);   
+}
+
+void handle_distance_to_label(BinaryNode* binary_node, LabelNode* node)
+{
+    /* LABEL_ADDRESS - CURRENT_OP_ADDRESS = DIFF */
+    int distance = node->address - (binary_node->address-1);
+    set_wordfield_are_num(binary_node->word,distance,ARE_ABSOLUTE);
+    print_binary_node(binary_node);
 }

@@ -12,6 +12,7 @@ typedef enum
     ErrorType_InvalidInstruction_WrongSrcOperand,
     ErrorType_InvalidInstruction_WrongTargetOperand,
     ErrorType_UnrecognizedToken,
+    ErrorType_InvalidLabel_UndefinedLabel,
     ErrorType_InvalidLabel_InvalidColon,
     ErrorType_InvalidLabel_Redefinition,
     ErrorType_InvalidLabel_Reserved,
