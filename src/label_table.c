@@ -4,9 +4,9 @@
 
 const char* labeltype_to_string(enum LabelType type) 
 {
-    static const char* labels[] = { "code", "data", "external", "code, entry", "data, entry",};
+    static const char* labels[] = { "code", "data", "external", "entry","code, entry", "data, entry",};
 
-    if (type < 0 || type > 4) return "UNKNOWN";
+    if (type < 0 || type > 5) return "UNKNOWN";
     return labels[type];
 }
 
@@ -42,7 +42,7 @@ void label_table_destroy(LabelTable* table)
 /* Dynamically adds a label to the table */
 void label_table_add(LabelTable* table, char* name, unsigned int address, enum LabelType type) 
 {
-    if(label_table_search(table,name) > 1)
+    if(label_table_search(table,name) >= 0)
     {
         log_error(__FILE__,__LINE__, "Error, label already exists in the label table!\n");
         return;
@@ -75,8 +75,7 @@ void label_table_print(LabelTable* table)
         log_out(__FILE__,__LINE__, "Label Table is empty.\n");    
     }
 
-    log_out(__FILE__,__LINE__, "| %-6s | %-10s | %-6s |\n", "Label", "Address", "Type");
-    log_out(__FILE__,__LINE__, "---------------------------------\n");
+    log_out(__FILE__,__LINE__, "\n| %-6s | %-10s | %-6s |\n---------------------------------\n", "Label", "Address", "Type");
 
     for (; i < table->size; i++) 
     {
@@ -133,7 +132,7 @@ int label_table_set_node_by_name(LabelTable* table, char* name, unsigned int add
         log_out(__FILE__,__LINE__, "Error setting label node.\n");    
         return INVALID_RETURN;
     }
-    if((node_index = label_table_search(table,name)) > 1)
+    if((node_index = label_table_search(table,name)) >= 0)
     {
         table->labels[node_index].type      = type;
         table->labels[node_index].address   = address;
@@ -145,9 +144,9 @@ int label_table_set_node_by_name(LabelTable* table, char* name, unsigned int add
 int label_table_set_label_type(LabelTable* table,unsigned int address, enum LabelType type)
 {
     int node_index = -1;
-    if((node_index = label_table_search_by_address(table,address)) > 1)
+    if((node_index = label_table_search_by_address(table,address)) >= 0)
     {
-        table->labels[node_index].type      = type;
+        table->labels[node_index].type = type;
         return 1;
     }
     return INVALID_RETURN; 

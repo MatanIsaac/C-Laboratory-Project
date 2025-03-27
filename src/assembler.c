@@ -42,14 +42,13 @@ int main(int argc,char* argv[])
 
         if(parse_macros(fp, current_file,output_file,macro_table) != INVALID_RETURN)
         {
-            macro_table_print(macro_table);
             log_out(__FILE__,__LINE__,"Done Parsing Macros for - %s\n", current_file);
             fclose(fp);           
             /* 
                 preprares first pass and executes it, 
                 and continues to the 2nd pass     
                 */
-           prepare_first_pass(output_file,macro_table);
+            prepare_first_pass(output_file,macro_table);
         }
         else
         {

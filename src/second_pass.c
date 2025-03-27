@@ -19,11 +19,11 @@ void prepare_second_pass(const char* filepath,BinaryTable* binary_table, LabelTa
 /* 
     TODO: 2nd-Pass Plan 
 
-    1.  Create Output Files (.ob, .ext, .ent)
+    V 1.  Create Output Files (.ob, .ext, .ent)
             a. Open or create each file upfront.
             b. Keep track of whether you actually write anything to each file. If you don’t write any extern or entry symbols, you can safely remove the .ext or .ent file at the end.
 
-    2.  Iterate Over the Binary Table
+    V 2.  Iterate Over the Binary Table 
         For each BinaryNode (or equivalent) that might contain an unresolved label reference, do:
             a.  Check if there’s a label to resolve (e.g., node->unresolved_label != NULL or a special ARE bit).
             b.  Look up the label in your label_table:
@@ -53,23 +53,18 @@ void prepare_second_pass(const char* filepath,BinaryTable* binary_table, LabelTa
 int execute_second_pass(BinaryTable* binary_table,LabelTable* label_table, int ICF, int DCF,const char* filepath)
 {
     size_t i;
-    FILE* ob;
-    FILE* ent;
-    FILE* ext;
-    prepare_output_files(filepath,&ob,&ent,&ext);
+    FILE* ob_file;
+    FILE* ent_file;
+    FILE* ext_file;
+    prepare_output_files(filepath,&ob_file,&ent_file,&ext_file);
 
     for (i = 0; i < binary_table->size; i++) 
     {
+        int index;
         BinaryNode* binary_node = binary_table->data[i];
         if(binary_node->unresolved_label != NULL)
         {
             char* temp_unresolved_label = my_strdup(binary_node->unresolved_label);
-            int index;
-            /* 
-                NOTE: 
-                1. don't forget to free this when necessary!
-                2. this check is only for relative addressing            
-           */
             if(binary_node->unresolved_label[0] == AMPERSAND)
             {
                 strcpy(temp_unresolved_label,binary_node->unresolved_label);
@@ -77,8 +72,6 @@ int execute_second_pass(BinaryTable* binary_table,LabelTable* label_table, int I
             }
             else
                 free(temp_unresolved_label);
-
-            print_binary_node(binary_node);
 
             if((index = label_table_search(label_table,binary_node->unresolved_label)) != INVALID_RETURN)
             {
@@ -89,30 +82,56 @@ int execute_second_pass(BinaryTable* binary_table,LabelTable* label_table, int I
                     handle_distance_to_label(binary_node,&label_node);
                     
                     if(temp_unresolved_label)
+                    {
                         free(temp_unresolved_label);
+                        free(binary_node->unresolved_label);
+                        binary_node->unresolved_label = NULL;
+                    }
                     continue;
                 }
 
                 switch (label_node.type)
                 {
                 case LABELTYPE_CODE:
-                    set_wordfield_are_num(binary_node->word,label_node.address,ARE_RELOCATABLE);
-                    print_binary_node(binary_node);
+                    set_wordfield_are_num(binary_node->word,label_node.address,ARE_RELOCATABLE);  
                     break;
                 case LABELTYPE_DATA:
                     set_wordfield_are_num(binary_node->word,label_node.address,ARE_RELOCATABLE);
-                    print_binary_node(binary_node);
                     break;
                 case LABELTYPE_EXTERN:
                     set_wordfield_are(binary_node->word,ARE_EXTERNAL);
-                    print_binary_node(binary_node);
+                    if(ext_file)
+                    {
+                        /* this line still does not add it to the ext_file, why ?*/
+                        fprintf(ext_file,"%s %.7d\n",binary_node->unresolved_label,binary_node->address); 
+                    }
                     break;
                 case LABELTYPE_CODE_ENTRY:
+                    /* 
+                        FIXME: problems with the unresolved label address of entry types.
+                        if(ent_file)
+                        {
+                            fprintf(ent_file,"%s %.7d\n",binary_node->unresolved_label,binary_node->address);
+                        }
+                    */
                     break;
                 case LABELTYPE_DATA_ENTRY:
+                    /* 
+                        FIXME: problems with the unresolved label address of entry types. 
+                    if(ent_file)
+                    {
+                        fprintf(ent_file,"%s %.7d\n",binary_node->unresolved_label,binary_node->address); 
+                    }
+                    */
                     break;
                 default:
                     break;
+                }
+
+                if(binary_node->unresolved_label)
+                {
+                    free(binary_node->unresolved_label);
+                    binary_node->unresolved_label = NULL;
                 }
             }
             else
@@ -122,6 +141,20 @@ int execute_second_pass(BinaryTable* binary_table,LabelTable* label_table, int I
         }
     }
 
+    /* 
+        TODO: 
+        1. Close files if they are empty - keep the file destination in order to remove it by name.
+    */
+    fclose(ext_file);
+    fclose(ent_file);
+    fclose(ob_file);
+
+    printf("\n\n");
+    binary_table_print(binary_table);
+    printf("\n\n");
+    label_table_print(label_table);
+    printf("\n\n");
+    
     if(is_errors_array_empty() < 0)
     {
         print_errors_array();
@@ -204,5 +237,5 @@ void handle_distance_to_label(BinaryNode* binary_node, LabelNode* node)
     /* LABEL_ADDRESS - CURRENT_OP_ADDRESS = DIFF */
     int distance = node->address - (binary_node->address-1);
     set_wordfield_are_num(binary_node->word,distance,ARE_ABSOLUTE);
-    print_binary_node(binary_node);
 }
+

@@ -1,6 +1,5 @@
 #include "first_pass.h"
 #include "input.h"
-#include "common.h"
 #include "utility.h"
 #include "logger.h"
 #include "error_manager.h"
@@ -17,7 +16,7 @@ void prepare_first_pass(const char* filepath, MacroTable* macro_table)
     LabelTable label_table;
     InstructionTable instruction_table;
 
-    instruction_table_create(&instruction_table);
+    instruction_table_create(&instruction_table); 
     instruction_table_insert(&instruction_table, "mov",  0,  0);
     instruction_table_insert(&instruction_table, "cmp",  1,  0);
     instruction_table_insert(&instruction_table, "add",  2,  1);
@@ -114,12 +113,15 @@ int execute_first_pass(FILE* fp, LabelTable* label_table, InstructionTable* inst
     DCF = DC;
 
     printf("\n\n");
-    printf("\n\n");
     binary_table_print(binary_table);
     printf("\n\n");
     label_table_print(label_table);
-    free(word);
-    free(line);
+    printf("\n\n");
+
+    if(word)
+        free(word);
+    if(line)
+        free(line);
 
     log_out(__FILE__,__LINE__,"TC: %u\t DC: %u\n",TC,DC);
     log_out(__FILE__,__LINE__,"ICF: %u\t DCF: %u\n",ICF,DCF);
@@ -241,6 +243,7 @@ int handle_labels(LabelTable* label_table, unsigned int TC, char* line, char* wo
     char* label_name        = string_calloc(strlen(word)+1, sizeof(char));
     int flag                = 0;
     int temp_position       = position;
+    int label_index;
     
     if(word[strlen(word) - 1] != COLON)
     {    
@@ -278,12 +281,19 @@ int handle_labels(LabelTable* label_table, unsigned int TC, char* line, char* wo
     strcpy(label_name,word);
     remove_last_character(label_name);
     
-    if(label_table_search(label_table,label_name) != INVALID_RETURN)
+    if((label_index = label_table_search(label_table,label_name)) != INVALID_RETURN)
     {
-        add_error_entry(ErrorType_InvalidLabel_Redefinition,filepath,current_line);
-        if(label_name)
-            free(label_name);
-        return INVALID_RETURN;
+        if(label_table->labels[label_index].type != LABELTYPE_ENTRY)
+        {    
+            add_error_entry(ErrorType_InvalidLabel_Redefinition,filepath,current_line);
+            if(label_name)
+                free(label_name);
+            return INVALID_RETURN;
+        }
+        else
+        {
+            label_table->labels[label_index].address = TC;
+        }    
     }
 
     else if(is_instruction(label_name) != INVALID_RETURN || is_directive(label_name) != INVALID_RETURN  || is_register(label_name) != INVALID_RETURN)
@@ -294,8 +304,6 @@ int handle_labels(LabelTable* label_table, unsigned int TC, char* line, char* wo
         return INVALID_RETURN;
     }
 
-    /*TODO: Add a remove for label table label_table_remove(...) */
-    /* if the next word is a directive, change label type to DATA */
     temp_position = read_word_from_line(line, temp, temp_position);
     if(temp_position == INVALID_RETURN)
     {
@@ -305,7 +313,7 @@ int handle_labels(LabelTable* label_table, unsigned int TC, char* line, char* wo
         flag = INVALID_RETURN;
     }
 
-    if(flag != INVALID_RETURN)
+    if(flag != INVALID_RETURN && label_index == -1)
     {
         /* add the valid label to the label table and set its type as CODE */
         label_table_add(label_table,label_name,TC,LABELTYPE_CODE);
@@ -313,7 +321,10 @@ int handle_labels(LabelTable* label_table, unsigned int TC, char* line, char* wo
 
     if((is_directive(temp) == VALID_RETURN) && flag != INVALID_RETURN)
     {
-        label_table_set_label_type(label_table,TC,LABELTYPE_DATA);
+        if(label_table->labels[label_index].type != LABELTYPE_ENTRY)
+            label_table_set_label_type(label_table,TC,LABELTYPE_DATA);
+        else 
+            label_table_set_label_type(label_table,TC,LABELTYPE_DATA_ENTRY);
     }
 
     return flag;
@@ -380,18 +391,24 @@ int handle_directive(BinaryTable* binary_table, LabelTable* label_table, unsigne
     case DIRECTIVE_TYPE_EXTERN:
         flag = check_directive_label(label_table,line,word,position,filepath,current_line);
         /* add the valid label to the label table and set its type as CODE */
-        label_table_add(label_table,my_strdup(word),0,LABELTYPE_EXTERN);
+        if(flag == VALID_RETURN)
+            label_table_add(label_table,my_strdup(word),0,LABELTYPE_EXTERN);
         break;
     case DIRECTIVE_TYPE_ENTRY:
-        /* NOTE: Entry directive is handled in the 2nd-Pass. */
-        *position = read_word_from_line(line, word, *position);
+        flag = check_directive_label(label_table,line,word,position,filepath,current_line);
         if((index = label_table_search(label_table,word)) != INVALID_RETURN)
         {
             if(label_table->labels[index].type == LABELTYPE_CODE)
                 label_table->labels[index].type = LABELTYPE_CODE_ENTRY;
-            else if(label_table->labels[index].type == LABELTYPE_CODE)
+            else if(label_table->labels[index].type == LABELTYPE_DATA)
                 label_table->labels[index].type = LABELTYPE_DATA_ENTRY;
         }
+    
+        if(flag == VALID_RETURN)
+        {
+            label_table_add(label_table,my_strdup(word),0,LABELTYPE_ENTRY);    
+        }
+
         flag = INVALID_RETURN; /* in order to 'skip' the whole line, we set it to invalid */
         break;
     default:
@@ -724,10 +741,16 @@ int handle_double_operand_instruction(BinaryTable* binary_table,char* line, char
             add_error_entry(ErrorType_InvalidLabel_Name,filepath,current_line);
         }
         set_wordfield_dest(wf_instruction,OPERAND_TYPE_DIRECT,0);
-        if(operand1_type == OPERAND_TYPE_RELATIVE || operand1_type == OPERAND_TYPE_REGISTER)
+        if(operand1_type == OPERAND_TYPE_IMMEDIATE || operand1_type == OPERAND_TYPE_REGISTER || operand1_type == OPERAND_TYPE_RELATIVE)
+        {
             set_binary_node_wordfield(binary_table,*TC-1,wf_instruction);
-        else
+            /*set_binary_node_unresolved_label(binary_table,*TC-1,operand2);*/
+        }
+        else if(operand1_type == OPERAND_TYPE_DIRECT)
+        {
             set_binary_node_wordfield(binary_table,*TC-2,wf_instruction);
+            /*set_binary_node_unresolved_label(binary_table,*TC-2,operand2);*/
+        }
 
         new_wf2 = init_wordfield();
         binary_node_add(binary_table,*TC,"Address of Label",operand2);
@@ -1024,9 +1047,12 @@ int handle_string_directive(BinaryTable* binary_table, unsigned int* TC, unsigne
 int check_directive_label(LabelTable* label_table,char* line, char* word, int* position,
     const char* filepath, int current_line)
 {
+    char directive_name[MAX_WORD];
+    strcpy(directive_name,word);
+
     *position = read_word_from_line(line, word, *position);
     is_label(word);        
-    if(label_table_search(label_table,word) != INVALID_RETURN)
+    if(label_table_search(label_table,word) != INVALID_RETURN && strcmp(directive_name,".entry") != VALID_RETURN)
     {
         add_error_entry(ErrorType_InvalidLabel_Redefinition,filepath,current_line);
         return INVALID_RETURN;

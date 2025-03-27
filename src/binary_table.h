@@ -74,6 +74,14 @@ void binary_node_add(BinaryTable* table, unsigned int address, char* line,char* 
 void set_binary_node_wordfield(BinaryTable* table, unsigned int address, wordfield* word);
 
 /**
+ * @brief Sets the unresolved label of a BinaryNode
+ * @param table Pointer to the BinaryTable.
+ * @param address The address to search for.
+ * @param label_name The name of the unresolved label to set.
+ */
+void set_binary_node_unresolved_label(BinaryTable* table, unsigned int address, char* name);
+
+/**
  * @brief Prints the contents of the entire table.
  * @param table Pointer to the BinaryTable.
  */

@@ -1,7 +1,30 @@
 #ifndef COMMNET_H
 #define COMMNET_H
 
-/* This header defines basic macros for use across the project. */
+/* This header defines basic macros and types for use across the project. */
+
+/** @brief Types of operands. */
+typedef enum
+{
+    /* the types below tells us what operand are we "operating" on */
+    OPERAND_TYPE_SINGLE = -2, /* for single operands instructions like inc r6, prn r2, etc.. */
+    OPERAND_TYPE_FIRST = -1, /* we are "operating" on the first operand out of 2 in total for: mov, cmp, etc.. */
+    /* the types below represent the type of the operands */
+    OPERAND_TYPE_IMMEDIATE = 0,
+    OPERAND_TYPE_DIRECT = 1,
+    OPERAND_TYPE_RELATIVE = 2,
+    OPERAND_TYPE_REGISTER = 3
+} OperandType;
+
+/** @brief Types of directives. */
+typedef enum
+{
+    DIRECTIVE_TYPE_STRING,
+    DIRECTIVE_TYPE_DATA,
+    DIRECTIVE_TYPE_EXTERN,
+    DIRECTIVE_TYPE_ENTRY
+} DirectiveType;
+
 
 #define OUTPUT_PATH "build/output_files/"
 #define NEW_LINE '\n'
@@ -32,4 +55,5 @@
 #define NO_OPERANDS_INSTRUCTION 0
 #define ONE_OPERAND_INSTRUCTION 1
 #define TWO_OPERANDS_INSTRUCTION 2
+
 #endif 

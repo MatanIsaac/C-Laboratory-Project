@@ -139,6 +139,16 @@ void set_binary_node_wordfield(BinaryTable* table, unsigned int address, wordfie
     *(table->data[node_index]->word) = *word;  /* assign struct contents into allocated memory */
 }
 
+void set_binary_node_unresolved_label(BinaryTable* table, unsigned int address, char* name)
+{
+    int node_index = binary_table_search(table, address);
+
+    if (node_index == INVALID_RETURN || !table || !table->data || !name) 
+        return;
+    
+    table->data[node_index]->unresolved_label = my_strdup(name);
+}
+
 void binary_table_print(BinaryTable* table)
 {
     size_t i;
