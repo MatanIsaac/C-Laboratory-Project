@@ -103,7 +103,6 @@ int label_table_search_by_address(LabelTable* table, unsigned int address);
  */
 int label_table_set_node_by_name(LabelTable* table,char* name, unsigned int address, enum LabelType type);
 
-
 /**
  * @brief Sets a label's type by its address.
  * @param table Pointer to the LabelTable.

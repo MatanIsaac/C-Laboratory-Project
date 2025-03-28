@@ -404,7 +404,7 @@ int handle_directive(BinaryTable* binary_table, LabelTable* label_table, unsigne
                 label_table->labels[index].type = LABELTYPE_DATA_ENTRY;
         }
     
-        if(flag == VALID_RETURN)
+        if(flag == VALID_RETURN && index == INVALID_RETURN)
         {
             label_table_add(label_table,my_strdup(word),0,LABELTYPE_ENTRY);    
         }
@@ -744,12 +744,10 @@ int handle_double_operand_instruction(BinaryTable* binary_table,char* line, char
         if(operand1_type == OPERAND_TYPE_IMMEDIATE || operand1_type == OPERAND_TYPE_REGISTER || operand1_type == OPERAND_TYPE_RELATIVE)
         {
             set_binary_node_wordfield(binary_table,*TC-1,wf_instruction);
-            /*set_binary_node_unresolved_label(binary_table,*TC-1,operand2);*/
         }
         else if(operand1_type == OPERAND_TYPE_DIRECT)
         {
             set_binary_node_wordfield(binary_table,*TC-2,wf_instruction);
-            /*set_binary_node_unresolved_label(binary_table,*TC-2,operand2);*/
         }
 
         new_wf2 = init_wordfield();
@@ -832,7 +830,7 @@ void get_double_operands(char* line, char* word, int* position, const char* file
     }  
 }
 
-static int valid_src[16][4] = 
+static int valid_src[MAX_INSTRUCTIONS][ADDRESSING_MODES] = 
 {
     /* 
         NOTE: 
@@ -859,7 +857,7 @@ static int valid_src[16][4] =
     { 0, 0, 0, 0 }, /* opcode 15: stop */
 };
 
-static int valid_dest[16][4] =
+static int valid_dest[MAX_INSTRUCTIONS][ADDRESSING_MODES] =
 {
     /* 
         NOTE: 

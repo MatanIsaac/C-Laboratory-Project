@@ -19,4 +19,7 @@ void prepare_output_files(const char* filepath, FILE** fp_ob, FILE** fp_ent, FIL
 
 void handle_distance_to_label(BinaryNode* binary_node, LabelNode* node);
 
+void complete_first_pass(BinaryTable* binary_table,LabelTable* label_table,FILE** ext_file);
+
+void handle_entries(LabelTable* label_table, FILE** ent_file);
 #endif
