@@ -55,18 +55,42 @@ int execute_second_pass(BinaryTable* binary_table,LabelTable* label_table, int I
     FILE* ob_file;
     FILE* ent_file;
     FILE* ext_file;
-    prepare_output_files(filepath,&ob_file,&ent_file,&ext_file);
+    char* ob_filename   = NULL;
+    char* ent_filename  = NULL;
+    char* ext_filename  = NULL;
+    prepare_output_files(filepath,&ob_file,&ent_file,&ext_file,&ob_filename,&ent_filename,&ext_filename);
     
     complete_first_pass(binary_table,label_table,&ext_file);
 
     handle_entries(label_table, &ent_file);
-    /* 
-        TODO: 
-        1. Close files if they are empty - keep the file destination in order to remove it by name.
-    */
-    fclose(ext_file);
-    fclose(ent_file);
-    fclose(ob_file);
+
+    if(is_file_empty(ext_file) != INVALID_RETURN)
+    {
+        fclose(ext_file);
+        remove(ext_filename);
+    }
+    else
+        fclose(ext_file);
+    
+    if(is_file_empty(ent_file) != INVALID_RETURN)
+    {
+        fclose(ent_file);
+        remove(ent_filename);
+    }
+    else    
+        fclose(ent_file);
+    
+    if(is_file_empty(ob_file) != INVALID_RETURN)
+    {
+        fclose(ob_file);
+        remove(ob_filename);
+    }
+    else
+        fclose(ob_file);
+
+    free(ob_filename);
+    free(ent_filename);
+    free(ext_filename);
 
     printf("\n\n");
     binary_table_print(binary_table);
@@ -94,24 +118,25 @@ int execute_second_pass(BinaryTable* binary_table,LabelTable* label_table, int I
  *      In order to avoid warnings about uninitialized file pointers
  *      and to clarify each function's responsibility.
  */
-void prepare_output_files(const char* filepath, FILE** fp_ob, FILE** fp_ent, FILE** fp_ext)
+void prepare_output_files(const char* filepath, FILE** fp_ob, FILE** fp_ent, FILE** fp_ext,
+    char** ob_filename,char** ent_filename,char** ext_filename)
 {
     char* output_path       = OUTPUT_PATH;
     size_t filename_length  = strlen(filepath);
     char* file_path         = my_strdup(filepath);
     char* filename          = get_filename(file_path);
-    char* ob_file           = string_calloc(sizeof(filename_length), sizeof(char));
-    char* ent_file          = string_calloc(sizeof(filename_length) + 1, sizeof(char));
-    char* ext_file          = string_calloc(sizeof(filename_length) + 1, sizeof(char));
+    *ob_filename             = string_calloc(sizeof(filename_length), sizeof(char));
+    *ent_filename            = string_calloc(sizeof(filename_length) + 1, sizeof(char));
+    *ext_filename            = string_calloc(sizeof(filename_length) + 1, sizeof(char));
 
     file_path[filename_length - 2]  = 'o';
     file_path[filename_length - 1]  = 'b';
-    sprintf(ob_file, "%s%s",output_path,filename);
+    sprintf(*ob_filename, "%s%s",output_path,filename);
         
-    *fp_ob = fopen(ob_file, "w+");
+    *fp_ob = fopen(*ob_filename, "w+");
     if(*fp_ob == NULL)
     {
-        log_error(__FILE__,__LINE__, "Failed to open [%s] for first pass\n.", ob_file);
+        log_error(__FILE__,__LINE__, "Failed to open [%s] for first pass\n.", *ob_filename);
         add_error_entry(ErrorType_OpenFileFailure,__FILE__,__LINE__);
     }
 
@@ -119,12 +144,12 @@ void prepare_output_files(const char* filepath, FILE** fp_ob, FILE** fp_ent, FIL
     file_path[filename_length - 1]  = 'n';
     file_path[filename_length]      = 't';
     file_path[filename_length + 1]  = NULL_TERMINATOR;
-    sprintf(ent_file, "%s%s",output_path,filename);
+    sprintf(*ent_filename, "%s%s",output_path,filename);
     
-    *fp_ent = fopen(ent_file, "w+");
+    *fp_ent = fopen(*ent_filename, "w+");
     if(*fp_ent == NULL)
     {
-        log_error(__FILE__,__LINE__, "Failed to open [%s] for first pass\n.", ent_file);
+        log_error(__FILE__,__LINE__, "Failed to open [%s] for first pass\n.", *ent_filename);
         add_error_entry(ErrorType_OpenFileFailure,__FILE__,__LINE__);
     }
 
@@ -132,23 +157,17 @@ void prepare_output_files(const char* filepath, FILE** fp_ob, FILE** fp_ent, FIL
     file_path[filename_length - 1]  = 'x';
     file_path[filename_length]      = 't';
     file_path[filename_length + 1]  = NULL_TERMINATOR;
-    sprintf(ext_file, "%s%s",output_path,filename);
+    sprintf(*ext_filename, "%s%s",output_path,filename);
 
-    *fp_ext = fopen(ext_file, "w+");
+    *fp_ext = fopen(*ext_filename, "w+");
     if(*fp_ext == NULL)
     {
-        log_error(__FILE__,__LINE__, "Failed to open [%s] for first pass\n.", ext_file);
+        log_error(__FILE__,__LINE__, "Failed to open [%s] for first pass\n.", *ext_filename);
         add_error_entry(ErrorType_OpenFileFailure,__FILE__,__LINE__);
     }
 
     if(file_path)
-        free(file_path);   
-    if(ob_file)
-        free(ob_file);   
-    if(ent_file)
-        free(ent_file);   
-    if(ext_file)
-        free(ext_file);   
+        free(file_path);  
 }
 
 void handle_distance_to_label(BinaryNode* binary_node, LabelNode* node)
@@ -261,4 +280,24 @@ void handle_entries(LabelTable* label_table, FILE** ent_file)
             break;
         }
     }
+}
+
+int is_file_empty(FILE* file)
+{
+    long size;
+    long current_pos;
+
+    /* Save current position */ 
+    current_pos = ftell(file);       
+    /* Go to end */
+    fseek(file, 0, SEEK_END);             
+    /* Get position = file size */
+    size = ftell(file);              
+    /* Restore original position */
+    fseek(file, current_pos, SEEK_SET);   
+    
+    if(size == 0)
+        return VALID_RETURN;
+    
+    return INVALID_RETURN;
 }
