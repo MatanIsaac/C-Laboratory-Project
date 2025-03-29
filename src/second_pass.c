@@ -4,54 +4,23 @@
 #include "common.h"
 #include "utility.h"
 
-void prepare_second_pass(const char* filepath,BinaryTable* binary_table, LabelTable* label_table, int ICF, int DCF)
+int prepare_second_pass(const char* filepath,BinaryTable* binary_table, LabelTable* label_table, int ICF, int DCF)
 {
-    if(execute_second_pass(binary_table,label_table,ICF,DCF,filepath) >= 0)    
+    int flag;
+    if((flag = execute_second_pass(binary_table,label_table,ICF,DCF,filepath)) != INVALID_RETURN)    
     {
         log_out(__FILE__,__LINE__, "Done Second-Pass for [%s]\n.", filepath);
+        return VALID_RETURN;
     }
-    else /* second pass failed */
-    {
-        log_error(__FILE__,__LINE__, "Failed Second-Pass for [%s]\n.", filepath);
-    }
+    
+    /* else second pass failed */
+    log_error(__FILE__,__LINE__, "Failed Second-Pass for [%s]\n.", filepath);
+    return flag;
 }
 
-/* 
-    TODO: 2nd-Pass Plan 
-
-    V 1.  Create Output Files (.ob, .ext, .ent)
-            a. Open or create each file upfront.
-            b. Keep track of whether you actually write anything to each file. If you don’t write any extern or entry symbols, you can safely remove the .ext or .ent file at the end.
-
-    V 2.  Iterate Over the Binary Table 
-        For each BinaryNode (or equivalent) that might contain an unresolved label reference, do:
-            a.  Check if there’s a label to resolve (e.g., node->unresolved_label != NULL or a special ARE bit).
-            b.  Look up the label in your label_table:
-                    If the label doesn’t exist, log an error (e.g., “Undefined label”).
-                    Otherwise, retrieve the label’s address and type (e.g., data/code, extern, etc.).
-            c.  Patch the Instruction:
-                    If it’s relative addressing (e.g., OPERAND_TYPE_RELATIVE), calculate the distance (label_address − current_address).
-                    If it’s external, set the ARE bits accordingly (mark as External) and write an entry to your .ext file (line + label + address).
-                    Otherwise, just set the address bits in the instruction’s wordfield (plus appropriate ARE bits for relocatable vs. absolute).
-
-    3.  Write the Final Machine Code to .ob
-            a. After patching is done, you have the final binary (or textual machine code).
-            b. Write out the instruction part (IC) followed by the data part (DC), or however your format demands.
-
-    4.  Handle Entries
-            a. During the first pass, you typically record which labels are .entry. In the second pass, you can look those up in your label table to get their final addresses.
-            b. Write each entry (label + address) to the .ent file.
-            c. If you don’t have any entry labels, remove the .ent file.
-
-    5.  Close or Delete Unused Files
-            a. If you never wrote anything to .ext, remove it.
-            b. Same for .ent.
-
-    6.  Report Errors
-            If any label resolution failed, or if there were inconsistencies (e.g., redefinition of labels), this is the time to ensure your assembler reports them.       
-*/
 int execute_second_pass(BinaryTable* binary_table,LabelTable* label_table, int ICF, int DCF,const char* filepath)
 {
+    int flag;
     FILE* ob_file;
     FILE* ent_file;
     FILE* ext_file;
@@ -59,12 +28,14 @@ int execute_second_pass(BinaryTable* binary_table,LabelTable* label_table, int I
     char* ent_filename  = NULL;
     char* ext_filename  = NULL;
     prepare_output_files(filepath,&ob_file,&ent_file,&ext_file,&ob_filename,&ent_filename,&ext_filename);
-    
-    complete_first_pass(binary_table,label_table,&ext_file);
 
-    handle_entries(label_table, &ent_file);
+    fprintf(ob_file,"\t%d %d\n",ICF,DCF);
+    flag = complete_first_pass(binary_table,label_table,&ob_file,&ext_file);
 
-    if(is_file_empty(ext_file) != INVALID_RETURN)
+    if(flag != INVALID_RETURN)
+        handle_entries(label_table, &ent_file);
+
+    if(is_file_empty(ext_file) != INVALID_RETURN || flag == INVALID_RETURN)
     {
         fclose(ext_file);
         remove(ext_filename);
@@ -72,7 +43,7 @@ int execute_second_pass(BinaryTable* binary_table,LabelTable* label_table, int I
     else
         fclose(ext_file);
     
-    if(is_file_empty(ent_file) != INVALID_RETURN)
+    if(is_file_empty(ent_file) != INVALID_RETURN || flag == INVALID_RETURN)
     {
         fclose(ent_file);
         remove(ent_filename);
@@ -80,7 +51,7 @@ int execute_second_pass(BinaryTable* binary_table,LabelTable* label_table, int I
     else    
         fclose(ent_file);
     
-    if(is_file_empty(ob_file) != INVALID_RETURN)
+    if(is_file_empty(ob_file) != INVALID_RETURN || flag == INVALID_RETURN)
     {
         fclose(ob_file);
         remove(ob_filename);
@@ -91,22 +62,25 @@ int execute_second_pass(BinaryTable* binary_table,LabelTable* label_table, int I
     free(ob_filename);
     free(ent_filename);
     free(ext_filename);
-
-    printf("\n\n");
-    binary_table_print(binary_table);
-    printf("\n\n");
-    label_table_print(label_table);
-    printf("\n\n");
     
-    if(is_errors_array_empty() < 0)
+    if(is_errors_array_empty() == INVALID_RETURN)
     {
         print_errors_array();
+        binary_table_print(binary_table);
+        printf("\n\n");
+        label_table_print(label_table);
         return INVALID_RETURN;
     }
     else
     {
         log_out(__FILE__,__LINE__,"\n\nSECOND-PASS Alright Alright Alright!\n\n");
     }
+
+    printf("\n\n");
+    binary_table_print(binary_table);
+    printf("\n\n");
+    label_table_print(label_table);
+    printf("\n\n");
 
     return VALID_RETURN;
 }
@@ -172,17 +146,16 @@ void prepare_output_files(const char* filepath, FILE** fp_ob, FILE** fp_ent, FIL
 
 void handle_distance_to_label(BinaryNode* binary_node, LabelNode* node)
 {
-    /* LABEL_ADDRESS - CURRENT_OP_ADDRESS = DIFF */
     int distance = node->address - (binary_node->address-1);
     set_wordfield_are_num(binary_node->word,distance,ARE_ABSOLUTE);
 }
 
-void complete_first_pass(BinaryTable* binary_table,LabelTable* label_table,FILE** ext_file)
+int complete_first_pass(BinaryTable* binary_table,LabelTable* label_table,FILE** ob_file,FILE** ext_file)
 {
-    int i;
+    int i, flag;
     for (i = 0; i < binary_table->size; i++) 
     {
-        int index;
+        int index,wordfield_number;
         BinaryNode* binary_node = binary_table->data[i];
         if(binary_node->unresolved_label != NULL)
         {
@@ -246,9 +219,14 @@ void complete_first_pass(BinaryTable* binary_table,LabelTable* label_table,FILE*
             else
             {
                 add_error_entry(ErrorType_InvalidLabel_UndefinedLabel,NULL,binary_node->address);
+                flag = INVALID_RETURN;
             }
         }
+        wordfield_number = wordfield_to_int(binary_node->word);
+        fprintf(*ob_file,"%.7d %s\n",binary_node->address,int_to_hex(wordfield_number));
     }
+
+    return flag;
 }
 
 void handle_entries(LabelTable* label_table, FILE** ent_file)

@@ -8,7 +8,7 @@
 /**
  * @brief Prepares the second pass.
  */
-void prepare_second_pass(const char* filepath,BinaryTable* binary_table,LabelTable* label_table, int ICF, int DCF);
+int prepare_second_pass(const char* filepath,BinaryTable* binary_table,LabelTable* label_table, int ICF, int DCF);
 
 /**
  * @brief Executes the second pass.
@@ -20,7 +20,7 @@ void prepare_output_files(const char* filepath, FILE** fp_ob, FILE** fp_ent, FIL
 
 void handle_distance_to_label(BinaryNode* binary_node, LabelNode* node);
 
-void complete_first_pass(BinaryTable* binary_table,LabelTable* label_table,FILE** ext_file);
+int complete_first_pass(BinaryTable* binary_table,LabelTable* label_table,FILE** ob_file,FILE** ext_file);
 
 void handle_entries(LabelTable* label_table, FILE** ent_file);
 

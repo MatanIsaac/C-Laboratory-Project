@@ -1,4 +1,4 @@
-MAIN:       add r3 ,  LIST 
+MAIN:       add r3 , NUMS 
 LOOP:       prn #48
             mcro a_mc
             cmp K       ,  #-6
@@ -6,7 +6,7 @@ LOOP:       prn #48
             mcroend
             lea STR ,r6
             inc r6
-            mov r3 , K
+            mov r3 , L
             sub r1 ,r4
             bne END
             a_mc

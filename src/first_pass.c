@@ -126,7 +126,7 @@ int execute_first_pass(FILE* fp, LabelTable* label_table, InstructionTable* inst
     log_out(__FILE__,__LINE__,"TC: %u\t DC: %u\n",TC,DC);
     log_out(__FILE__,__LINE__,"ICF: %u\t DCF: %u\n",ICF,DCF);
     
-    if(is_errors_array_empty() < 0)
+    if(is_errors_array_empty()  == INVALID_RETURN)
     {
         print_errors_array();
         flag = INVALID_RETURN;
@@ -136,7 +136,7 @@ int execute_first_pass(FILE* fp, LabelTable* label_table, InstructionTable* inst
         log_out(__FILE__,__LINE__,"\n\nFIRST-PASS Alright Alright Alright!\n\n");
     }
 
-    prepare_second_pass(filepath,binary_table,label_table,ICF,DCF);
+    flag = prepare_second_pass(filepath,binary_table,label_table,ICF,DCF);
 
     return flag;
 }

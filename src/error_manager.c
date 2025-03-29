@@ -152,7 +152,7 @@ void clean_errors_array()
 
 int is_errors_array_empty()
 {
-    return (error_index == 0) ? 1 : -1;
+    return (error_index == 0) ? VALID_RETURN : INVALID_RETURN;
 }
 
 void print_errors_array()
