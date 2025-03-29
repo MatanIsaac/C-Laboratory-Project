@@ -10,13 +10,12 @@
 /**
  * @brief Extracts the filename from a given file path.
  *
- * This function returns a pointer to a newly allocated string 
+ * This function returns a pointer to the string 
  * containing the last component of a file path (i.e., the filename).
  * 
  * @param[in] file A C-string representing the full path to a file.
- * @return A newly allocated string containing just the filename, or NULL on failure.
+ * @return A string containing just the filename, or NULL on failure.
  *
- * @note It's your responsibility to free the returned pointer when done.
  */
 char* get_filename(char* file);
 

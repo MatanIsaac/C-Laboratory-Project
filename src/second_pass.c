@@ -38,25 +38,28 @@ int execute_second_pass(BinaryTable* binary_table,LabelTable* label_table, int I
     if(is_file_empty(ext_file) != INVALID_RETURN || flag == INVALID_RETURN)
     {
         fclose(ext_file);
+        ext_file = NULL;
         remove(ext_filename);
     }
-    else
+    else if(ext_file)
         fclose(ext_file);
     
     if(is_file_empty(ent_file) != INVALID_RETURN || flag == INVALID_RETURN)
     {
         fclose(ent_file);
+        ent_file = NULL;
         remove(ent_filename);
     }
-    else    
+    else if(ent_file)    
         fclose(ent_file);
     
     if(is_file_empty(ob_file) != INVALID_RETURN || flag == INVALID_RETURN)
     {
         fclose(ob_file);
+        ob_file = NULL;
         remove(ob_filename);
     }
-    else
+    else if(ob_file)
         fclose(ob_file);
 
     free(ob_filename);
@@ -99,9 +102,16 @@ void prepare_output_files(const char* filepath, FILE** fp_ob, FILE** fp_ent, FIL
     size_t filename_length  = strlen(filepath);
     char* file_path         = my_strdup(filepath);
     char* filename          = get_filename(file_path);
-    *ob_filename             = string_calloc(sizeof(filename_length), sizeof(char));
-    *ent_filename            = string_calloc(sizeof(filename_length) + 1, sizeof(char));
-    *ext_filename            = string_calloc(sizeof(filename_length) + 1, sizeof(char));
+    *ob_filename            = string_malloc(strlen(output_path) + strlen(filename) + 1);
+    *ent_filename           = string_malloc(strlen(output_path) + strlen(filename) + 1);
+    *ext_filename           = string_malloc(strlen(output_path) + strlen(filename) + 1);
+    
+    if (!*ob_filename || !*ent_filename || !*ext_filename) 
+    {
+        log_error(__FILE__, __LINE__, "Failed to allocate memory for output file paths.");
+        return;
+    }
+    
 
     file_path[filename_length - 2]  = 'o';
     file_path[filename_length - 1]  = 'b';
@@ -141,7 +151,7 @@ void prepare_output_files(const char* filepath, FILE** fp_ob, FILE** fp_ent, FIL
     }
 
     if(file_path)
-        free(file_path);  
+        free(file_path);
 }
 
 void handle_distance_to_label(BinaryNode* binary_node, LabelNode* node)
@@ -264,6 +274,9 @@ int is_file_empty(FILE* file)
 {
     long size;
     long current_pos;
+
+    if (!file)
+        return INVALID_RETURN;
 
     /* Save current position */ 
     current_pos = ftell(file);       
