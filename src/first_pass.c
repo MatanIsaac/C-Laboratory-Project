@@ -265,7 +265,7 @@ int handle_labels(LabelTable* label_table, unsigned int TC, char* line, char* wo
         {
             add_error_entry(ErrorType_UnrecognizedToken,filepath,current_line);
         }
-        if(label_name)
+        if(label_name != NULL)
             free(label_name);
         return INVALID_RETURN;
     }
@@ -273,7 +273,7 @@ int handle_labels(LabelTable* label_table, unsigned int TC, char* line, char* wo
     if(!isspace(line[temp_position+1]))
     {
         add_error_entry(ErrorType_InvalidLabel_MissingSpace,filepath,current_line);
-        if(label_name)
+        if(label_name != NULL)
             free(label_name);
         return INVALID_RETURN;
     }
@@ -286,7 +286,7 @@ int handle_labels(LabelTable* label_table, unsigned int TC, char* line, char* wo
         if(label_table->labels[label_index].type != LABELTYPE_ENTRY)
         {    
             add_error_entry(ErrorType_InvalidLabel_Redefinition,filepath,current_line);
-            if(label_name)
+            if(label_name != NULL)
                 free(label_name);
             return INVALID_RETURN;
         }
@@ -299,7 +299,7 @@ int handle_labels(LabelTable* label_table, unsigned int TC, char* line, char* wo
     else if(is_instruction(label_name) != INVALID_RETURN || is_directive(label_name) != INVALID_RETURN  || is_register(label_name) != INVALID_RETURN)
     {
         add_error_entry(ErrorType_InvalidLabel_Reserved,filepath,current_line);
-        if(label_name)
+        if(label_name != NULL)
             free(label_name);
         return INVALID_RETURN;
     }
@@ -308,7 +308,7 @@ int handle_labels(LabelTable* label_table, unsigned int TC, char* line, char* wo
     if(temp_position == INVALID_RETURN)
     {
         add_error_entry(ErrorType_InvalidLabel_EmptyLabel,filepath,current_line);
-        if(label_name)
+        if(label_name != NULL)
             free(label_name);
         flag = INVALID_RETURN;
     }
@@ -316,10 +316,10 @@ int handle_labels(LabelTable* label_table, unsigned int TC, char* line, char* wo
     if(flag != INVALID_RETURN && label_index == -1)
     {
         /* add the valid label to the label table and set its type as CODE */
-        label_table_add(label_table,label_name,TC,LABELTYPE_CODE);
+        label_table_add(label_table,my_strdup(label_name),TC,LABELTYPE_CODE);
     }
 
-    if((is_directive(temp) == VALID_RETURN) && flag != INVALID_RETURN)
+    if((is_directive(temp) == VALID_RETURN) && flag != INVALID_RETURN && label_index != INVALID_RETURN)
     {
         if(label_table->labels[label_index].type != LABELTYPE_ENTRY)
             label_table_set_label_type(label_table,TC,LABELTYPE_DATA);
@@ -327,6 +327,8 @@ int handle_labels(LabelTable* label_table, unsigned int TC, char* line, char* wo
             label_table_set_label_type(label_table,TC,LABELTYPE_DATA_ENTRY);
     }
 
+    if(label_name != NULL)
+        free(label_name);
     return flag;
 }
 
@@ -338,34 +340,42 @@ int handle_instruction(BinaryTable* binary_table,InstructionTable* instruction_t
     wordfield* wf           = create_wordfield_by_opname(word, instruction_table);
     set_wordfield_are(wf,ARE_ABSOLUTE);
     operands_count          = get_operands_count(word);
+    
     if(operands_count == INVALID_RETURN)
     {
         log_error(__FILE__,__LINE__, "Failed to get operands count!\n");
-        free(wf);
+        free(wf); 
+        wf = NULL;
+        return INVALID_RETURN;
     }
     else if(operands_count == NO_OPERANDS_INSTRUCTION)
     {
         binary_node_add(binary_table,*TC,line,NULL); /* no operands, no need for the unresolved label */
         set_binary_node_wordfield(binary_table,*TC,wf);
-        free(wf);
         (*TC)++;
-
+        
         /* try to get the next word in line, if we recieve a valid position in line, extraneous text found */
         if((*position = read_word_from_line(line, word, *position)) != INVALID_RETURN)
-        {
+        {    
             add_error_entry(ErrorType_ExtraneousText_Instruction,filepath,current_line);
             return INVALID_RETURN;
         } 
     }
     else if (operands_count == ONE_OPERAND_INSTRUCTION)
     {
-        flag = handle_single_operand_instruction(binary_table,line,word,position,TC,filepath,current_line,wf);
+        flag = handle_single_operand_instruction(binary_table,line,word,position,TC,filepath,current_line,wf);        
     }
     else 
     {
         flag = handle_double_operand_instruction(binary_table,line,word,position,TC,filepath,current_line,wf);
     } 
 
+    if(wf != NULL)
+    {
+        free(wf);
+        wf = NULL;   
+    }
+    
     return flag;
 }
 
@@ -505,15 +515,12 @@ void handle_register_operand(BinaryTable* binary_table, char* line, char* word, 
     if(operand1_type != OPERAND_TYPE_REGISTER && operand1_type != OPERAND_TYPE_FIRST)
     {
         set_binary_node_wordfield(binary_table,*TC-2,wf_instruction);
-        free(wf_instruction);
     }
     else 
     {
         /* we are in the second operand - 1st operand was not a register - has an extra wordfield */
         set_binary_node_wordfield(binary_table,*TC-1,wf_instruction); 
-        free(wf_instruction);
     }
-
 }
 
 int handle_single_operand_instruction(BinaryTable* binary_table,char* line, char* word,int* position, unsigned int* TC,
@@ -529,6 +536,7 @@ int handle_single_operand_instruction(BinaryTable* binary_table,char* line, char
     if(check_target_operand(wf_instruction->opcode,single_operand_type) == INVALID_RETURN)
     {
         free(new_wf);
+        new_wf = NULL;
         add_error_entry(ErrorType_InvalidInstruction_WrongTargetOperand,filepath,current_line);
         return INVALID_RETURN;
     }
@@ -536,6 +544,7 @@ int handle_single_operand_instruction(BinaryTable* binary_table,char* line, char
     if(*position == INVALID_RETURN)
     {
         free(new_wf);
+        new_wf = NULL;
         add_error_entry(ErrorType_InvalidInstruction_MissingTargetOperand,filepath,current_line);
         return INVALID_RETURN;
     }
@@ -544,7 +553,11 @@ int handle_single_operand_instruction(BinaryTable* binary_table,char* line, char
     if((*position = read_word_from_line(line, word, *position)) != INVALID_RETURN)
     {
         free(new_wf);
+        new_wf = NULL;
+        
         free(single_operand);
+        single_operand = NULL;
+        
         add_error_entry(ErrorType_ExtraneousText_Instruction,filepath,current_line);
         return INVALID_RETURN;
     } 
@@ -553,10 +566,11 @@ int handle_single_operand_instruction(BinaryTable* binary_table,char* line, char
     {
     case OPERAND_TYPE_IMMEDIATE:
         handle_immediate_operand(binary_table,line,single_operand,TC,filepath,current_line,wf_instruction,new_wf);
-        if(wf_instruction == NULL)
-            free(wf_instruction);        
-        if(new_wf == NULL)
+        if(new_wf != NULL)
+        {
             free(new_wf);
+            new_wf = NULL;
+        }
         break;
     case OPERAND_TYPE_DIRECT:
         flag = is_label(single_operand);
@@ -567,11 +581,14 @@ int handle_single_operand_instruction(BinaryTable* binary_table,char* line, char
         set_wordfield_dest(wf_instruction,OPERAND_TYPE_DIRECT,0);
         binary_node_add(binary_table,*TC,line,NULL);
         set_binary_node_wordfield(binary_table,*TC,wf_instruction);
-        free(wf_instruction);
         (*TC)++;
         binary_node_add(binary_table,*TC,"Address of Label",single_operand);
         set_binary_node_wordfield(binary_table,*TC,new_wf);
-        free(new_wf);
+        if(new_wf != NULL)
+        {
+            free(new_wf);
+            new_wf = NULL;
+        }
         (*TC)++;
         break;
     case OPERAND_TYPE_RELATIVE:
@@ -584,7 +601,6 @@ int handle_single_operand_instruction(BinaryTable* binary_table,char* line, char
         set_wordfield_dest(wf_instruction,OPERAND_TYPE_RELATIVE,0);
         binary_node_add(binary_table,*TC,line,NULL);
         set_binary_node_wordfield(binary_table,*TC,wf_instruction);
-        free(wf_instruction);
         (*TC)++;
         /*
         if(single_operand[0] == AMPERSAND)
@@ -592,7 +608,11 @@ int handle_single_operand_instruction(BinaryTable* binary_table,char* line, char
         */
         binary_node_add(binary_table,*TC,"Distance to Label",single_operand);
         set_binary_node_wordfield(binary_table,*TC,new_wf);
-        free(new_wf);
+        if(new_wf != NULL)
+        {
+            free(new_wf);
+            new_wf = NULL;
+        }
         (*TC)++;
         
         /* 
@@ -614,15 +634,23 @@ int handle_single_operand_instruction(BinaryTable* binary_table,char* line, char
     case OPERAND_TYPE_REGISTER:
         handle_register_operand(binary_table,line,single_operand,OPERAND_TYPE_SINGLE,TC,filepath,current_line,wf_instruction);
         (*TC)++;
-        
+        wf_instruction = NULL;
+
         /* no use for an extra wordfield if 1st operand is a register */
-        if(wf_instruction)
-            free(wf_instruction);
         if(new_wf)
+        {
             free(new_wf);
+            new_wf = NULL;
+        }
         break;
     default:
         break;
+    }
+
+    if(single_operand != NULL)
+    {
+        free(single_operand);
+        single_operand = NULL;
     }
 
     return flag;
@@ -645,7 +673,9 @@ int handle_double_operand_instruction(BinaryTable* binary_table,char* line, char
     if((*position = read_word_from_line(line, word, *position)) != INVALID_RETURN)
     {
         free(operand1);
+        operand1 = NULL;
         free(operand2);
+        operand2 = NULL;
         add_error_entry(ErrorType_ExtraneousText_Instruction,filepath,current_line);
         return INVALID_RETURN;
     } 
@@ -656,14 +686,18 @@ int handle_double_operand_instruction(BinaryTable* binary_table,char* line, char
     if(check_src_operand(wf_instruction->opcode,operand1_type) == INVALID_RETURN)
     {
         free(operand1);
+        operand1 = NULL;
         free(operand2);
+        operand2 = NULL;
         add_error_entry(ErrorType_InvalidInstruction_WrongSrcOperand,filepath,current_line);
         return INVALID_RETURN;
     }
     if(check_target_operand(wf_instruction->opcode,operand2_type) == INVALID_RETURN)
     {
         free(operand1);
+        operand1 = NULL;
         free(operand2);
+        operand2 = NULL;
         add_error_entry(ErrorType_InvalidInstruction_WrongTargetOperand,filepath,current_line);
         return INVALID_RETURN;
     }
@@ -674,11 +708,12 @@ int handle_double_operand_instruction(BinaryTable* binary_table,char* line, char
         set_wordfield_src(wf_instruction,OPERAND_TYPE_IMMEDIATE,0);
         new_wf1 = init_wordfield();
         handle_immediate_operand(binary_table,line,operand1,TC,filepath,current_line,wf_instruction,new_wf1);
-        
-        if(wf_instruction == NULL)
-            free(wf_instruction);        
-        if(new_wf1 == NULL)
+                
+        if(new_wf1 != NULL)
+        {
             free(new_wf1);
+            new_wf1 = NULL;
+        }
         break;
     case OPERAND_TYPE_DIRECT:
         flag = is_label(operand1);
@@ -693,7 +728,11 @@ int handle_double_operand_instruction(BinaryTable* binary_table,char* line, char
         new_wf1 = init_wordfield();
         binary_node_add(binary_table,*TC,"Address of Label",operand1);
         set_binary_node_wordfield(binary_table,*TC,new_wf1);
-        free(new_wf1);
+        if(new_wf1 != NULL)
+        {
+            free(new_wf1);
+            new_wf1 = NULL;
+        }
         (*TC)++;
         break;
     case OPERAND_TYPE_RELATIVE:
@@ -705,18 +744,32 @@ int handle_double_operand_instruction(BinaryTable* binary_table,char* line, char
 
         (*TC)++;
         /* no use for this if 1st operand is relative - processed in 2nd Pass */
-        free(new_wf1);
-        free(operand1);
+        if(new_wf1 != NULL)
+        {
+            free(new_wf1);
+            new_wf1 = NULL;
+        }
+        if(operand1 != NULL)
+        {
+            free(operand1);
+            new_wf1 = NULL;
+        }
         break;
     case OPERAND_TYPE_REGISTER:
         handle_register_operand(binary_table,line, operand1,OPERAND_TYPE_FIRST,TC,filepath,current_line,wf_instruction);
         (*TC)++;
         /* no use for an extra wordfield if 1st operand is a register */
         
-        if(new_wf1)
+        if(new_wf1 != NULL)
+        {
             free(new_wf1);
-        if(operand1)
+            new_wf1 = NULL;
+        }
+        if(operand1 != NULL)
+        {
             free(operand1);
+            operand1 = NULL;
+        }
         break;
     default:
         break;
@@ -729,10 +782,11 @@ int handle_double_operand_instruction(BinaryTable* binary_table,char* line, char
         new_wf2 = init_wordfield();
         handle_immediate_operand(binary_table,line,operand2,TC,filepath,current_line,NULL,new_wf2);
         
-        if(wf_instruction == NULL)
-            free(wf_instruction);        
-        if(new_wf2 == NULL)
+        if(new_wf2 != NULL)
+        {
             free(new_wf2);
+            new_wf2 = NULL;
+        }
         break;
     case OPERAND_TYPE_DIRECT:
         flag = is_label(operand2);
@@ -753,10 +807,11 @@ int handle_double_operand_instruction(BinaryTable* binary_table,char* line, char
         new_wf2 = init_wordfield();
         binary_node_add(binary_table,*TC,"Address of Label",operand2);
         set_binary_node_wordfield(binary_table,*TC,new_wf2);
-        if(wf_instruction == NULL)
-            free(wf_instruction);        
-        if(new_wf2 == NULL)
+        if(new_wf2 != NULL)
+        {
             free(new_wf2);
+            new_wf2 = NULL;
+        }
         (*TC)++;
         break;
     case OPERAND_TYPE_RELATIVE:
@@ -767,29 +822,55 @@ int handle_double_operand_instruction(BinaryTable* binary_table,char* line, char
         */
         (*TC)++;
         /* no use for this if 2nd operand if its relative - processed in 2nd Pass */
-        if(wf_instruction == NULL)
-            free(wf_instruction);        
-        if(new_wf2 == NULL)
+        if(new_wf2 != NULL)
+        {
             free(new_wf2);
-        if(operand2 == NULL)
+            new_wf2 = NULL;
+        }
+        if(operand2 != NULL)
+        {
             free(operand2);
+            operand2 = NULL;
+        }
         break;
     case OPERAND_TYPE_REGISTER:
         handle_register_operand(binary_table,line,operand2,operand1_type,TC,filepath,current_line,wf_instruction);
         /* no use for this if 2nd operand is a register */
-        if(new_wf2)
+        if(new_wf2 != NULL)
+        {
             free(new_wf2);
-        if(operand2)
+            new_wf2 = NULL;
+        }
+        if(operand2 != NULL)
+        {
             free(operand2);
+            operand2 = NULL;
+        }
         break;
     default:
-        free(wf_instruction);
         break;
     }
 
-    if(new_wf2)
+    if(new_wf1 != NULL)
+    {
+        free(new_wf1);
+        new_wf1 = NULL;
+    }
+    if(operand1 != NULL)
+    {
+        free(operand1);
+        operand1 = NULL;
+    }
+    if(new_wf2 != NULL)
+    {
         free(new_wf2);
-
+        new_wf2 = NULL;
+    }
+    if(operand2 != NULL)
+    {
+        free(operand2);
+        operand2 = NULL;
+    }
     return flag;
 }
 
@@ -805,7 +886,7 @@ void get_double_operands(char* line, char* word, int* position, const char* file
         if(*position == INVALID_RETURN) 
         {
             add_error_entry(ErrorType_InvalidInstruction_MissingTargetOperand,filepath,current_line);
-            if(*operand1)
+            if(*operand1 != NULL)
                 free(*operand1);
             return;
         }
@@ -818,6 +899,8 @@ void get_double_operands(char* line, char* word, int* position, const char* file
         if(COMMA != word[0])
         {
             add_error_entry(ErrorType_InvalidInstruction_MissingComma,filepath,current_line);      
+            if(*operand1 != NULL)
+                free(*operand1);
             return;
         }
         if(word[0] == NULL_TERMINATOR || strlen(word) == 1) 

@@ -3,6 +3,7 @@
 #include "logger.h"
 #include "common.h"
 #include "utility.h"
+#include <stdio.h>
 
 int prepare_second_pass(const char* filepath,BinaryTable* binary_table, LabelTable* label_table, int ICF, int DCF)
 {
@@ -85,6 +86,9 @@ int execute_second_pass(BinaryTable* binary_table,LabelTable* label_table, int I
     label_table_print(label_table);
     printf("\n\n");
 
+    binary_table_free(binary_table);
+    label_table_destroy(label_table);
+
     return VALID_RETURN;
 }
 
@@ -96,63 +100,66 @@ int execute_second_pass(BinaryTable* binary_table,LabelTable* label_table, int I
  *      and to clarify each function's responsibility.
  */
 void prepare_output_files(const char* filepath, FILE** fp_ob, FILE** fp_ent, FILE** fp_ext,
-    char** ob_filename,char** ent_filename,char** ext_filename)
+    char** ob_filename, char** ent_filename, char** ext_filename)
 {
+    size_t total_len;
+    char* filename;
     char* output_path       = OUTPUT_PATH;
     size_t filename_length  = strlen(filepath);
-    char* file_path         = my_strdup(filepath);
-    char* filename          = get_filename(file_path);
-    *ob_filename            = string_malloc(strlen(output_path) + strlen(filename) + 1);
-    *ent_filename           = string_malloc(strlen(output_path) + strlen(filename) + 1);
-    *ext_filename           = string_malloc(strlen(output_path) + strlen(filename) + 1);
-    
-    if (!*ob_filename || !*ent_filename || !*ext_filename) 
-    {
-        log_error(__FILE__, __LINE__, "Failed to allocate memory for output file paths.");
-        return;
-    }
-    
 
+    /* Allocate enough space for modification (filename_length + 3 bytes extra) */
+    char* file_path = string_malloc(filename_length + 3);
+    strcpy(file_path, filepath);
+
+    filename = get_filename(file_path);
+
+    /* Allocating output filenames */
+    total_len       = strlen(output_path) + strlen(filename) + 5; /* extra padding */
+    *ob_filename    = string_malloc(total_len);
+    *ent_filename   = string_malloc(total_len);
+    *ext_filename   = string_malloc(total_len);
+
+    /* Prepare OB filename */
     file_path[filename_length - 2]  = 'o';
     file_path[filename_length - 1]  = 'b';
-    sprintf(*ob_filename, "%s%s",output_path,filename);
-        
+    file_path[filename_length]      = NULL_TERMINATOR;
+    sprintf(*ob_filename, "%s%s", output_path, filename);
     *fp_ob = fopen(*ob_filename, "w+");
-    if(*fp_ob == NULL)
+    if(*fp_ob == NULL) 
     {
-        log_error(__FILE__,__LINE__, "Failed to open [%s] for first pass\n.", *ob_filename);
-        add_error_entry(ErrorType_OpenFileFailure,__FILE__,__LINE__);
+        log_error(__FILE__, __LINE__, "Failed to open [%s]\n", *ob_filename);
+        add_error_entry(ErrorType_OpenFileFailure, __FILE__, __LINE__);
     }
 
+    /* Prepare ENT filename */
     file_path[filename_length - 2]  = 'e';
     file_path[filename_length - 1]  = 'n';
     file_path[filename_length]      = 't';
     file_path[filename_length + 1]  = NULL_TERMINATOR;
-    sprintf(*ent_filename, "%s%s",output_path,filename);
-    
+    sprintf(*ent_filename, "%s%s", output_path, filename);
     *fp_ent = fopen(*ent_filename, "w+");
-    if(*fp_ent == NULL)
+    if(*fp_ent == NULL) 
     {
-        log_error(__FILE__,__LINE__, "Failed to open [%s] for first pass\n.", *ent_filename);
-        add_error_entry(ErrorType_OpenFileFailure,__FILE__,__LINE__);
+        log_error(__FILE__, __LINE__, "Failed to open [%s]\n", *ent_filename);
+        add_error_entry(ErrorType_OpenFileFailure, __FILE__, __LINE__);
     }
 
+    /* Prepare EXT filename */
     file_path[filename_length - 2]  = 'e';
     file_path[filename_length - 1]  = 'x';
     file_path[filename_length]      = 't';
     file_path[filename_length + 1]  = NULL_TERMINATOR;
-    sprintf(*ext_filename, "%s%s",output_path,filename);
-
+    sprintf(*ext_filename, "%s%s", output_path, filename);
     *fp_ext = fopen(*ext_filename, "w+");
-    if(*fp_ext == NULL)
+    if(*fp_ext == NULL) 
     {
-        log_error(__FILE__,__LINE__, "Failed to open [%s] for first pass\n.", *ext_filename);
-        add_error_entry(ErrorType_OpenFileFailure,__FILE__,__LINE__);
+        log_error(__FILE__, __LINE__, "Failed to open [%s]\n", *ext_filename);
+        add_error_entry(ErrorType_OpenFileFailure, __FILE__, __LINE__);
     }
 
-    if(file_path)
-        free(file_path);
+    free(file_path);
 }
+
 
 void handle_distance_to_label(BinaryNode* binary_node, LabelNode* node)
 {
@@ -162,10 +169,11 @@ void handle_distance_to_label(BinaryNode* binary_node, LabelNode* node)
 
 int complete_first_pass(BinaryTable* binary_table,LabelTable* label_table,FILE** ob_file,FILE** ext_file)
 {
-    int i, flag;
+    int i, flag = VALID_RETURN;
     for (i = 0; i < binary_table->size; i++) 
     {
-        int index,wordfield_number;
+        char* hex_str;
+        int index, wordfield_number;
         BinaryNode* binary_node = binary_table->data[i];
         if(binary_node->unresolved_label != NULL)
         {
@@ -176,13 +184,16 @@ int complete_first_pass(BinaryTable* binary_table,LabelTable* label_table,FILE**
                 remove_first_character(binary_node->unresolved_label);
             }
             else
+            {
                 free(temp_unresolved_label);
+                temp_unresolved_label = NULL;
+            }
 
             if((index = label_table_search(label_table,binary_node->unresolved_label)) != INVALID_RETURN)
             {
                 LabelNode label_node = label_table->labels[index];
 
-                if(temp_unresolved_label[0] == AMPERSAND)
+                if(temp_unresolved_label != NULL && temp_unresolved_label[0] == AMPERSAND)
                 {
                     handle_distance_to_label(binary_node,&label_node);
                     
@@ -233,7 +244,9 @@ int complete_first_pass(BinaryTable* binary_table,LabelTable* label_table,FILE**
             }
         }
         wordfield_number = wordfield_to_int(binary_node->word);
-        fprintf(*ob_file,"%.7d %s\n",binary_node->address,int_to_hex(wordfield_number));
+        hex_str = int_to_hex(wordfield_number);
+        fprintf(*ob_file,"%.7d %s\n",binary_node->address,hex_str);
+        free(hex_str);
     }
 
     return flag;
