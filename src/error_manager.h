@@ -47,7 +47,7 @@ typedef struct
 {
     char*       error_msg;  /* prints the reason of the error including FILE and LINE and recommnedation */
     ErrorType   error_type; /* special types for various errors */
-    const char* file;       /* the file the error occurred */ 
+    char* file;       /* the file the error occurred */ 
     int         line;       /* the line the error occurred */
 } ErrorEntry;
 

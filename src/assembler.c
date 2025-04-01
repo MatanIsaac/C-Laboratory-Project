@@ -38,6 +38,7 @@ int main(int argc,char* argv[])
         {
             log_error(__FILE__,__LINE__,"Failed to open %s, file doesn't exists.\n", current_file);
             file_index++;
+            continue;
         }
 
         if(parse_macros(fp, current_file,output_file,macro_table) != INVALID_RETURN)
@@ -47,7 +48,7 @@ int main(int argc,char* argv[])
             /* 
                 preprares first pass and executes it, 
                 and continues to the 2nd pass     
-                */
+            */
             prepare_first_pass(output_file,macro_table);
         }
         else

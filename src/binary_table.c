@@ -56,7 +56,7 @@ BinaryTable* binary_table_create(size_t initial_size)
     return table;
 }
 
-void binary_table_free(BinaryTable* table) 
+void binary_table_destroy(BinaryTable* table) 
 {
     size_t i;
     if (!table || !table->data) 

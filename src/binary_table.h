@@ -54,7 +54,7 @@ BinaryTable* binary_table_create(size_t initial_size);
  * @brief Frees a BinaryTable and all associated nodes.
  * @param table Pointer to the BinaryTable.
  */
-void binary_table_free(BinaryTable* table);
+void binary_table_destroy(BinaryTable* table);
 
 /**
  * @brief Adds a new BinaryNode with address and line to the table.

@@ -42,19 +42,22 @@ void prepare_first_pass(const char* filepath, MacroTable* macro_table)
     {
         log_error(__FILE__,__LINE__, "Failed to open [%s] for first pass\n.", filepath);
         add_error_entry(ErrorType_OpenFileFailure,__FILE__,__LINE__);
+        label_table_destroy(&label_table);
+        return;
     }
 
     if(execute_first_pass(fp,&label_table,&instruction_table, macro_table,filepath) >= 0) /* success */
     {
         log_out(__FILE__,__LINE__, "Done First-Pass for [%s]\n.", filepath);
-        if(fp)
-        {
-            fclose(fp);
-        }
     }
     else /* first pass failed */
     {
         log_error(__FILE__,__LINE__, "Failed First-Pass for [%s]\n.", filepath);
+    }
+    
+    if(fp)
+    {
+        fclose(fp);
     }
 }   
 
@@ -128,14 +131,16 @@ int execute_first_pass(FILE* fp, LabelTable* label_table, InstructionTable* inst
     
     if(is_errors_array_empty()  == INVALID_RETURN)
     {
+        log_out(__FILE__,__LINE__,"Found Errors in First-Pass!: \n");
         print_errors_array();
+        clean_errors_array();
         flag = INVALID_RETURN;
     }
     else
     {
         log_out(__FILE__,__LINE__,"\n\nFIRST-PASS Alright Alright Alright!\n\n");
     }
-
+    log_out(__FILE__,__LINE__,"Continuing To Second-Pass: \n");
     flag = prepare_second_pass(filepath,binary_table,label_table,ICF,DCF);
 
     return flag;
@@ -358,6 +363,8 @@ int handle_instruction(BinaryTable* binary_table,InstructionTable* instruction_t
         if((*position = read_word_from_line(line, word, *position)) != INVALID_RETURN)
         {    
             add_error_entry(ErrorType_ExtraneousText_Instruction,filepath,current_line);
+            free(wf); 
+            wf = NULL;
             return INVALID_RETURN;
         } 
     }
@@ -481,8 +488,6 @@ void handle_register_operand(BinaryTable* binary_table, char* line, char* word, 
     if(is_register(word) == INVALID_RETURN) /* TODO: Add an error entry if register is invalid. */
     {
         log_error(__FILE__,__LINE__,"Register invalid! Not Valid Register Name.\n");
-        free(wf_instruction);
-        free(word);
         return;
     }
     remove_first_character(word);
@@ -634,7 +639,6 @@ int handle_single_operand_instruction(BinaryTable* binary_table,char* line, char
     case OPERAND_TYPE_REGISTER:
         handle_register_operand(binary_table,line,single_operand,OPERAND_TYPE_SINGLE,TC,filepath,current_line,wf_instruction);
         (*TC)++;
-        wf_instruction = NULL;
 
         /* no use for an extra wordfield if 1st operand is a register */
         if(new_wf)
@@ -669,6 +673,9 @@ int handle_double_operand_instruction(BinaryTable* binary_table,char* line, char
 
     get_double_operands(line,word,position,filepath,current_line,&operand1,&operand2);
     
+    if(operand1 == NULL || operand2 == NULL)
+        return INVALID_RETURN;
+
     /* try to get the next word in line, in order to find extraneous text */
     if((*position = read_word_from_line(line, word, *position)) != INVALID_RETURN)
     {
@@ -887,7 +894,10 @@ void get_double_operands(char* line, char* word, int* position, const char* file
         {
             add_error_entry(ErrorType_InvalidInstruction_MissingTargetOperand,filepath,current_line);
             if(*operand1 != NULL)
+            {
                 free(*operand1);
+                *operand1 = NULL;
+            }
             return;
         }
         *operand2 = my_strdup(word);
@@ -900,7 +910,10 @@ void get_double_operands(char* line, char* word, int* position, const char* file
         {
             add_error_entry(ErrorType_InvalidInstruction_MissingComma,filepath,current_line);      
             if(*operand1 != NULL)
+            {
                 free(*operand1);
+                *operand1 = NULL;
+            }
             return;
         }
         if(word[0] == NULL_TERMINATOR || strlen(word) == 1) 

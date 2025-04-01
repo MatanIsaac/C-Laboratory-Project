@@ -1,4 +1,4 @@
-; adding LIST to r3 register 
+; adding LIST to r3 register - MISSING OPERAND
 MAIN:       add r3,                                                                         LIST 
 LOOP:       prn #48
             mcroa_mc xyz

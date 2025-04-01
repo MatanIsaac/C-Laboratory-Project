@@ -127,10 +127,10 @@ void add_error_entry(ErrorType error_type,const char *file, int line)
 {
     if (error_index < DEFAULT_MAX_ERRORS)
     {
-        errors[error_index].error_msg =  get_error_msg(error_type);
-        errors[error_index].error_type = error_type;
-        errors[error_index].file = my_strdup(file);
-        errors[error_index].line = line;
+        errors[error_index].error_msg   =  get_error_msg(error_type);
+        errors[error_index].error_type  = error_type;
+        errors[error_index].file        = my_strdup(file);
+        errors[error_index].line        = line;
         error_index++;
     }
     else
@@ -145,7 +145,15 @@ void clean_errors_array()
     for (; i < error_index; i++) 
     {
         if (errors[i].error_msg != NULL)
+        {
             free(errors[i].error_msg);
+            errors[i].error_msg = NULL;
+        }
+        if (errors[i].file != NULL)
+        {
+            free(errors[i].file);
+            errors[i].file = NULL;
+        }
     }
     error_index = 0;
 }

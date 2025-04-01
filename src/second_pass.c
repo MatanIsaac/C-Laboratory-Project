@@ -70,9 +70,13 @@ int execute_second_pass(BinaryTable* binary_table,LabelTable* label_table, int I
     if(is_errors_array_empty() == INVALID_RETURN)
     {
         print_errors_array();
+        clean_errors_array();
         binary_table_print(binary_table);
         printf("\n\n");
         label_table_print(label_table);
+        binary_table_destroy(binary_table);
+        label_table_destroy(label_table);
+
         return INVALID_RETURN;
     }
     else
@@ -86,7 +90,7 @@ int execute_second_pass(BinaryTable* binary_table,LabelTable* label_table, int I
     label_table_print(label_table);
     printf("\n\n");
 
-    binary_table_free(binary_table);
+    binary_table_destroy(binary_table);
     label_table_destroy(label_table);
 
     return VALID_RETURN;
@@ -197,7 +201,7 @@ int complete_first_pass(BinaryTable* binary_table,LabelTable* label_table,FILE**
                 {
                     handle_distance_to_label(binary_node,&label_node);
                     
-                    if(temp_unresolved_label)
+                    if(temp_unresolved_label != NULL)
                     {
                         free(temp_unresolved_label);
                         free(binary_node->unresolved_label);
@@ -218,7 +222,6 @@ int complete_first_pass(BinaryTable* binary_table,LabelTable* label_table,FILE**
                     set_wordfield_are(binary_node->word,ARE_EXTERNAL);
                     if(ext_file && *ext_file)
                     {
-                        /* this line still does not add it to the ext_file, why ?*/
                         fprintf(*ext_file,"%s %.7d\n",binary_node->unresolved_label,binary_node->address); 
                     }
                     break;
@@ -241,6 +244,12 @@ int complete_first_pass(BinaryTable* binary_table,LabelTable* label_table,FILE**
             {
                 add_error_entry(ErrorType_InvalidLabel_UndefinedLabel,NULL,binary_node->address);
                 flag = INVALID_RETURN;
+            }
+
+            if(temp_unresolved_label != NULL)
+            {
+                free(temp_unresolved_label);
+                temp_unresolved_label = NULL;
             }
         }
         wordfield_number = wordfield_to_int(binary_node->word);

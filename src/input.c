@@ -70,9 +70,15 @@ int read_line(FILE* fp, char *line)
     /* Read characters until we encounter a new line '\n' or EOF */
     while ((ch = getc(fp)) != EOF && ch != NEW_LINE)
     {
-        if(i < MAX_LINE) /* to ensure not going over character per line */
+        if(i < MAX_LINE-1) /* to ensure not going over character per line */
         {
             line[i++] = ch;
+        }
+        else
+        {
+            /* We've reached max allowed chars, so we discard rest of line to prevent overflow */
+            while ((ch = getc(fp)) != EOF && ch != NEW_LINE);
+            break;
         }
     }
 
@@ -84,5 +90,5 @@ int read_line(FILE* fp, char *line)
         return INVALID_RETURN; 
     }    
 
-    return 1;
+    return VALID_RETURN;
 }

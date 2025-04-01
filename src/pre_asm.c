@@ -17,12 +17,15 @@ int parse_macros(FILE* fp, char* filepath, char* output_file, MacroTable* macro_
     char* word          = string_calloc(MAX_WORD, sizeof(char)); /* holds specific word within a line */
     char* current_file  = my_strdup(filepath); 
     FILE* new_fp        = prepare_am_file(current_file,output_file); /* am file is deleted later if we found any errors */
-    free(current_file); 
+    free(current_file);
+    current_file = NULL; 
     
     if(new_fp == NULL)
     {
         free(word);
+        word = NULL;
         free(line);
+        line = NULL;
         add_error_entry(ErrorType_OpenFileFailure,filepath,line_count);
         return INVALID_RETURN;
     }
@@ -108,13 +111,26 @@ int parse_macros(FILE* fp, char* filepath, char* output_file, MacroTable* macro_
         }
     }
 
-    fclose(new_fp);
-    free(word);
-    free(line);
+    if(new_fp)
+    {
+        fclose(new_fp);
+        new_fp = NULL;
+    }
+    if(word)
+    {
+        free(word);
+        word = NULL;
+    }
+    if(line)
+    {
+        free(line);
+        line = NULL;
+    }
 
     if(is_errors_array_empty() < 0)
     {
         print_errors_array();
+        clean_errors_array();
         flag = INVALID_RETURN;
     }
     else
@@ -200,12 +216,13 @@ FILE* prepare_am_file(char* file, char* output_file)
         log_error(__FILE__,__LINE__, "Failed to open [%s] for pre_asm output\n.", file_path);
         add_error_entry(ErrorType_OpenFileFailure,__FILE__,__LINE__);
         free(file_path);
+        file_path = NULL;
         return NULL;
     }
     
     strcpy(output_file,file_path);
     free(file_path);
-
+    file_path = NULL;
     return new_fp;
 }
 
