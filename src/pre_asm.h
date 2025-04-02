@@ -27,7 +27,6 @@ int handle_new_macro(FILE* fp,MacroTable* macro_table, char* macro_name,char* fi
  */
 FILE* prepare_am_file(char* file, char* output_file);
 
-
 /**
  * @brief Check if a given line is greater than 80 characters
  * @param line The line to check 
@@ -35,6 +34,12 @@ FILE* prepare_am_file(char* file, char* output_file);
  */
 int check_line_length(char* line);
 
-int check_macro_name(const char* word, char* filepath, int* line_count);
+/**
+ * @brief Checks a macro name to make sure its not using a reserved word - label, register, etc..
+ * @param macro_name The macro to check
+ * @param filepath The path to the file we're currently checking (needed for error entries)
+ * @param line_count The current line the macro appeared on (needed for error entries)
+ */
+int check_macro_name(const char* macro_name, char* filepath, int* line_count);
 
 #endif

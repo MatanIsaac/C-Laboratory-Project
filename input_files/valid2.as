@@ -14,7 +14,6 @@ MAIN:       sub r2, LIST
             b_mc
             inc K
             c_mc
-            jmp &LOOP
 END:        stop
 STR:        .string "abcd"
 LIST:       .data 6, -9

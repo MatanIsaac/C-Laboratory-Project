@@ -26,6 +26,16 @@ char* get_filename(char* file);
  */
 char* get_root_folder_name(char* file);
 
+/**
+ * @brief Checks whether a given file is empty.
+ *
+ * Reads the file size by seeking to the end and checking the byte count.
+ *
+ * @param file   The file pointer to check.
+ * @return VALID_RETURN if the file is empty, otherwise INVALID_RETURN.
+ */
+int is_file_empty(FILE* file);
+
 /* ------------------------------------------------------------------ */
 
 /* String utility functions */

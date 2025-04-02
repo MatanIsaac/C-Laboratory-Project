@@ -4,8 +4,12 @@
 #include <string.h>
 #include <stdlib.h>
 
+#define INITIAL_ERROR_CAPACITY 25
+#define ERROR_GROWTH_FACTOR 2
+
+static ErrorEntry* errors = NULL;
 static int error_index = 0;
-static ErrorEntry errors[DEFAULT_MAX_ERRORS];
+static int error_capacity = 0;
 
 static char* get_error_msg(ErrorType error_type)
 {
@@ -123,20 +127,38 @@ static char* get_error_msg(ErrorType error_type)
     return error_msg;
 }
 
-void add_error_entry(ErrorType error_type,const char *file, int line)
+void add_error_entry(ErrorType error_type, const char *file, int line)
 {
-    if (error_index < DEFAULT_MAX_ERRORS)
+    if (errors == NULL)
     {
-        errors[error_index].error_msg   =  get_error_msg(error_type);
-        errors[error_index].error_type  = error_type;
-        errors[error_index].file        = my_strdup(file);
-        errors[error_index].line        = line;
-        error_index++;
+        error_capacity = INITIAL_ERROR_CAPACITY;
+        errors = malloc(sizeof(ErrorEntry) * error_capacity);
+        if (!errors)
+        {
+            log_error(__FILE__, __LINE__, "Failed to allocate memory for error array.");
+            return;
+        }
     }
-    else
+
+    /* Resize when we reach full capacity */
+    if (error_index >= error_capacity)
     {
-        log_error(__FILE__, __LINE__, "Error array is full!");
+        int new_capacity = error_capacity * ERROR_GROWTH_FACTOR;
+        ErrorEntry* new_errors = realloc(errors, sizeof(ErrorEntry) * new_capacity);
+        if (!new_errors)
+        {
+            log_error(__FILE__, __LINE__, "Failed to grow error array.");
+            return;
+        }
+        errors = new_errors;
+        error_capacity = new_capacity;
     }
+
+    errors[error_index].error_msg   = get_error_msg(error_type);
+    errors[error_index].error_type  = error_type;
+    errors[error_index].file        = my_strdup(file);
+    errors[error_index].line        = line;
+    error_index++;
 }
 
 void clean_errors_array()

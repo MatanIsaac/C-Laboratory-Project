@@ -53,17 +53,23 @@ int parse_macros(FILE* fp, char* filepath, char* output_file, MacroTable* macro_
             if((position = read_word_from_line(line, word, position)) != INVALID_RETURN) /* read the line one word at a time */
             {
                 /* check if its a macro call, */
+                /* 
+                    NOTE: if its a label, it can be defined later, so to prevent labels used as a macro name
+                    we simply 'try' to get the macro definition, if its a label temp == NULL and we continue
+                    to add it at lines 74+75. 
+                */
                 if((is_instruction(word) == INVALID_RETURN) && (is_directive(word) == INVALID_RETURN) && 
                     (is_register(word) == INVALID_RETURN))
                 {
                     /* if its not a register/instruction/directive - check if its a macro call */
-                    const char* temp = macro_table_get(macro_table,word); /* try to get the macro */
-                    if(temp != NULL) 
+                    const char* temp = macro_table_get(macro_table,word); 
+                    /* try to get the macro */ 
+                    if(temp != NULL)
                     {
                         fprintf(new_fp,"%s",temp);    
                         continue;
                     }
-                }
+                } 
                 /* if its a register/instruction/directive/label simply add it to the new file */
                 fprintf(new_fp,"%s",line);
                 fputc(NEW_LINE,new_fp);
@@ -95,7 +101,8 @@ int parse_macros(FILE* fp, char* filepath, char* output_file, MacroTable* macro_
                     */
                     flag = check_macro_name(word, filepath, &line_count); 
                 
-                    if (macro_table_get(macro_table,word) == NULL && flag != INVALID_RETURN) /* get the macro value if everything is valid until now */
+                    /* get the macro value if everything is valid until now */
+                    if (macro_table_get(macro_table,word) == NULL && flag != INVALID_RETURN) 
                     {
                         char temp[MAX_WORD];
                         if((position = read_word_from_line(line, temp, position)) != INVALID_RETURN)
@@ -127,7 +134,12 @@ int parse_macros(FILE* fp, char* filepath, char* output_file, MacroTable* macro_
         line = NULL;
     }
 
-    if(is_errors_array_empty() < 0)
+    /* 
+        NOTE: 
+        if we encounter errors we do not continue to first-pass. 
+        we print the errors and clean the errors array right after.
+    */
+    if(is_errors_array_empty() != VALID_RETURN)
     {
         print_errors_array();
         clean_errors_array();
@@ -184,8 +196,11 @@ int handle_new_macro(FILE* fp,MacroTable* macro_table, char* macro_name,char* fi
                 
     macro_table_insert(macro_table, macro_name, current_macro_value);
     free(line);
+    line = NULL;
     free(word);
+    word = NULL;
     free(current_macro_value);
+    current_macro_value = NULL;
     return flag;
 }
 
@@ -231,26 +246,30 @@ int check_line_length(char* line)
     return (strlen(line) < MAX_LINE) ? VALID_RETURN : INVALID_RETURN;
 }
 
-int check_macro_name(const char* word, char* filepath, int* line_count)
+int check_macro_name(const char* macro_name, char* filepath, int* line_count)
 {
-    int macro_length = strlen(word);
+    /* get the length of the macro first and make sure it has the correct length */
+    int macro_length = strlen(macro_name);
     if(macro_length > MAX_MACRO_LENGTH)
     {
         add_error_entry(ErrorType_InvalidMacroName_Length,filepath,*line_count);
         return INVALID_RETURN;
     }
 
-    if(is_instruction(word) == VALID_RETURN)
+    /* check if its an instruction */
+    if(is_instruction(macro_name) == VALID_RETURN)
     {
         add_error_entry(ErrorType_InvalidMacroName_Instruction,filepath,*line_count);
         return INVALID_RETURN;
     }
-    if(is_directive(word) == VALID_RETURN)
+    /* check if its a directive */
+    if(is_directive(macro_name) == VALID_RETURN)
     {
         add_error_entry(ErrorType_InvalidMacroName_Directive,filepath,*line_count);
         return INVALID_RETURN;
     }
-    if(is_register(word) != INVALID_RETURN)
+    /* check if its a register */
+    if(is_register(macro_name) != INVALID_RETURN)
     {
         add_error_entry(ErrorType_InvalidMacroName_Register,filepath,*line_count);
         return INVALID_RETURN;

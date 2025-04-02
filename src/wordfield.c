@@ -4,7 +4,6 @@
 #include "logger.h"
 #include <stdlib.h>
 
-/* Function to print each bit manually in the correct order */
 void print_wordfield(wordfield* w)
 {
     int i;

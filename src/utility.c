@@ -61,6 +61,29 @@ char* get_root_folder_name(char* file)
 }
 
 
+int is_file_empty(FILE* file)
+{
+    long size;
+    long current_pos;
+
+    if (!file)
+        return INVALID_RETURN;
+
+    /* Save current position */ 
+    current_pos = ftell(file);       
+    /* Go to end */
+    fseek(file, 0, SEEK_END);             
+    /* Get position = file size */
+    size = ftell(file);              
+    /* Restore original position */
+    fseek(file, current_pos, SEEK_SET);   
+    
+    if(size == 0)
+        return VALID_RETURN;
+    
+    return INVALID_RETURN;
+}
+
 char* string_calloc(size_t element_count,size_t size_of_element)
 {
     char* str = calloc(element_count,size_of_element);

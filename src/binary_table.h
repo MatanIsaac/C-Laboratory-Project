@@ -58,26 +58,26 @@ void binary_table_destroy(BinaryTable* table);
 
 /**
  * @brief Adds a new BinaryNode with address and line to the table.
- * @param table Pointer to the BinaryTable.
- * @param address The address for the new node.
- * @param line The line to associate with the node.
- * @param unresolved_label The unresolved label to be set in 2nd-Pass
+ * @param table             Pointer to the BinaryTable.
+ * @param address           The address for the new node.
+ * @param line              The line to associate with the node.
+ * @param unresolved_label  The unresolved label to be set in 2nd-Pass
  */
 void binary_node_add(BinaryTable* table, unsigned int address, char* line,char* unresolved_label);
 
 /**
  * @brief Sets the wordfield of a BinaryNode by its address.
- * @param table Pointer to the BinaryTable.
- * @param address The address to search for.
- * @param word Pointer to the wordfield to set.
+ * @param table     Pointer to the BinaryTable.
+ * @param address   The address to search for.
+ * @param word      Pointer to the wordfield to set.
  */
 void set_binary_node_wordfield(BinaryTable* table, unsigned int address, wordfield* word);
 
 /**
  * @brief Sets the unresolved label of a BinaryNode
- * @param table Pointer to the BinaryTable.
- * @param address The address to search for.
- * @param label_name The name of the unresolved label to set.
+ * @param table         Pointer to the BinaryTable.
+ * @param address       The address to search for.
+ * @param label_name    The name of the unresolved label to set.
  */
 void set_binary_node_unresolved_label(BinaryTable* table, unsigned int address, char* name);
 
@@ -89,8 +89,8 @@ void binary_table_print(BinaryTable* table);
 
 /**
  * @brief Searches for a BinaryNode by address.
- * @param table Pointer to the BinaryTable.
- * @param address The address to find.
+ * @param table     Pointer to the BinaryTable.
+ * @param address   The address to find.
  * @return The index if found, otherwise -1.
  */
 int binary_table_search(BinaryTable* table, unsigned int address);

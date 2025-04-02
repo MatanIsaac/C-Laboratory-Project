@@ -48,26 +48,26 @@ void instruction_table_destroy(InstructionTable* table);
 
 /**
  * @brief Inserts a new instruction into the table.
- * @param table Pointer to the InstructionTable.
- * @param op_name The operation name.
- * @param op_code The primary opcode.
- * @param funct The secondary code.
+ * @param table     Pointer to the InstructionTable.
+ * @param op_name   The operation name.
+ * @param op_code   The primary opcode.
+ * @param funct     The secondary code.
  * @return 0 on success, -1 if the table is full.
  */
 int instruction_table_insert(InstructionTable* table, const char* op_name, unsigned int op_code, unsigned int funct);
 
 /**
  * @brief Retrieves an instruction by name.
- * @param table Pointer to the InstructionTable.
- * @param op_name The operation name to look up.
+ * @param table     Pointer to the InstructionTable.
+ * @param op_name   The operation name to look up.
  * @return Pointer to the found InstructionNode, or NULL if not found.
  */
 InstructionNode* instruction_table_get(InstructionTable* table, const char* op_name);
 
 /**
  * @brief Removes an instruction by name.
- * @param table Pointer to the InstructionTable.
- * @param op_name The operation name to remove.
+ * @param table     Pointer to the InstructionTable.
+ * @param op_name   The operation name to remove.
  */
 void instruction_table_remove(InstructionTable* table, const char* op_name);
 
@@ -77,11 +77,10 @@ void instruction_table_remove(InstructionTable* table, const char* op_name);
  */
 void instruction_table_print(InstructionTable* table);
 
-
 /**
  * @brief Returns the index of an instruction in the instruction table by name.
  * @param op_name A C-string representing the instruction name to search for.
- * @return An integer index if found, or -1 if the instruction name is not recognized.
+ * @return An integer index if found, or INVALID_RETURN if the instruction name is not recognized.
  */
 int get_instruction_index(const char* op_name);
 

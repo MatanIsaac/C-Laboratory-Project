@@ -64,10 +64,10 @@ void label_table_destroy(LabelTable* table);
 
 /**
  * @brief Adds a label entry to the table.
- * @param table Pointer to the LabelTable.
- * @param name The label name.
- * @param address The label address.
- * @param type The label type.
+ * @param table     Pointer to the LabelTable.
+ * @param name      The label name.
+ * @param address   The label address.
+ * @param type      The label type.
  */
 void label_table_add(LabelTable* table, char* name, unsigned int address, enum LabelType type);
 
@@ -80,35 +80,35 @@ void label_table_print(LabelTable* table);
 /**
  * @brief Searches for a label by name.
  * @param table Pointer to the LabelTable.
- * @param name The label name to search for.
- * @return The index of the label if found, otherwise -1.
+ * @param name  The label name to search for.
+ * @return The index of the label if found, otherwise INVALID_RETURN.
  */
 int label_table_search(LabelTable* table, char* name);
 
 /**
  * @brief Searches for a label by address.
- * @param table Pointer to the LabelTable.
- * @param address The label address to search for.
- * @return The index of the label if found, otherwise -1.
+ * @param table     Pointer to the LabelTable.
+ * @param address   The label address to search for.
+ * @return The index of the label if found, otherwise INVALID_RETURN.
  */
 int label_table_search_by_address(LabelTable* table, unsigned int address);
 
 /**
  * @brief Updates a label's address and type by name.
- * @param table Pointer to the LabelTable.
- * @param name The label name.
- * @param address The new address.
- * @param type The new type.
- * @return The index if found and updated, otherwise -1.
+ * @param table     Pointer to the LabelTable.
+ * @param name      The label name.
+ * @param address   The new address.
+ * @param type      The new type.
+ * @return The index if found and updated, otherwise INVALID_RETURN.
  */
 int label_table_set_node_by_name(LabelTable* table,char* name, unsigned int address, enum LabelType type);
 
 /**
  * @brief Sets a label's type by its address.
- * @param table Pointer to the LabelTable.
- * @param address The label address.
- * @param type The new type.
- * @return The index if found and updated, otherwise -1.
+ * @param table     Pointer to the LabelTable.
+ * @param address   The label address.
+ * @param type      The new type.
+ * @return The index if found and updated, otherwise INVALID_RETURN.
  */
 int label_table_set_label_type(LabelTable* table,unsigned int address, enum LabelType type);
 
