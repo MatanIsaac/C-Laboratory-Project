@@ -96,7 +96,15 @@ Generated Machine Code:
     -----------------------------------------------------------------------------------
     0000106 | inc r6             |                           | 000000000000001111010010
 
-
+Generated Object File:
+    
+    0000100 0b680c
+    0000101 000412
+    0000102 340004
+    0000103 000184
+    0000104 111e04
+    0000105 000001
+    0000106 141e1c
 
 ### <div align="center"> Contact </div>
 For any questions, suggestions, or issues, feel free to send me a message !
