@@ -71,24 +71,12 @@ int execute_second_pass(BinaryTable* binary_table,LabelTable* label_table, int I
     {
         print_errors_array();
         clean_errors_array();
-        binary_table_print(binary_table);
-        printf("\n\n");
-        label_table_print(label_table);
+
         binary_table_destroy(binary_table);
         label_table_destroy(label_table);
 
         return INVALID_RETURN;
     }
-    else
-    {
-        log_out(__FILE__,__LINE__,"\n\nSECOND-PASS Alright Alright Alright!\n\n");
-    }
-
-    printf("\n\n");
-    binary_table_print(binary_table);
-    printf("\n\n");
-    label_table_print(label_table);
-    printf("\n\n");
 
     binary_table_destroy(binary_table);
     label_table_destroy(label_table);

@@ -145,11 +145,7 @@ int parse_macros(FILE* fp, char* filepath, char* output_file, MacroTable* macro_
         clean_errors_array();
         flag = INVALID_RETURN;
     }
-    else
-    {
-        log_out(__FILE__,__LINE__,"\n\nAlright Alright Alright!\n\n");
-    }
-
+    
     return flag;
 }
 

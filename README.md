@@ -1,7 +1,8 @@
 # <div align="center">Assembler Project - C-Laboratory #20465 </div>
 
-This project is the final project (assignment #14) for the Open University's C-Laboratory Course #20465 in C Programming. 
-The goal is to implement an assembler for an imaginary computer, converting assembly source code into machine-readable instructions.
+This project is the final assignment (#14) for the Open University’s C-Laboratory Course #20465.
+The objective is to implement an assembler for an imaginary computer, translating assembly source code into a binary representation suitable for machine execution.
+Development was done on Linux Ubuntu 16.04, per course requirements.
 
 ### <div align="center"> Project Objectives </div>
 

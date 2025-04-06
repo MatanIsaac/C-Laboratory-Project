@@ -134,12 +134,12 @@ int execute_first_pass(FILE* fp, LabelTable* label_table, InstructionTable* inst
         log_out(__FILE__,__LINE__,"Found Errors in First-Pass!: \n");
         print_errors_array();
         clean_errors_array();
-        flag = INVALID_RETURN;
+    
+        log_out(__FILE__,__LINE__,"Continuing To Second-Pass: \n");
+        flag = prepare_second_pass(filepath,binary_table,label_table,ICF,DCF);
+        return INVALID_RETURN;
     }
-    else
-    {
-        log_out(__FILE__,__LINE__,"\n\nFIRST-PASS Alright Alright Alright!\n\n");
-    }
+
     log_out(__FILE__,__LINE__,"Continuing To Second-Pass: \n");
     flag = prepare_second_pass(filepath,binary_table,label_table,ICF,DCF);
 

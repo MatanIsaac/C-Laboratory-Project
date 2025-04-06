@@ -1,19 +1,12 @@
-CC 			= gcc
+CC 		= gcc
 CFLAGS 		= -Wall -ansi -pedantic -g
 SRC_DIR 	= src
 BUILD_DIR 	= build
-
-ifeq ($(OS),Windows_NT)
-OBJ_DIR = $(BUILD_DIR)\\obj
-OUTPUT_DIR 	= $(BUILD_DIR)\\output_files
-else
-OBJ_DIR = $(BUILD_DIR)/obj
+OBJ_DIR 	= $(BUILD_DIR)/obj
 OUTPUT_DIR 	= $(BUILD_DIR)/output_files
-endif
-
-SRCS = $(wildcard $(SRC_DIR)/*.c)
-OBJS = $(patsubst $(SRC_DIR)/%.c,$(OBJ_DIR)/%.o,$(SRCS))
-TARGET = $(BUILD_DIR)/assembler
+SRCS 		= $(wildcard $(SRC_DIR)/*.c)
+OBJS 		= $(patsubst $(SRC_DIR)/%.c,$(OBJ_DIR)/%.o,$(SRCS))
+TARGET 		= $(BUILD_DIR)/assembler
 
 all: $(TARGET)
 
